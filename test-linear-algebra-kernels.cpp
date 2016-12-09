@@ -1,5 +1,3 @@
-// g++ -std=c++11 -Wall -O3 -march=native -o test-linear-algebra-kernels test-linear-algebra-kernels.cpp
-
 #include <cassert>
 #include <iostream>
 

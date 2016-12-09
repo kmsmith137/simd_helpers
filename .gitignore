@@ -1,3 +1,4 @@
 *~
 *.o
+Makefile.local
 test-linear-algebra-kernels

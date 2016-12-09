@@ -1,0 +1,2 @@
+INCDIR=$(HOME)/include
+CPP=g++ -std=c++11 -Wall -O3 -march=native
