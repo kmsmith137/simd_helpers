@@ -29,7 +29,7 @@ static void test_downsample(std::mt19937 &rng)
     simd_t<T,S> y = downsample(x);
 
     double epsilon = compare(vectorize(y), reference_downsample(vectorize(x),N));
-    cout << epsilon << endl;
+    assert(epsilon < 1.0e-6);
 }
 
 
@@ -38,10 +38,11 @@ int main(int argc, char **argv)
     std::random_device rd;
     std::mt19937 rng(rd());
 
-    for (int iter = 0; iter < 10; iter++) {
+    for (int iter = 0; iter < 100; iter++) {
 	test_downsample<float,4,2> (rng);
+	test_downsample<float,4,4> (rng);
     }
 
-    cout << "pass\n";
+    cout << "test-udsample: pass\n";
     return 0;
 }
