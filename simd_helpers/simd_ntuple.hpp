@@ -51,6 +51,14 @@ struct simd_ntuple
     template<unsigned int M, typename std::enable_if<(M < N-1),int>::type = 0>
     inline simd_t<T,S> extract() const { return v.template extract<M>(); }
 
+    // Non-const version of extract<>()
+    template<unsigned int M, typename std::enable_if<(M == N-1),int>::type = 0>
+    inline simd_t<T,S> &extract() { return x; }
+
+    // Non-const version of extract<>()
+    template<unsigned int M, typename std::enable_if<(M < N-1),int>::type = 0>
+    inline simd_t<T,S> &extract() { return v.template extract<M>(); }
+
     inline simd_ntuple<T,S,N> &operator+=(const simd_ntuple<T,S,N> &t)  { v += t.v; x += t.x; return *this; }
     inline simd_ntuple<T,S,N> &operator-=(const simd_ntuple<T,S,N> &t)  { v -= t.v; x -= t.x; return *this; }
     inline simd_ntuple<T,S,N> &operator*=(const simd_ntuple<T,S,N> &t)  { v *= t.v; x *= t.x; return *this; }

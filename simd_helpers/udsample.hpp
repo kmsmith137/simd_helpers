@@ -140,7 +140,7 @@ inline simd_t<float,8> downsample(const simd_ntuple<float,8,8> &t)
 
 inline void upsample(simd_ntuple<float,4,2> &out, simd_t<float,4> t)
 {
-    _kernel128_upsample2(out.v.x.x, out.x.x, t.x);
+    _kernel128_upsample2(out.extract<0>().x, out.extract<1>().x, t.x);
 }
 
 
