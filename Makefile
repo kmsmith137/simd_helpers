@@ -32,7 +32,7 @@ all: $(TESTFILES)
 # FIXME needs 'make test'
 
 clean:
-	rm -f *~ simd_helpers/*~ $(TESTFILES)
+	rm -f *~ simd_helpers/*~ .gitignore~ $(TESTFILES)
 
 install:
 	mkdir -p $(INCDIR)
