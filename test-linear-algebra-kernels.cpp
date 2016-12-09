@@ -133,14 +133,13 @@ void test_linear_algebra_kernels_N(std::mt19937 &rng)
     // cholseky_flagged_in_place(), in case where all matrices are positive definite
     simd_trimatrix<T,S,N> m3 = p;
     simd_t<int,S> flags = m3.cholesky_in_place_checked(1.0e-3);
-    int all_true = flags.compare_eq(1).test_all_ones();
     epsilon = compare(vectorize(m), vectorize(m3));
     assert(epsilon < 1.0e-6);
-    assert(all_true);
+    assert(flags.test_all_ones());
 
     // cholseky_flagged_in_place(), with some random non positive definite matrices along for the ride
 
-    simd_t<int,S> target_flags = uniform_random_simd_t<int,S> (rng, 0, 1);
+    simd_t<int,S> target_flags = uniform_random_simd_t<int,S> (rng, -1, 0);
 
     vector<int> v_f = vectorize(target_flags);
     vector<T> v_p = vectorize(p);
@@ -165,8 +164,8 @@ void test_linear_algebra_kernels_N(std::mt19937 &rng)
     simd_trimatrix<T,S,N> m4 = pack_simd_trimatrix<T,S,N> (v_p);
     
     simd_t<int,S> actual_flags = m4.cholesky_in_place_checked(1.0e-2);
-    simd_t<int,S> flag_agreement = actual_flags.compare_eq(target_flags);
-    assert(flag_agreement.test_all_ones());
+    int flags_agree = actual_flags.compare_eq(target_flags).test_all_ones();
+    assert(flags_agree);
 
     vector<T> v_m = vectorize(m);
     vector<T> v_m4 = vectorize(m4);
