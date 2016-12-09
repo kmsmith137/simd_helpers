@@ -96,10 +96,16 @@ inline __m256 _kernel256_downsample8(__m256 a, __m256 b, __m256 c, __m256 d, __m
     __m256 abcd = _kernel256_downsample8a(a, b, c, d);    // [ a0 b0 c0 d0 a1 b1 c1 d1 ]
     __m256 efgh = _kernel256_downsample8a(e, f, g, h);    // [ e0 f0 g0 h0 e1 f1 g1 h1 ]
 
-
     __m256 u = _mm256_blend_ps(abcd, efgh, 0xf0);         // [ a0 b0 c0 d0 e1 f1 g1 h1 ],  0xf0 = (11110000)_2
     __m256 v = _mm256_permute2f128_ps(abcd, efgh, 0x21);  // [ a1 b1 c1 d1 e0 f0 g0 h0 ]
     return u + v;
+}
+
+
+inline void _kernel128_upsample2(__m128 &a, __m128 &b, __m128 t)
+{
+    a = _mm_permute_ps(t, 0x50);  // (1100)_4
+    b = _mm_permute_ps(t, 0xfa);  // (3322)_4
 }
 
 
@@ -130,6 +136,11 @@ inline simd_t<float,8> downsample(const simd_ntuple<float,8,8> &t)
 {
     return _kernel256_downsample8(t.extract<0>().x, t.extract<1>().x, t.extract<2>().x, t.extract<3>().x,
 				  t.extract<4>().x, t.extract<5>().x, t.extract<6>().x, t.extract<7>().x);
+}
+
+inline void upsample(simd_ntuple<float,4,2> &out, simd_t<float,4> t)
+{
+    _kernel128_upsample2(out.v.x.x, out.x.x, t.x);
 }
 
 
