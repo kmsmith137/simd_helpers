@@ -108,6 +108,14 @@ inline void _kernel128_upsample2(__m128 &a, __m128 &b, __m128 t)
     b = _mm_permute_ps(t, 0xfa);  // (3322)_4
 }
 
+inline void _kernel128_upsample4(__m128 &a, __m128 &b, __m128 &c, __m128 &d, __m128 t)
+{
+    a = _mm_permute_ps(t, 0x00);  // (0000)_4
+    b = _mm_permute_ps(t, 0x55);  // (1111)_4
+    c = _mm_permute_ps(t, 0xaa);  // (2222)_4
+    d = _mm_permute_ps(t, 0xff);  // (3333)_4
+}
+
 
 // -------------------------------------------------------------------------------------------------
 
@@ -141,6 +149,11 @@ inline simd_t<float,8> downsample(const simd_ntuple<float,8,8> &t)
 inline void upsample(simd_ntuple<float,4,2> &out, simd_t<float,4> t)
 {
     _kernel128_upsample2(out.extract<0>().x, out.extract<1>().x, t.x);
+}
+
+inline void upsample(simd_ntuple<float,4,4> &out, simd_t<float,4> t)
+{
+    _kernel128_upsample4(out.extract<0>().x, out.extract<1>().x, out.extract<2>().x, out.extract<3>().x, t.x);
 }
 
 
