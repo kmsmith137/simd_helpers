@@ -41,6 +41,7 @@ int main(int argc, char **argv)
     for (int iter = 0; iter < 100; iter++) {
 	test_downsample<float,4,2> (rng);
 	test_downsample<float,4,4> (rng);
+	test_downsample<float,8,2> (rng);
     }
 
     cout << "test-udsample: pass\n";
