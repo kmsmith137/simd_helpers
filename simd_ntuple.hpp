@@ -1,7 +1,16 @@
+#ifndef _SIMD_HELPERS_SIMD_NTUPLE_HPP
+#define _SIMD_HELPERS_SIMD_NTUPLE_HPP
+
+#if (__cplusplus < 201103) && !defined(__GXX_EXPERIMENTAL_CXX0X__)
+#error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
+#endif
+
 #include "simd_t.hpp"
 
-#ifndef _SIMD_NTUPLE_HPP
-#define _SIMD_NTUPLE_HPP
+namespace simd_helpers {
+#if 0
+}  // pacify emacs c-mode
+#endif
 
 
 template<typename T, unsigned int S, unsigned int N>
@@ -131,4 +140,7 @@ template<typename T, unsigned int S, unsigned int N>
 inline simd_ntuple<T,S,N> operator/(const simd_t<T,S> &x, const simd_ntuple<T,S,N> &y) { return y._rdiv(x); }
 
 
-#endif // _SIMD_NTUPLE_HPP
+}  // namespace simd_helpers
+
+#endif // _SIMD_HELPERS_SIMD_NTUPLE_HPP
+

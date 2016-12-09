@@ -1,3 +1,10 @@
+#ifndef _SIMD_HELPERS_SIMD_DEBUG_HPP
+#define _SIMD_HELPERS_SIMD_DEBUG_HPP
+
+#if (__cplusplus < 201103) && !defined(__GXX_EXPERIMENTAL_CXX0X__)
+#error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
+#endif
+
 #include <vector>
 #include <random>
 #include <cassert>
@@ -7,6 +14,11 @@
 #include "simd_t.hpp"
 #include "simd_ntuple.hpp"
 #include "simd_trimatrix.hpp"
+
+namespace simd_helpers {
+#if 0
+}  // pacify emacs c-mode
+#endif
 
 
 // -------------------------------------------------------------------------------------------------
@@ -273,3 +285,8 @@ std::ostream &operator<<(std::ostream &os, const simd_trimatrix<T,S,N> &m)
     os << "}";
     return os;
 }
+
+
+}  // namespace simd_helpers
+
+#endif // _SIMD_HELPERS_SIMD_DEBUG_HPP

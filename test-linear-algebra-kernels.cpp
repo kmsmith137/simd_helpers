@@ -6,6 +6,7 @@
 #include "simd_debug.hpp"
 
 using namespace std;
+using namespace simd_helpers;
 
 
 template<typename T>

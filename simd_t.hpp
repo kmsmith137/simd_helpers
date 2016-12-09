@@ -1,9 +1,19 @@
+#ifndef _SIMD_HELPERS_SIMD_T_HPP
+#define _SIMD_HELPERS_SIMD_T_HPP
+
+#if (__cplusplus < 201103) && !defined(__GXX_EXPERIMENTAL_CXX0X__)
+#error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
+#endif
+
 #include <cmath>
 #include <sstream>
 #include "immintrin.h"
 
-#ifndef _SIMD_T_HPP
-#define _SIMD_T_HPP
+namespace simd_helpers {
+#if 0
+}  // pacify emacs c-mode
+#endif
+
 
 template<typename T, unsigned int S> struct simd_t;
 
@@ -243,4 +253,6 @@ template<typename T, unsigned int S> inline simd_t<T,S> operator*(T a, simd_t<T,
 template<typename T, unsigned int S> inline simd_t<T,S> operator*(simd_t<T,S> a, T b) { return a * simd_t<T,S>(b); }
 
 
-#endif
+}  // namespace simd_helpers
+
+#endif // _SIMD_HELPERS_SIMD_T_HPP
