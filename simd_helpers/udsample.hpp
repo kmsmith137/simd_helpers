@@ -126,6 +126,20 @@ inline void _kernel256_upsample2(__m256 &a, __m256 &b, __m256 t)
     b = _mm256_permute2f128_ps(u, v, 0x31);  // [ t4 t4 t5 t5 t6 t6 t7 t7 ]
 }
 
+inline void _kernel256_upsample4(__m256 &a, __m256 &b, __m256 &c, __m256 &d, __m256 t)
+{
+    // [ t0 t1 t2 t3 t4 t5 t6 t7 ]
+
+    __m256 u = _mm256_permute_ps(t, 0xb1);          // [ t1 t0 t3 t2 t5 t4 t7 t6 ],  0xb1 = (2301)_4
+    __m256 v = _mm256_permute2f128_ps(t, t, 0x01);  // [ t4 t5 t6 t7 t0 t1 t2 t3 ]
+    __m256 w = _mm256_blend_ps(u, v, 0xa5);         // [ t4 t0 t6 t2 t5 t1 t7 t3 ],  0xa5 = (10100101)_2
+
+    a = _mm256_permute_ps(w, 0x55);  // [ t0 t0 t0 t0 t1 t1 t1 t1 ],  (1111)_4
+    b = _mm256_permute_ps(w, 0xff);  // [ t2 t2 t2 t2 t3 t3 t3 t3 ],  (3333)_4
+    c = _mm256_permute_ps(w, 0x00);  // [ t4 t4 t4 t4 t5 t5 t5 t5 ],  (0000)_4
+    d = _mm256_permute_ps(w, 0xaa);  // [ t6 t6 t6 t6 t7 t7 t7 t7 ],  (2222)_4
+}
+
 inline void _kernel256_upsample8(__m256 &a, __m256 &b, __m256 &c, __m256 &d, __m256 &e, __m256 &f, __m256 &g, __m256 &h, __m256 t)
 {
     __m256 u = _mm256_permute2f128_ps(t, t, 0x00);
@@ -185,6 +199,11 @@ inline void upsample(simd_ntuple<float,4,4> &out, simd_t<float,4> t)
 inline void upsample(simd_ntuple<float,8,2> &out, simd_t<float,8> t)
 {
     _kernel256_upsample2(out.extract<0>().x, out.extract<1>().x, t.x);
+}
+
+inline void upsample(simd_ntuple<float,8,4> &out, simd_t<float,8> t)
+{
+    _kernel256_upsample4(out.extract<0>().x, out.extract<1>().x, out.extract<2>().x, out.extract<3>().x, t.x);
 }
 
 inline void upsample(simd_ntuple<float,8,8> &out, simd_t<float,8> t)
