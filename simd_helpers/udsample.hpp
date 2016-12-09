@@ -116,6 +116,16 @@ inline void _kernel128_upsample4(__m128 &a, __m128 &b, __m128 &c, __m128 &d, __m
     d = _mm_permute_ps(t, 0xff);  // (3333)_4
 }
 
+inline void _kernel256_upsample2(__m256 &a, __m256 &b, __m256 t)
+{
+    // Is this fastest?
+    __m256 u = _mm256_permute_ps(t, 0x50);   // [ t0 t0 t1 t1 t4 t4 t5 t5 ]
+    __m256 v = _mm256_permute_ps(t, 0xfb);   // [ t2 t2 t3 t3 t6 t6 t7 t7 ]
+
+    a = _mm256_permute2f128_ps(u, v, 0x20);  // [ t0 t0 t1 t1 t2 t2 t3 t3 ]
+    b = _mm256_permute2f128_ps(u, v, 0x31);  // [ t4 t4 t5 t5 t6 t6 t7 t7 ]
+}
+
 
 // -------------------------------------------------------------------------------------------------
 
@@ -154,6 +164,11 @@ inline void upsample(simd_ntuple<float,4,2> &out, simd_t<float,4> t)
 inline void upsample(simd_ntuple<float,4,4> &out, simd_t<float,4> t)
 {
     _kernel128_upsample4(out.extract<0>().x, out.extract<1>().x, out.extract<2>().x, out.extract<3>().x, t.x);
+}
+
+inline void upsample(simd_ntuple<float,8,2> &out, simd_t<float,8> t)
+{
+    _kernel256_upsample2(out.extract<0>().x, out.extract<1>().x, t.x);
 }
 
 

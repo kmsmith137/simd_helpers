@@ -76,6 +76,7 @@ int main(int argc, char **argv)
 	
 	test_upsample<float,4,2> (rng);
 	test_upsample<float,4,4> (rng);
+	test_upsample<float,8,2> (rng);
     }
 
     cout << "test-udsample: pass\n";
