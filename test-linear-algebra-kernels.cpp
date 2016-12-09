@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "simd_debug.hpp"
+#include "simd_helpers/simd_debug.hpp"
 
 using namespace std;
 using namespace simd_helpers;
