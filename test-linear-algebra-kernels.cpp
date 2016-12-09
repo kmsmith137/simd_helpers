@@ -3,7 +3,6 @@
 #include <cassert>
 #include <iostream>
 
-#include "../random.hpp"
 #include "simd_debug.hpp"
 
 using namespace std;
