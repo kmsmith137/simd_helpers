@@ -14,6 +14,7 @@
 #include "simd_t.hpp"
 #include "simd_ntuple.hpp"
 #include "simd_trimatrix.hpp"
+#include "udsample.hpp"
 
 namespace simd_helpers {
 #if 0

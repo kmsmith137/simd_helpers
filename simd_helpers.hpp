@@ -8,6 +8,7 @@
 #include "simd_helpers/simd_t.hpp"
 #include "simd_helpers/simd_ntuple.hpp"
 #include "simd_helpers/simd_trimatrix.hpp"
+#include "simd_helpers/udsample.hpp"
 
 // not included by default
 // #include "simd_helpers/simd_debug.hpp"

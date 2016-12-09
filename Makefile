@@ -22,9 +22,11 @@ INCFILES_TOP=simd_helpers.hpp
 INCFILES_SUB=simd_helpers/simd_t.hpp \
 	simd_helpers/simd_ntuple.hpp \
 	simd_helpers/simd_trimatrix.hpp \
-	simd_helpers/simd_debug.hpp
+	simd_helpers/simd_debug.hpp \
+	simd_helpers/udsample.hpp
 
-TESTFILES=test-linear-algebra-kernels
+TESTFILES=test-linear-algebra-kernels \
+	test-udsample
 
 
 all: $(TESTFILES)
@@ -45,4 +47,7 @@ uninstall:
 	rmdir $(INCDIR)/simd_helpers
 
 test-linear-algebra-kernels: test-linear-algebra-kernels.cpp $(INCFILES_TOP) $(INCFILES_SUB)
+	$(CPP) -o $@ $<
+
+test-udsample: test-udsample.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<

@@ -9,6 +9,7 @@ Compilation instructions:
 ```
 ln -s site/Makefile.local.noprootprivs Makefile.local   # see comment in Makefile for discussion
 make
-./test-linear-algebra-kernels    # currently the only unit test
+./test-linear-algebra-kernels    # currently unit tests must be run individually by hand
+./test-udsample
 make install
 ```
