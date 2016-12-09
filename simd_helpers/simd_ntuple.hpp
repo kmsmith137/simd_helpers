@@ -45,6 +45,12 @@ struct simd_ntuple
 	x = p[N-1];
     }
 
+    template<unsigned int M, typename std::enable_if<(M == N-1),int>::type = 0>
+    inline simd_t<T,S> extract() const { return x; }
+
+    template<unsigned int M, typename std::enable_if<(M < N-1),int>::type = 0>
+    inline simd_t<T,S> extract() const { return v.template extract<M>(); }
+
     inline simd_ntuple<T,S,N> &operator+=(const simd_ntuple<T,S,N> &t)  { v += t.v; x += t.x; return *this; }
     inline simd_ntuple<T,S,N> &operator-=(const simd_ntuple<T,S,N> &t)  { v -= t.v; x -= t.x; return *this; }
     inline simd_ntuple<T,S,N> &operator*=(const simd_ntuple<T,S,N> &t)  { v *= t.v; x *= t.x; return *this; }
@@ -125,6 +131,11 @@ struct simd_ntuple<T,S,0>
 
     inline void horizontal_sum_in_place() { }
 };
+
+
+// -------------------------------------------------------------------------------------------------
+//
+// Arithmetic operators
 
 
 template<typename T, unsigned int S, unsigned int N> 

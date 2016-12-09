@@ -24,8 +24,8 @@ namespace simd_helpers {
 
 inline simd_t<float,4> downsample(const simd_ntuple<float,4,2> &t)
 {
-    simd_t<float,4> u = _mm_shuffle_ps(t.v.x.x, t.x.x, 0x88);   // [v0 v2 v4 v6],  0x88 = (2020)_4
-    simd_t<float,4> v = _mm_shuffle_ps(t.v.x.x, t.x.x, 0xdd);   // [v1 v3 v5 v7],  0xdd = (3131)_4
+    simd_t<float,4> u = _mm_shuffle_ps(t.extract<0>().x, t.extract<1>().x, 0x88);   // [v0 v2 v4 v6],  0x88 = (2020)_4
+    simd_t<float,4> v = _mm_shuffle_ps(t.extract<0>().x, t.extract<1>().x, 0xdd);   // [v1 v3 v5 v7],  0xdd = (3131)_4
     return u + v;
 }
 
