@@ -57,7 +57,6 @@ inline __m256 _kernel256_downsample2(__m256 a, __m256 b)
     return _mm256_blend_ps(x, y, 0x3c);   // (00111100)_2
 }
 
-
 inline __m256 _kernel256_downsample4(__m256 a, __m256 b, __m256 c, __m256 d)
 {
     // Until the very end of this routine, all operations are happening
@@ -83,6 +82,29 @@ inline __m256 _kernel256_downsample4(__m256 a, __m256 b, __m256 c, __m256 d)
     return _mm256_blend_ps(x, y, 0x5a);   // (01011010)_2
 }
 
+// Helper for _kernel256_downsample8().
+inline __m256 _kernel256_downsample8a(__m256 a, __m256 b, __m256 c, __m256 d)
+{
+    __m256 ab = _mm256_shuffle_ps(a, b, 0x88) + _mm256_shuffle_ps(a, b, 0xdd);
+    __m256 cd = _mm256_shuffle_ps(c, d, 0x88) + _mm256_shuffle_ps(c, d, 0xdd);
+    return _mm256_shuffle_ps(ab, cd, 0x88) + _mm256_shuffle_ps(ab, cd, 0xdd);
+    
+}
+
+inline __m256 _kernel256_downsample8(__m256 a, __m256 b, __m256 c, __m256 d, __m256 e, __m256 f, __m256 g, __m256 h)
+{
+    __m256 abcd = _kernel256_downsample8a(a, b, c, d);    // [ a0 b0 c0 d0 a1 b1 c1 d1 ]
+    __m256 efgh = _kernel256_downsample8a(e, f, g, h);    // [ e0 f0 g0 h0 e1 f1 g1 h1 ]
+
+
+    __m256 u = _mm256_blend_ps(abcd, efgh, 0xf0);         // [ a0 b0 c0 d0 e1 f1 g1 h1 ],  0xf0 = (11110000)_2
+    __m256 v = _mm256_permute2f128_ps(abcd, efgh, 0x21);  // [ a1 b1 c1 d1 e0 f0 g0 h0 ]
+    return u + v;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
 
 inline simd_t<float,4> downsample(const simd_ntuple<float,4,2> &t)
 {
@@ -102,6 +124,12 @@ inline simd_t<float,8> downsample(const simd_ntuple<float,8,2> &t)
 inline simd_t<float,8> downsample(const simd_ntuple<float,8,4> &t)
 {
     return _kernel256_downsample4(t.extract<0>().x, t.extract<1>().x, t.extract<2>().x, t.extract<3>().x);
+}
+
+inline simd_t<float,8> downsample(const simd_ntuple<float,8,8> &t)
+{
+    return _kernel256_downsample8(t.extract<0>().x, t.extract<1>().x, t.extract<2>().x, t.extract<3>().x,
+				  t.extract<4>().x, t.extract<5>().x, t.extract<6>().x, t.extract<7>().x);
 }
 
 

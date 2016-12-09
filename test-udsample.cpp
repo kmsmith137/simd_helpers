@@ -1,4 +1,5 @@
 #include "simd_helpers/simd_debug.hpp"
+#include "simd_helpers/udsample.hpp"
 
 using namespace std;
 using namespace simd_helpers;
@@ -43,6 +44,7 @@ int main(int argc, char **argv)
 	test_downsample<float,4,4> (rng);
 	test_downsample<float,8,2> (rng);
 	test_downsample<float,8,4> (rng);
+	test_downsample<float,8,8> (rng);
     }
 
     cout << "test-udsample: pass\n";
