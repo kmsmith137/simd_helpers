@@ -42,6 +42,7 @@ int main(int argc, char **argv)
 	test_downsample<float,4,2> (rng);
 	test_downsample<float,4,4> (rng);
 	test_downsample<float,8,2> (rng);
+	test_downsample<float,8,4> (rng);
     }
 
     cout << "test-udsample: pass\n";

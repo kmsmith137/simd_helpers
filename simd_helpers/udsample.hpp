@@ -58,6 +58,32 @@ inline __m256 _kernel256_downsample2(__m256 a, __m256 b)
 }
 
 
+inline __m256 _kernel256_downsample4(__m256 a, __m256 b, __m256 c, __m256 d)
+{
+    // Until the very end of this routine, all operations are happening
+    // in sync on the two 128-bit halves of the 256-bit register.  
+    // Thus we denote a = [a0 a1 a2 a3], and analogously for b,c,d.
+
+    // Combine a and c, to obtain [ a01 a23 c01 c23 ]
+    // The logic here is the same as _kernel128_downsample2().
+    __m256 ac = _mm256_shuffle_ps(a, c, 0x88) + _mm256_shuffle_ps(a, c, 0xdd);
+
+    // Combine b and d, to obtain [ b01 b23 d01 d23 ]
+    __m256 bd = _mm256_shuffle_ps(b, d, 0x88) + _mm256_shuffle_ps(b, d, 0xdd);
+
+    __m256 u = _mm256_shuffle_ps(ac, bd, 0x22);  // [ c01 a01 d01 b01 ],  0x22 = (0202)_4
+    __m256 v = _mm256_shuffle_ps(ac, bd, 0x77);  // [ c23 a23 d23 b23 ],  0x77 = (1313)_4
+    __m256 w = u + v;                            // [ c a d b ]
+
+    // The 256-bit vector w is the output we want, but it has ordering [ w4 w0 w6 w2 w5 w1 w7 w3 ].
+
+    __m256 x = _mm256_permute_ps(w, 0xb1);           // [ w0 w4 w2 w6 w1 w5 w3 w7 ],  0xb1 = (2301)_4
+    __m256 y = _mm256_permute2f128_ps(w, w, 0x01);   // [ w5 w1 w7 w3 w4 w0 w6 w2 ]
+    
+    return _mm256_blend_ps(x, y, 0x5a);   // (01011010)_2
+}
+
+
 inline simd_t<float,4> downsample(const simd_ntuple<float,4,2> &t)
 {
     return _kernel128_downsample2(t.extract<0>().x, t.extract<1>().x);
@@ -71,6 +97,11 @@ inline simd_t<float,4> downsample(const simd_ntuple<float,4,4> &t)
 inline simd_t<float,8> downsample(const simd_ntuple<float,8,2> &t)
 {
     return _kernel256_downsample2(t.extract<0>().x, t.extract<1>().x);
+}
+
+inline simd_t<float,8> downsample(const simd_ntuple<float,8,4> &t)
+{
+    return _kernel256_downsample4(t.extract<0>().x, t.extract<1>().x, t.extract<2>().x, t.extract<3>().x);
 }
 
 
