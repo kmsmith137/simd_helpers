@@ -62,7 +62,7 @@ template<> struct simd_t<int,4>
 
     inline simd_t<int,4> horizontal_sum() const
     {
-	__m128 y = x + _mm_shuffle_epi32(x, 0xb1);   // (2301)_4 = 0xb1
+	__m128i y = x + _mm_shuffle_epi32(x, 0xb1);  // (2301)_4 = 0xb1
 	return y + _mm_shuffle_epi32(y, 0x4e);       // (1032)_4 = 0x4e
     }
 
@@ -110,7 +110,7 @@ template<> struct simd_t<int,8>
 
     inline simd_t<int,8> horizontal_sum() const
     {
-	__m256 y = x + _mm256_shuffle_epi32(x, 0xb1);   // (2301)_4 = 0xb1
+	__m256i y = x + _mm256_shuffle_epi32(x, 0xb1);  // (2301)_4 = 0xb1
 	y += _mm256_shuffle_epi32(y, 0x4e);             // (1032)_4 = 0x4e
 	return y + _mm256_permute2f128_si256(y, y, 0x01);
     }
