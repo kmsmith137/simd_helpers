@@ -103,6 +103,20 @@ inline T compare(const std::vector<T> &v, const std::vector<T> &w)
 }
 
 
+template<typename T>
+inline bool is_equal(const std::vector<T> &v, const std::vector<T> &w)
+{
+    assert(v.size() == w.size());
+    
+    for (unsigned int i = 0; i < v.size(); i++) {
+	if (v[i] != w[i])
+	    return false;
+    }
+
+    return true;
+}
+
+
 // -------------------------------------------------------------------------------------------------
 //
 // Randomizers.
