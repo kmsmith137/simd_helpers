@@ -259,6 +259,11 @@ template<typename T, unsigned int S> inline simd_t<T,S> operator*(T a, simd_t<T,
 template<typename T, unsigned int S> inline simd_t<T,S> operator*(simd_t<T,S> a, T b) { return a * simd_t<T,S>(b); }
 
 
+// blendv(mask,a,b) is morally equivalent to (mask ? a : b)
+inline simd_t<float,4> blendv(simd_t<int,4> mask, simd_t<float,4> a, simd_t<float,4> b)  { return _mm_blendv_ps(b.x, a.x, _mm_castsi128_ps(mask.x)); }
+inline simd_t<float,8> blendv(simd_t<int,8> mask, simd_t<float,8> a, simd_t<float,8> b)  { return _mm256_blendv_ps(b.x, a.x, _mm256_castsi256_ps(mask.x)); }
+
+
 }  // namespace simd_helpers
 
 #endif // _SIMD_HELPERS_SIMD_T_HPP
