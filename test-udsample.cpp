@@ -52,13 +52,12 @@ static void test_downsample(std::mt19937 &rng)
 template<typename T, unsigned int S, unsigned int N>
 static void test_upsample(std::mt19937 &rng)
 {
-    simd_t<T,S> x = gaussian_random_simd_t<T,S> (rng);
+    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, 0, 100);
 
     simd_ntuple<T,S,N> y;
     upsample(y, x);
 
-    double epsilon = compare(vectorize(y), reference_upsample(vectorize(x),N));
-    assert(epsilon == 0);
+    assert(is_equal(vectorize(y), reference_upsample(vectorize(x),N)));
 }
 
 
@@ -79,6 +78,12 @@ int main(int argc, char **argv)
 	test_upsample<float,8,2> (rng);
 	test_upsample<float,8,4> (rng);
 	test_upsample<float,8,8> (rng);
+
+	test_upsample<int,4,2> (rng);
+	test_upsample<int,4,4> (rng);
+	test_upsample<int,8,2> (rng);
+	test_upsample<int,8,4> (rng);
+	test_upsample<int,8,8> (rng);
     }
 
     cout << "test-udsample: pass\n";
