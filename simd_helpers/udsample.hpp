@@ -128,8 +128,6 @@ inline void _kernel256_upsample2(__m256 &a, __m256 &b, __m256 t)
 
 inline void _kernel256_upsample4(__m256 &a, __m256 &b, __m256 &c, __m256 &d, __m256 t)
 {
-    // [ t0 t1 t2 t3 t4 t5 t6 t7 ]
-
     __m256 u = _mm256_permute_ps(t, 0xb1);          // [ t1 t0 t3 t2 t5 t4 t7 t6 ],  0xb1 = (2301)_4
     __m256 v = _mm256_permute2f128_ps(t, t, 0x01);  // [ t4 t5 t6 t7 t0 t1 t2 t3 ]
     __m256 w = _mm256_blend_ps(u, v, 0xa5);         // [ t4 t0 t6 t2 t5 t1 t7 t3 ],  0xa5 = (10100101)_2
@@ -162,54 +160,195 @@ inline void _kernel256_upsample8(__m256 &a, __m256 &b, __m256 &c, __m256 &d, __m
 
 inline simd_t<float,4> downsample(const simd_ntuple<float,4,2> &t)
 {
-    return _kernel128_downsample2(t.extract<0>().x, t.extract<1>().x);
+    return _kernel128_downsample2(t.extract<0>().x, 
+				  t.extract<1>().x);
 }
+
 
 inline simd_t<float,4> downsample(const simd_ntuple<float,4,4> &t)
 {
-    return _kernel128_downsample4(t.extract<0>().x, t.extract<1>().x, t.extract<2>().x, t.extract<3>().x);
+    return _kernel128_downsample4(t.extract<0>().x, 
+				  t.extract<1>().x, 
+				  t.extract<2>().x, 
+				  t.extract<3>().x);
 }
+
 
 inline simd_t<float,8> downsample(const simd_ntuple<float,8,2> &t)
 {
-    return _kernel256_downsample2(t.extract<0>().x, t.extract<1>().x);
+    return _kernel256_downsample2(t.extract<0>().x, 
+				  t.extract<1>().x);
 }
+
 
 inline simd_t<float,8> downsample(const simd_ntuple<float,8,4> &t)
 {
-    return _kernel256_downsample4(t.extract<0>().x, t.extract<1>().x, t.extract<2>().x, t.extract<3>().x);
+    return _kernel256_downsample4(t.extract<0>().x, 
+				  t.extract<1>().x, 
+				  t.extract<2>().x, 
+				  t.extract<3>().x);
 }
+
 
 inline simd_t<float,8> downsample(const simd_ntuple<float,8,8> &t)
 {
-    return _kernel256_downsample8(t.extract<0>().x, t.extract<1>().x, t.extract<2>().x, t.extract<3>().x,
-				  t.extract<4>().x, t.extract<5>().x, t.extract<6>().x, t.extract<7>().x);
+    return _kernel256_downsample8(t.extract<0>().x, 
+				  t.extract<1>().x, 
+				  t.extract<2>().x, 
+				  t.extract<3>().x,
+				  t.extract<4>().x, 
+				  t.extract<5>().x, 
+				  t.extract<6>().x, 
+				  t.extract<7>().x);
 }
+
 
 inline void upsample(simd_ntuple<float,4,2> &out, simd_t<float,4> t)
 {
-    _kernel128_upsample2(out.extract<0>().x, out.extract<1>().x, t.x);
+    _kernel128_upsample2(out.extract<0>().x, 
+			 out.extract<1>().x, 
+			 t.x);
 }
+
 
 inline void upsample(simd_ntuple<float,4,4> &out, simd_t<float,4> t)
 {
-    _kernel128_upsample4(out.extract<0>().x, out.extract<1>().x, out.extract<2>().x, out.extract<3>().x, t.x);
+    _kernel128_upsample4(out.extract<0>().x, 
+			 out.extract<1>().x, 
+			 out.extract<2>().x, 
+			 out.extract<3>().x, t.x);
 }
+
 
 inline void upsample(simd_ntuple<float,8,2> &out, simd_t<float,8> t)
 {
-    _kernel256_upsample2(out.extract<0>().x, out.extract<1>().x, t.x);
+    _kernel256_upsample2(out.extract<0>().x, 
+			 out.extract<1>().x, t.x);
 }
+
 
 inline void upsample(simd_ntuple<float,8,4> &out, simd_t<float,8> t)
 {
-    _kernel256_upsample4(out.extract<0>().x, out.extract<1>().x, out.extract<2>().x, out.extract<3>().x, t.x);
+    _kernel256_upsample4(out.extract<0>().x, 
+			 out.extract<1>().x, 
+			 out.extract<2>().x, 
+			 out.extract<3>().x, t.x);
 }
+
 
 inline void upsample(simd_ntuple<float,8,8> &out, simd_t<float,8> t)
 {
-    _kernel256_upsample8(out.extract<0>().x, out.extract<1>().x, out.extract<2>().x, out.extract<3>().x,
-			 out.extract<4>().x, out.extract<5>().x, out.extract<6>().x, out.extract<7>().x, t.x);
+    _kernel256_upsample8(out.extract<0>().x, 
+			 out.extract<1>().x, 
+			 out.extract<2>().x, 
+			 out.extract<3>().x,
+			 out.extract<4>().x, 
+			 out.extract<5>().x, 
+			 out.extract<6>().x, 
+			 out.extract<7>().x, t.x);
+}
+
+
+// -------------------------------------------------------------------------------------------------
+//
+// Integer versions of the upsample-type routines.
+
+
+inline void _kernel128i_upsample2(__m128i &a, __m128i &b, __m128i t)
+{
+    a = _mm_shuffle_epi32(t, 0x50);  // (1100)_4
+    b = _mm_shuffle_epi32(t, 0xfa);  // (3322)_4
+}
+
+inline void _kernel128i_upsample4(__m128i &a, __m128i &b, __m128i &c, __m128i &d, __m128i t)
+{
+    a = _mm_shuffle_epi32(t, 0x00);  // (0000)_4
+    b = _mm_shuffle_epi32(t, 0x55);  // (1111)_4
+    c = _mm_shuffle_epi32(t, 0xaa);  // (2222)_4
+    d = _mm_shuffle_epi32(t, 0xff);  // (3333)_4
+}
+
+inline void _kernel256i_upsample2(__m256i &a, __m256i &b, __m256i t)
+{
+    __m256i u = _mm256_shuffle_epi32(t, 0x50);   // [ t0 t0 t1 t1 t4 t4 t5 t5 ]
+    __m256i v = _mm256_shuffle_epi32(t, 0xfa);   // [ t2 t2 t3 t3 t6 t6 t7 t7 ]
+
+    a = _mm256_permute2f128_si256(u, v, 0x20);  // [ t0 t0 t1 t1 t2 t2 t3 t3 ]
+    b = _mm256_permute2f128_si256(u, v, 0x31);  // [ t4 t4 t5 t5 t6 t6 t7 t7 ]
+}
+
+inline void _kernel256i_upsample4(__m256i &a, __m256i &b, __m256i &c, __m256i &d, __m256i t)
+{
+    __m256i u = _mm256_shuffle_epi32(t, 0xb1);          // [ t1 t0 t3 t2 t5 t4 t7 t6 ],  0xb1 = (2301)_4
+    __m256i v = _mm256_permute2f128_si256(t, t, 0x01);  // [ t4 t5 t6 t7 t0 t1 t2 t3 ]
+    __m256i w = _mm256_blend_epi32(u, v, 0xa5);         // [ t4 t0 t6 t2 t5 t1 t7 t3 ],  0xa5 = (10100101)_2
+
+    a = _mm256_shuffle_epi32(w, 0x55);  // [ t0 t0 t0 t0 t1 t1 t1 t1 ],  (1111)_4
+    b = _mm256_shuffle_epi32(w, 0xff);  // [ t2 t2 t2 t2 t3 t3 t3 t3 ],  (3333)_4
+    c = _mm256_shuffle_epi32(w, 0x00);  // [ t4 t4 t4 t4 t5 t5 t5 t5 ],  (0000)_4
+    d = _mm256_shuffle_epi32(w, 0xaa);  // [ t6 t6 t6 t6 t7 t7 t7 t7 ],  (2222)_4
+}
+
+inline void _kernel256i_upsample8(__m256i &a, __m256i &b, __m256i &c, __m256i &d, __m256i &e, __m256i &f, __m256i &g, __m256i &h, __m256i t)
+{
+    __m256i u = _mm256_permute2f128_si256(t, t, 0x00);
+    __m256i v = _mm256_permute2f128_si256(t, t, 0x11);
+
+    a = _mm256_shuffle_epi32(u, 0x00);  // (0000)_4
+    b = _mm256_shuffle_epi32(u, 0x55);  // (1111)_4
+    c = _mm256_shuffle_epi32(u, 0xaa);  // (2222)_4
+    d = _mm256_shuffle_epi32(u, 0xff);  // (3333)_4
+
+    e = _mm256_shuffle_epi32(v, 0x00);
+    f = _mm256_shuffle_epi32(v, 0x55);
+    g = _mm256_shuffle_epi32(v, 0xaa);
+    h = _mm256_shuffle_epi32(v, 0xff);
+}
+
+
+inline void upsample(simd_ntuple<int,4,2> &out, simd_t<int,4> t)
+{
+    _kernel128i_upsample2(out.extract<0>().x, 
+			  out.extract<1>().x, 
+			  t.x);
+}
+
+
+inline void upsample(simd_ntuple<int,4,4> &out, simd_t<int,4> t)
+{
+    _kernel128i_upsample4(out.extract<0>().x, 
+			  out.extract<1>().x, 
+			  out.extract<2>().x, 
+			  out.extract<3>().x, t.x);
+}
+
+
+inline void upsample(simd_ntuple<int,8,2> &out, simd_t<int,8> t)
+{
+    _kernel256i_upsample2(out.extract<0>().x, 
+			  out.extract<1>().x, t.x);
+}
+
+
+inline void upsample(simd_ntuple<int,8,4> &out, simd_t<int,8> t)
+{
+    _kernel256i_upsample4(out.extract<0>().x, 
+			  out.extract<1>().x, 
+			  out.extract<2>().x, 
+			  out.extract<3>().x, t.x);
+}
+
+
+inline void upsample(simd_ntuple<int,8,8> &out, simd_t<int,8> t)
+{
+    _kernel256i_upsample8(out.extract<0>().x, 
+			  out.extract<1>().x, 
+			  out.extract<2>().x, 
+			  out.extract<3>().x,
+			  out.extract<4>().x, 
+			  out.extract<5>().x, 
+			  out.extract<6>().x, 
+			  out.extract<7>().x, t.x);
 }
 
 
