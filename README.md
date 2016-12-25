@@ -7,7 +7,7 @@ Let me know if this should be a higher priority.
 
 Compilation instructions:
 ```
-ln -s site/Makefile.local.noprootprivs Makefile.local   # see comment in Makefile for discussion
+ln -s site/Makefile.local.norootprivs Makefile.local   # see comment in Makefile for discussion
 make
 ./test-linear-algebra-kernels    # currently unit tests must be run individually by hand
 ./test-udsample
