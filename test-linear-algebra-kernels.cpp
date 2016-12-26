@@ -149,8 +149,8 @@ void test_linear_algebra_kernels_N(std::mt19937 &rng)
 	    continue;
 	
 	// construct non-full-rank matrix by A A^T where A is shape (N-1,N)
-	// note: _gaussian_randvec() is a helper function defined in simd_debug.hpp
-	vector<T> amat = _gaussian_randvec<T> (rng, N*(N-1));
+	// note: gaussian_randvec() is defined in simd_debug.hpp
+	vector<T> amat = gaussian_randvec<T> (rng, N*(N-1));
 	for (int i = 0; i < N; i++) {
 	    for (int j = 0; j <= i; j++) {
 		T t = 0;
