@@ -128,13 +128,13 @@ inline bool is_equal(const std::vector<T> &v, const std::vector<T> &w)
 
 
 
-// The helper function _uniform_randvec() has syntax
-//    std::vector<T> _uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T hi);
+// The helper function uniform_randvec() has syntax
+//    std::vector<T> uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T hi);
 // but is implemented differently for integral and floating-point types.
 
 // Integral case: generate random number in range [lo,hi].  Note that endpoints are included in range.
 template<typename T, typename std::enable_if<std::is_integral<T>::value,int>::type = 0>
-inline std::vector<T> _uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T hi)
+inline std::vector<T> uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T hi)
 {
     std::vector<T> ret(n);
     for (unsigned int i = 0; i < n; i++)
@@ -144,7 +144,7 @@ inline std::vector<T> _uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, 
 
 // Floating-point case
 template<typename T, typename std::enable_if<std::is_floating_point<T>::value,int>::type = 0>
-inline std::vector<T> _uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T hi)
+inline std::vector<T> uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T hi)
 {
     std::vector<T> ret(n);
     for (unsigned int i = 0; i < n; i++)
@@ -155,19 +155,19 @@ inline std::vector<T> _uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, 
 template<typename T, unsigned int S>
 inline simd_t<T,S> uniform_random_simd_t(std::mt19937 &rng, T lo, T hi)
 {
-    return pack_simd_t<T,S> (_uniform_randvec<T> (rng, S, lo, hi));
+    return pack_simd_t<T,S> (uniform_randvec<T> (rng, S, lo, hi));
 }
 
 template<typename T, unsigned int S, unsigned int N>
 inline simd_ntuple<T,S,N> uniform_random_simd_ntuple(std::mt19937 &rng, T lo, T hi)
 {
-    return pack_simd_ntuple<T,S,N> (_uniform_randvec<T> (rng, N*S, lo, hi));
+    return pack_simd_ntuple<T,S,N> (uniform_randvec<T> (rng, N*S, lo, hi));
 }
 
 
-// _gaussian_randvec(): defined only in floating-point case
+// gaussian_randvec(): defined only in floating-point case
 template<typename T, typename std::enable_if<std::is_floating_point<T>::value,int>::type = 0>
-inline std::vector<T> _gaussian_randvec(std::mt19937 &rng, unsigned int n)
+inline std::vector<T> gaussian_randvec(std::mt19937 &rng, unsigned int n)
 {
     std::normal_distribution<> dist;
 
@@ -181,13 +181,13 @@ inline std::vector<T> _gaussian_randvec(std::mt19937 &rng, unsigned int n)
 template<typename T, unsigned int S>
 inline simd_t<T,S> gaussian_random_simd_t(std::mt19937 &rng)
 {
-    return pack_simd_t<T,S> (_gaussian_randvec<T> (rng, S));
+    return pack_simd_t<T,S> (gaussian_randvec<T> (rng, S));
 }
 
 template<typename T, unsigned int S, unsigned int N>
 inline simd_ntuple<T,S,N> gaussian_random_simd_ntuple(std::mt19937 &rng)
 {
-    return pack_simd_ntuple<T,S,N> (_gaussian_randvec<T> (rng, N*S));
+    return pack_simd_ntuple<T,S,N> (gaussian_randvec<T> (rng, N*S));
 }
 
 
