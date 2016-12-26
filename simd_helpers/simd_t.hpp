@@ -43,6 +43,8 @@ template<> struct simd_t<int,4>
     inline void store(int *p) const  { _mm_store_si128((__m128i *)p, x); }
     inline void storeu(int *p) const { _mm_storeu_si128((__m128i *)p, x); }
 
+    inline simd_t<int,4> abs() const { return _mm_abs_epi32(x); }
+
     // The comparison operators return all ones (0xff..) if "true".
     inline simd_t<int,4> compare_eq(simd_t<int,4> t) const  { return _mm_cmpeq_epi32(x, t.x); }
     inline simd_t<int,4> compare_gt(simd_t<int,4> t) const  { return _mm_cmpgt_epi32(x, t.x); }
@@ -94,6 +96,8 @@ template<> struct simd_t<int,8>
 
     inline void store(int *p) const  { _mm256_store_si256((__m256i *)p, x); }
     inline void storeu(int *p) const { _mm256_storeu_si256((__m256i *)p, x); }
+
+    inline simd_t<int,8> abs() const { return _mm256_abs_epi32(x); }
 
     // The comparison operators return all ones (0xff..) if "true".
     inline simd_t<int,8> compare_eq(simd_t<int,8> t) const  { return _mm256_cmpeq_epi32(x, t.x); }
@@ -147,6 +151,9 @@ template<> struct simd_t<float,4>
 
     inline simd_t<float,4> sqrt() const { return _mm_sqrt_ps(x); }
     inline simd_t<float,4> rsqrt() const { return _mm_rsqrt_ps(x); }
+    
+    // Fastest abs()?  (A little bit of a hack, clearing the sign bit with a bitwise operator.)
+    inline simd_t<float,4> abs() const { return _mm_andnot_ps(_mm_set_ps1(-0.0), x); }
 
     // Comparison operators.
     // Note: the output of a comparison is -1 (0xff..) for "true" or 0 for "false".
@@ -211,6 +218,9 @@ template<> struct simd_t<float,8>
 
     inline simd_t<float,8> sqrt() const { return _mm256_sqrt_ps(x); }
     inline simd_t<float,8> rsqrt() const { return _mm256_rsqrt_ps(x); }
+
+    // Fastest abs()?  (A little bit of a hack, clearing the sign bit with a bitwise operator.)
+    inline simd_t<float,8> abs() const { return _mm256_andnot_ps(_mm256_set1_ps(-0.0), x); }
 
     // Comparison operators.
     // Note: the output of a comparison is -1 (0xff..) for "true" or 0 for "false".
