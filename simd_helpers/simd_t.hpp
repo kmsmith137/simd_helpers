@@ -90,6 +90,7 @@ template<> struct simd_t<int,8>
     inline void store(int *p) const  { _mm256_store_si256((__m256i *)p, x); }
     inline void storeu(int *p) const { _mm256_storeu_si256((__m256i *)p, x); }
 
+    // The comparison operators return all ones (0xff..) if "true".
     inline simd_t<int,8> compare_eq(simd_t<int,8> t) const  { return _mm256_cmpeq_epi32(x, t.x); }
     inline simd_t<int,8> compare_gt(simd_t<int,8> t) const  { return _mm256_cmpgt_epi32(x, t.x); }
 
@@ -205,6 +206,10 @@ template<> struct simd_t<float,8>
 
     inline simd_t<float,8> sqrt() const { return _mm256_sqrt_ps(x); }
     inline simd_t<float,8> rsqrt() const { return _mm256_rsqrt_ps(x); }
+
+    // Comparison operators.
+    // Note: the output of a comparison is -1 (0xff..) for "true" or 0 for "false".
+    // Note: these are quiet ordered comparisons (e.g. NaN==NaN evaluates to "false")
 
     inline simd_t<int,8> compare_eq(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_EQ_OQ)); }
     inline simd_t<int,8> compare_ne(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_NEQ_OQ)); }
