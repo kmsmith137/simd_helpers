@@ -18,6 +18,11 @@ namespace simd_helpers {
 template<typename T, unsigned int S> struct simd_t;
 
 
+template<typename T> inline constexpr T machine_epsilon();
+template<> inline constexpr float machine_epsilon()  { return 1.19e-07; }
+template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
+
+
 // -------------------------------------------------------------------------------------------------
 
 
