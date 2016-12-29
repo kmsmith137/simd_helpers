@@ -96,16 +96,23 @@ inline simd_trimatrix<T,S,N> pack_simd_trimatrix(const std::vector<T> &v)
 }
 
 
-// this is often useful in conjunction with vectorize()
-template<typename T>
-inline T compare(const std::vector<T> &v, const std::vector<T> &w)
-{
-    assert(v.size() == w.size());
+// -------------------------------------------------------------------------------------------------
+//
+// Helper routines for inspecting vectors (often used in unit tests)
+//
+//   compare(v,w)          returns comparison statistic |v-w| / (|v|^2 + |w|^2)^(1/2)
+//   maxdiff(v,w)          returns max_i |v_i-w_i|
+//   maxabs(v)             returns max_i |v_i|
+//   strictly_equal(v,w)   returns all(v_i==w-i)
 
+
+template<typename T, typename S>
+inline T compare(S n, const T *v, const T *w)
+{
     T num = 0;
     T den = 0;
     
-    for (unsigned int i = 0; i < v.size(); i++) {
+    for (S i = 0; i < n; i++) {
 	T x = v[i];
 	T y = w[i];
 	num += (x-y)*(x-y);
@@ -115,18 +122,72 @@ inline T compare(const std::vector<T> &v, const std::vector<T> &w)
     return (den > 0) ? sqrt(num/den) : 0;
 }
 
-
 template<typename T>
-inline bool is_equal(const std::vector<T> &v, const std::vector<T> &w)
+inline T compare(const std::vector<T> &v, const std::vector<T> &w)
 {
     assert(v.size() == w.size());
-    
-    for (unsigned int i = 0; i < v.size(); i++) {
+    return compare(v.size(), &v[0], &w[0]);
+}
+
+
+template<typename T, typename S>
+inline T maxdiff(S n, const T *v1, const T *v2)
+{
+    assert(n > 0);
+
+    T ret = std::fabs(v1[0]-v2[0]);
+    for (S i = 1; i < n; i++)
+	ret = std::max(ret, std::fabs(v1[i]-v2[i]));
+
+    return ret;
+}
+
+template<typename T>
+inline T maxdiff(const std::vector<T> &v1, const std::vector<T> &v2)
+{
+    assert(v1.size() == v2.size());
+    assert(v1.size() > 0);
+
+    return maxdiff(v1.size(), &v1[0], &v2[0]);
+}
+
+
+template<typename T, typename S>
+inline T maxabs(S n, const T *v)
+{
+    assert(n > 0);
+
+    T ret = std::fabs(v[0]);
+    for (unsigned int i = 1; i < n; i++)
+	ret = std::max(ret, std::fabs(v[i]));
+
+    return ret;
+}
+
+template<typename T>
+inline T maxabs(const std::vector<T> &v)
+{
+    assert(v.size() > 0);
+    return maxabs(v.size(), &v[0]);
+}
+
+
+template<typename T, typename S>
+inline bool strictly_equal(S n, const T *v, const T *w)
+{
+    for (S i = 0; i < n; i++) {
 	if (v[i] != w[i])
 	    return false;
     }
 
     return true;
+}
+
+template<typename T>
+inline bool strictly_equal(const std::vector<T> &v, const std::vector<T> &w)
+{
+    assert(v.size() == w.size());
+    return strictly_equal(v.size(), &v[0], &w[0]);
 }
 
 

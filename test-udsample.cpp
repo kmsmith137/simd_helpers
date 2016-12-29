@@ -57,7 +57,7 @@ static void test_upsample(std::mt19937 &rng)
     simd_ntuple<T,S,N> y;
     upsample(y, x);
 
-    assert(is_equal(vectorize(y), reference_upsample(vectorize(x),N)));
+    assert(strictly_equal(vectorize(y), reference_upsample(vectorize(x),N)));
 }
 
 
