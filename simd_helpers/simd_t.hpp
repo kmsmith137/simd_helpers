@@ -85,8 +85,9 @@ template<> struct simd_t<int,8>
     __m256i x;
 
     simd_t() { }
-    simd_t(__m256i y) { x = y; }
-    simd_t(int y)     { x = _mm256_set1_epi32(y); }
+    simd_t(__m256i y)                         { x = y; }
+    simd_t(int y)                             { x = _mm256_set1_epi32(y); }
+    simd_t(simd_t<int,4> y, simd_t<int,4> z)  { x = _mm256_insertf128_si256(_mm256_castsi128_si256(y.x), (z.x), 1); }
 
     static inline simd_t<int,8> zero()  { return _mm256_setzero_si256(); }
     static inline simd_t<int,8> range() { return _mm256_set_epi32(7, 6, 5, 4, 3, 2, 1, 0); }
@@ -97,32 +98,127 @@ template<> struct simd_t<int,8>
     inline void store(int *p) const  { _mm256_store_si256((__m256i *)p, x); }
     inline void storeu(int *p) const { _mm256_storeu_si256((__m256i *)p, x); }
 
-    inline simd_t<int,8> abs() const { return _mm256_abs_epi32(x); }
+    inline simd_t<int,8> abs() const 
+    { 
+#ifdef __AVX2__
+	return _mm256_abs_epi32(x); 
+#else
+	// Alternate implementation which might work: cast and use _mm256_and_ps()?
+	simd_t<int,4> ret0 = _mm_abs_epi32(_mm256_extractf128_si256(x,0));
+	simd_t<int,4> ret1 = _mm_abs_epi32(_mm256_extractf128_si256(x,1));
+	return simd_t<int,8> (ret0, ret1);
+#endif
+    }
 
     // The comparison operators return all ones (0xff..) if "true".
-    inline simd_t<int,8> compare_eq(simd_t<int,8> t) const  { return _mm256_cmpeq_epi32(x, t.x); }
-    inline simd_t<int,8> compare_gt(simd_t<int,8> t) const  { return _mm256_cmpgt_epi32(x, t.x); }
 
-    inline simd_t<int,8> min(simd_t<int,8> t) const { return _mm256_min_epi32(x, t.x); }
-    inline simd_t<int,8> max(simd_t<int,8> t) const { return _mm256_max_epi32(x, t.x); }
+    inline simd_t<int,8> compare_eq(simd_t<int,8> t) const
+    { 
+#ifdef __AVX2__
+	return _mm256_cmpeq_epi32(x, t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_cmpeq_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_cmpeq_epi32(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int,8> (ret0, ret1);
+#endif
+    }
 
-    inline simd_t<int,8> bitwise_and(simd_t<int,8> t) const     { return _mm256_and_si256(x, t.x); }
-    inline simd_t<int,8> bitwise_or(simd_t<int,8> t) const      { return _mm256_or_si256(x, t.x); }
-    inline simd_t<int,8> bitwise_xor(simd_t<int,8> t) const     { return _mm256_xor_si256(x, t.x); }
-    inline simd_t<int,8> bitwise_andnot(simd_t<int,8> t) const  { return _mm256_andnot_si256(x, t.x); }
+    inline simd_t<int,8> compare_gt(simd_t<int,8> t) const  
+    { 
+#ifdef __AVX2__
+	return _mm256_cmpgt_epi32(x, t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_cmpgt_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_cmpgt_epi32(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int,8> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int,8> min(simd_t<int,8> t) const 
+    { 
+#ifdef __AVX2__
+	return _mm256_min_epi32(x, t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_min_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_min_epi32(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int,8> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int,8> max(simd_t<int,8> t) const 
+    { 
+#ifdef __AVX2__
+	return _mm256_min_epi32(x, t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_max_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_max_epi32(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int,8> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int,8> bitwise_and(simd_t<int,8> t) const
+    { 
+#ifdef __AVX2__
+	return _mm256_and_si256(x, t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_and_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_and_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int,8> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int,8> bitwise_or(simd_t<int,8> t) const
+    { 
+#ifdef __AVX2__
+	return _mm256_or_si256(x, t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_or_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_or_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int,8> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int,8> bitwise_xor(simd_t<int,8> t) const
+    {
+#ifdef __AVX2__
+	return _mm256_xor_si256(x, t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_xor_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_xor_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int,8> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int,8> bitwise_andnot(simd_t<int,8> t) const
+    {
+#ifdef __AVX2__
+	return _mm256_andnot_si256(x, t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_andnot_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_andnot_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int,8> (ret0, ret1);
+#endif
+    }
 
     inline int testzero_bitwise_and(simd_t<int,8> t) const     { return _mm256_testz_si256(x, t.x); }
     inline int testzero_bitwise_andnot(simd_t<int,8> t) const  { return _mm256_testc_si256(t.x, x); }
     inline int test_all_zeros() const                          { return _mm256_testz_si256(x, x); }
     inline int test_all_ones() const                           { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
 
-    template<unsigned int M> inline int extract() const  { return _mm256_extract_epi32(x,M); }
+    template<unsigned int M> inline int extract() const                { return _mm256_extract_epi32(x,M); }
+    template<unsigned int M> inline simd_t<int,4> extract128() const   { return _mm256_extractf128_si256(x,M); }
 
     inline simd_t<int,8> horizontal_sum() const
     {
+#ifdef __AVX2__
 	__m256i y = x + _mm256_shuffle_epi32(x, 0xb1);  // (2301)_4 = 0xb1
 	y += _mm256_shuffle_epi32(y, 0x4e);             // (1032)_4 = 0x4e
 	return y + _mm256_permute2f128_si256(y, y, 0x01);
+#else
+	simd_t<int,4> x0 = _mm256_extractf128_si256(x,0) + _mm256_extractf128_si256(x,1);
+	x0 = x0.horizontal_sum();
+	return simd_t<int,8> (x0, x0);
+#endif
     }
 
     inline int sum() const { return _mm256_extract_epi32(horizontal_sum().x, 0); }
@@ -204,8 +300,9 @@ template<> struct simd_t<float,8>
     __m256 x;
 
     simd_t() { }
-    simd_t(__m256 y) { x = y; }
-    simd_t(float y)  { x = _mm256_set1_ps(y); }
+    simd_t(__m256 y)                              { x = y; }
+    simd_t(float y)                               { x = _mm256_set1_ps(y); }
+    simd_t(simd_t<float,4> y, simd_t<float,4> z)  { x = _mm256_insertf128_ps(_mm256_castps128_ps256(y.x), (z.x), 1); }
 
     static simd_t<float,8> zero()  { return _mm256_setzero_ps(); }
     static simd_t<float,8> range() { return _mm256_set_ps(7., 6., 5., 4., 3., 2., 1., 0.); }
