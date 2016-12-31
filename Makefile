@@ -20,6 +20,7 @@ endif
 INCFILES_TOP=simd_helpers.hpp
 
 INCFILES_SUB=simd_helpers/simd_t.hpp \
+	simd_helpers/simd_t_implementations.hpp \
 	simd_helpers/simd_ntuple.hpp \
 	simd_helpers/simd_trimatrix.hpp \
 	simd_helpers/simd_debug.hpp \
