@@ -68,17 +68,12 @@ template<> struct simd_t<int,4>
     inline int test_all_zeros() const                          { return _mm_testz_si128(x, x); }
     inline int test_all_ones() const                           { return _mm_test_all_ones(x); }
 
+    inline simd_t<int,4> horizontal_sum() const;
+    inline int sum() const { return _mm_extract_epi32(horizontal_sum().x, 0); }
+
     // Note: you might need to call this with the weird-looking syntax
     //    x.template extract<M> ();
     template<unsigned int M> inline int extract() const  { return _mm_extract_epi32(x, M); }
-
-    inline simd_t<int,4> horizontal_sum() const
-    {
-	__m128i y = x + _mm_shuffle_epi32(x, 0xb1);  // (2301)_4 = 0xb1
-	return y + _mm_shuffle_epi32(y, 0x4e);       // (1032)_4 = 0x4e
-    }
-
-    inline int sum() const { return _mm_extract_epi32(horizontal_sum().x, 0); }
 };
 
 
@@ -103,107 +98,19 @@ template<> struct simd_t<int,8>
     inline void store(int *p) const  { _mm256_store_si256((__m256i *)p, x); }
     inline void storeu(int *p) const { _mm256_storeu_si256((__m256i *)p, x); }
 
-    inline simd_t<int,8> abs() const 
-    { 
-#ifdef __AVX2__
-	return _mm256_abs_epi32(x); 
-#else
-	// Alternate implementation which might work: cast and use _mm256_and_ps()?
-	simd_t<int,4> ret0 = _mm_abs_epi32(_mm256_extractf128_si256(x,0));
-	simd_t<int,4> ret1 = _mm_abs_epi32(_mm256_extractf128_si256(x,1));
-	return simd_t<int,8> (ret0, ret1);
-#endif
-    }
+    inline simd_t<int,8> abs() const;
 
     // The comparison operators return all ones (0xff..) if "true".
+    inline simd_t<int,8> compare_eq(simd_t<int,8> t) const;
+    inline simd_t<int,8> compare_gt(simd_t<int,8> t) const;
 
-    inline simd_t<int,8> compare_eq(simd_t<int,8> t) const
-    { 
-#ifdef __AVX2__
-	return _mm256_cmpeq_epi32(x, t.x); 
-#else
-	simd_t<int,4> ret0 = _mm_cmpeq_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
-	simd_t<int,4> ret1 = _mm_cmpeq_epi32(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
-	return simd_t<int,8> (ret0, ret1);
-#endif
-    }
+    inline simd_t<int,8> min(simd_t<int,8> t) const;
+    inline simd_t<int,8> max(simd_t<int,8> t) const;
 
-    inline simd_t<int,8> compare_gt(simd_t<int,8> t) const  
-    { 
-#ifdef __AVX2__
-	return _mm256_cmpgt_epi32(x, t.x); 
-#else
-	simd_t<int,4> ret0 = _mm_cmpgt_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
-	simd_t<int,4> ret1 = _mm_cmpgt_epi32(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
-	return simd_t<int,8> (ret0, ret1);
-#endif
-    }
-
-    inline simd_t<int,8> min(simd_t<int,8> t) const 
-    { 
-#ifdef __AVX2__
-	return _mm256_min_epi32(x, t.x); 
-#else
-	simd_t<int,4> ret0 = _mm_min_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
-	simd_t<int,4> ret1 = _mm_min_epi32(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
-	return simd_t<int,8> (ret0, ret1);
-#endif
-    }
-
-    inline simd_t<int,8> max(simd_t<int,8> t) const 
-    { 
-#ifdef __AVX2__
-	return _mm256_min_epi32(x, t.x); 
-#else
-	simd_t<int,4> ret0 = _mm_max_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
-	simd_t<int,4> ret1 = _mm_max_epi32(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
-	return simd_t<int,8> (ret0, ret1);
-#endif
-    }
-
-    inline simd_t<int,8> bitwise_and(simd_t<int,8> t) const
-    { 
-#ifdef __AVX2__
-	return _mm256_and_si256(x, t.x); 
-#else
-	simd_t<int,4> ret0 = _mm_and_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
-	simd_t<int,4> ret1 = _mm_and_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
-	return simd_t<int,8> (ret0, ret1);
-#endif
-    }
-
-    inline simd_t<int,8> bitwise_or(simd_t<int,8> t) const
-    { 
-#ifdef __AVX2__
-	return _mm256_or_si256(x, t.x); 
-#else
-	simd_t<int,4> ret0 = _mm_or_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
-	simd_t<int,4> ret1 = _mm_or_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
-	return simd_t<int,8> (ret0, ret1);
-#endif
-    }
-
-    inline simd_t<int,8> bitwise_xor(simd_t<int,8> t) const
-    {
-#ifdef __AVX2__
-	return _mm256_xor_si256(x, t.x); 
-#else
-	simd_t<int,4> ret0 = _mm_xor_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
-	simd_t<int,4> ret1 = _mm_xor_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
-	return simd_t<int,8> (ret0, ret1);
-#endif
-    }
-
-    inline simd_t<int,8> bitwise_andnot(simd_t<int,8> t) const
-    {
-#ifdef __AVX2__
-	return _mm256_andnot_si256(x, t.x); 
-#else
-	simd_t<int,4> ret0 = _mm_andnot_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
-	simd_t<int,4> ret1 = _mm_andnot_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
-	return simd_t<int,8> (ret0, ret1);
-#endif
-    }
+    inline simd_t<int,8> bitwise_and(simd_t<int,8> t) const;
+    inline simd_t<int,8> bitwise_or(simd_t<int,8> t) const;
+    inline simd_t<int,8> bitwise_xor(simd_t<int,8> t) const;
+    inline simd_t<int,8> bitwise_andnot(simd_t<int,8> t) const;
 
     inline int testzero_bitwise_and(simd_t<int,8> t) const     { return _mm256_testz_si256(x, t.x); }
     inline int testzero_bitwise_andnot(simd_t<int,8> t) const  { return _mm256_testc_si256(t.x, x); }
@@ -213,19 +120,7 @@ template<> struct simd_t<int,8>
     template<unsigned int M> inline int extract() const                { return _mm256_extract_epi32(x,M); }
     template<unsigned int M> inline simd_t<int,4> extract128() const   { return _mm256_extractf128_si256(x,M); }
 
-    inline simd_t<int,8> horizontal_sum() const
-    {
-#ifdef __AVX2__
-	__m256i y = x + _mm256_shuffle_epi32(x, 0xb1);  // (2301)_4 = 0xb1
-	y += _mm256_shuffle_epi32(y, 0x4e);             // (1032)_4 = 0x4e
-	return y + _mm256_permute2f128_si256(y, y, 0x01);
-#else
-	simd_t<int,4> x0 = _mm256_extractf128_si256(x,0) + _mm256_extractf128_si256(x,1);
-	x0 = x0.horizontal_sum();
-	return simd_t<int,8> (x0, x0);
-#endif
-    }
-
+    inline simd_t<int,8> horizontal_sum() const;
     inline int sum() const { return _mm256_extract_epi32(horizontal_sum().x, 0); }
 };
 
@@ -281,19 +176,8 @@ template<> struct simd_t<float,4>
 	return u.x;
     }
 
-    // Returns the horizontal sum of elements as a constant simd vector [ x ... x ].
-    inline simd_t<float,4> horizontal_sum() const
-    {
-	__m128 y = x + _mm_shuffle_ps(x, x, 0xb1);   // (2301)_4 = 0xb1
-	return y + _mm_shuffle_ps(y, y, 0x4e);       // (1032)_4 = 0x4e
-    }
-
-    // Returns the horizontal sum of elements as a scalar.
-    inline float sum() const
-    {
-	simd_t<float,4> y = this->horizontal_sum();
-	return y.extract<0> ();
-    }
+    inline simd_t<float,4> horizontal_sum() const;
+    inline float sum() const;
 };
 
 
@@ -348,22 +232,8 @@ template<> struct simd_t<float,8>
 	return x2.extract<M%4> ();
     }
 
-    // Returns the horizontal sum of elements as a constant simd vector [ x ... x ].    
-    inline simd_t<float,8> horizontal_sum() const
-    {
-	__m256 y = x + _mm256_shuffle_ps(x, x, 0xb1);   // (2301)_4 = 0xb1
-	y += _mm256_shuffle_ps(y, y, 0x4e);             // (1032)_4 = 0x4e
-	return y + _mm256_permute2f128_ps(y, y, 0x01);
-    }
-
-    // Returns the horizontal sum of elements as a scalar.
-    inline float sum() const
-    {
-	__m256 y = x + _mm256_permute2f128_ps(x, x, 0x01);
-
-	simd_t<float,4> z = _mm256_extractf128_ps(y, 0);
-	return z.sum();
-    }
+    inline simd_t<float,8> horizontal_sum() const;
+    inline float sum() const;
 };
 
 
@@ -387,5 +257,9 @@ inline simd_t<float,8> blendv(simd_t<int,8> mask, simd_t<float,8> a, simd_t<floa
 
 
 }  // namespace simd_helpers
+
+
+#include "simd_t_implementations.hpp"
+
 
 #endif // _SIMD_HELPERS_SIMD_T_HPP
