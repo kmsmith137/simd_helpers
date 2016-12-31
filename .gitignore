@@ -1,5 +1,6 @@
 *~
 *.o
 Makefile.local
+test-basics
 test-linear-algebra-kernels
 test-udsample
