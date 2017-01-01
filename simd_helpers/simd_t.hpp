@@ -65,8 +65,8 @@ template<> struct simd_t<int,4>
 
     inline int testzero_bitwise_and(simd_t<int,4> t) const     { return _mm_testz_si128(x, t.x); }
     inline int testzero_bitwise_andnot(simd_t<int,4> t) const  { return _mm_testc_si128(t.x, x); }
-    inline int test_all_zeros() const                          { return _mm_testz_si128(x, x); }
-    inline int test_all_ones() const                           { return _mm_test_all_ones(x); }
+    inline int is_all_zeros() const                            { return _mm_testz_si128(x, x); }
+    inline int is_all_ones() const                             { return _mm_test_all_ones(x); }
 
     inline simd_t<int,4> horizontal_sum() const;
     inline int sum() const { return _mm_extract_epi32(horizontal_sum().x, 0); }
@@ -114,8 +114,8 @@ template<> struct simd_t<int,8>
 
     inline int testzero_bitwise_and(simd_t<int,8> t) const     { return _mm256_testz_si256(x, t.x); }
     inline int testzero_bitwise_andnot(simd_t<int,8> t) const  { return _mm256_testc_si256(t.x, x); }
-    inline int test_all_zeros() const                          { return _mm256_testz_si256(x, x); }
-    inline int test_all_ones() const                           { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
+    inline int is_all_zeros() const                            { return _mm256_testz_si256(x, x); }
+    inline int is_all_ones() const                             { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
 
     template<unsigned int M> inline int extract() const                { return _mm256_extract_epi32(x,M); }
     template<unsigned int M> inline simd_t<int,4> extract128() const   { return _mm256_extractf128_si256(x,M); }
