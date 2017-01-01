@@ -137,7 +137,7 @@ template<> struct simd_t<float,4>
     simd_t(float y)  { x = _mm_set1_ps(y); }
 
     static inline simd_t<float,4> zero()  { return _mm_setzero_ps(); }
-    static inline simd_t<float,4> range() { return _mm_set_ps(3., 2., 1., 0.); }
+    static inline simd_t<float,4> range() { return _mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f); }
 
     static inline simd_t<float,4> load(const float *p)  { return _mm_load_ps(p); }
     static inline simd_t<float,4> loadu(const float *p) { return _mm_loadu_ps(p); }
@@ -149,7 +149,7 @@ template<> struct simd_t<float,4>
     inline simd_t<float,4> rsqrt() const { return _mm_rsqrt_ps(x); }
     
     // Fastest abs()?  (A little bit of a hack, clearing the sign bit with a bitwise operator.)
-    inline simd_t<float,4> abs() const { return _mm_andnot_ps(_mm_set_ps1(-0.0), x); }
+    inline simd_t<float,4> abs() const { return _mm_andnot_ps(_mm_set1_ps(-0.0), x); }
 
     // Comparison operators.
     // Note: the output of a comparison is -1 (0xff..) for "true" or 0 for "false".
@@ -194,7 +194,7 @@ template<> struct simd_t<float,8>
     simd_t(simd_t<float,4> y, simd_t<float,4> z)  { x = _mm256_insertf128_ps(_mm256_castps128_ps256(y.x), (z.x), 1); }
 
     static simd_t<float,8> zero()  { return _mm256_setzero_ps(); }
-    static simd_t<float,8> range() { return _mm256_set_ps(7., 6., 5., 4., 3., 2., 1., 0.); }
+    static simd_t<float,8> range() { return _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f); }
 
     static inline simd_t<float,8> load(const float *p)  { return _mm256_load_ps(p); }
     static inline simd_t<float,8> loadu(const float *p) { return _mm256_loadu_ps(p); }
