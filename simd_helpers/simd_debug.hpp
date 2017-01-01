@@ -8,10 +8,13 @@
 #include <vector>
 #include <random>
 #include <cassert>
+#include <sstream>
 #include <iostream>
 #include <type_traits>
 
-#include "simd_t.hpp"
+#include "base.hpp"
+#include "simd_int32.hpp"
+#include "simd_float32.hpp"
 #include "simd_ntuple.hpp"
 #include "simd_trimatrix.hpp"
 #include "udsample.hpp"

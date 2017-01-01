@@ -5,12 +5,16 @@
 #error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
 #endif
 
-#include "simd_helpers/simd_t.hpp"
-#include "simd_helpers/simd_ntuple.hpp"
-#include "simd_helpers/simd_trimatrix.hpp"
-#include "simd_helpers/udsample.hpp"
+// Note: for a "declaration" of the key class simd_t<T,S>, 
+// see the extended comment in simd_helpers/base.hpp
 
-// not included by default
-// #include "simd_helpers/simd_debug.hpp"
+#include "simd_helpers/base.hpp"
+#include "simd_helpers/simd_int32.hpp"       // simd_t<int,S>
+#include "simd_helpers/simd_float32.hpp"     // simd_t<float,S>
+#include "simd_helpers/simd_ntuple.hpp"      // simd_ntuple<T,S,N>
+#include "simd_helpers/simd_trimatrix.hpp"   // simd_trimatrix<T,S,N>
+#include "simd_helpers/udsample.hpp"         // upsample(), downsample()
+
+// #include "simd_helpers/simd_debug.hpp"    // debug stuff not included by default
 
 #endif

@@ -5,7 +5,7 @@
 #error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
 #endif
 
-#include "simd_t.hpp"
+#include "base.hpp"
 #include "simd_ntuple.hpp"
 
 namespace simd_helpers {
