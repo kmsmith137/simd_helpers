@@ -79,6 +79,8 @@ struct simd_ntuple
     inline simd_ntuple<T,S,N> operator*(const simd_t<T,S> &t) const { simd_ntuple<T,S,N> ret; ret.v = v*t; ret.x = x*t; return ret; }
     inline simd_ntuple<T,S,N> operator/(const simd_t<T,S> &t) const { simd_ntuple<T,S,N> ret; ret.v = v/t; ret.x = x/t; return ret; }
 
+    inline simd_ntuple<T,S,N> bitwise_and(const simd_t<int,S> &t) const { simd_ntuple<T,S,N> ret; ret.v = v.bitwise_and(t); ret.x = x.bitwise_and(t); return ret; }
+
     inline simd_ntuple<T,S,N> _rsub(const simd_t<T,S> &t)  { simd_ntuple<T,S,N> ret; ret.v = t-v; ret.x = t-x; return ret; }
     inline simd_ntuple<T,S,N> _rdiv(const simd_t<T,S> &t)  { simd_ntuple<T,S,N> ret; ret.v = t/v; ret.x = t/x; return ret; }
 
@@ -129,6 +131,8 @@ struct simd_ntuple<T,S,0>
     inline simd_ntuple<T,S,0> operator-(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
     inline simd_ntuple<T,S,0> operator*(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
     inline simd_ntuple<T,S,0> operator/(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
+
+    inline simd_ntuple<T,S,0> bitwise_and(const simd_t<int,S> &t) const { return simd_ntuple<T,S,0>(); }
 
     inline simd_ntuple<T,S,0> _rsub(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
     inline simd_ntuple<T,S,0> _rdiv(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
