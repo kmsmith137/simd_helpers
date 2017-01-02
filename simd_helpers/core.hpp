@@ -1,5 +1,5 @@
-#ifndef _SIMD_HELPERS_BASE_HPP
-#define _SIMD_HELPERS_BASE_HPP
+#ifndef _SIMD_HELPERS_CORE_HPP
+#define _SIMD_HELPERS_CORE_HPP
 
 #if (__cplusplus < 201103) && !defined(__GXX_EXPERIMENTAL_CXX0X__)
 #error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
@@ -115,4 +115,4 @@ template<typename T, unsigned int S> inline simd_t<T,S> operator*(simd_t<T,S> a,
 
 }  // namespace simd_helpers
 
-#endif
+#endif  // _SIMD_HELPERS_CORE_HPP
