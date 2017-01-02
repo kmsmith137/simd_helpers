@@ -50,6 +50,9 @@ template<> struct simd_t<int,4>
     inline simd_t<int,4> compare_eq(simd_t<int,4> t) const  { return _mm_cmpeq_epi32(x, t.x); }
     inline simd_t<int,4> compare_gt(simd_t<int,4> t) const  { return _mm_cmpgt_epi32(x, t.x); }
     inline simd_t<int,4> compare_lt(simd_t<int,4> t) const  { return _mm_cmplt_epi32(x, t.x); }
+    inline simd_t<int,4> compare_ne(simd_t<int,4> t) const  { return compare_eq(t).bitwise_not(); }
+    inline simd_t<int,4> compare_ge(simd_t<int,4> t) const  { return compare_lt(t).bitwise_not(); }
+    inline simd_t<int,4> compare_le(simd_t<int,4> t) const  { return compare_gt(t).bitwise_not(); }
 
     inline simd_t<int,4> min(simd_t<int,4> t) const { return _mm_min_epi32(x, t.x); }
     inline simd_t<int,4> max(simd_t<int,4> t) const { return _mm_max_epi32(x, t.x); }
@@ -58,6 +61,7 @@ template<> struct simd_t<int,4>
     inline simd_t<int,4> bitwise_or(simd_t<int,4> t) const      { return _mm_or_si128(x, t.x); }
     inline simd_t<int,4> bitwise_xor(simd_t<int,4> t) const     { return _mm_xor_si128(x, t.x); }
     inline simd_t<int,4> bitwise_andnot(simd_t<int,4> t) const  { return _mm_andnot_si128(x, t.x); }
+    inline simd_t<int,4> bitwise_not() const                    { return _mm_xor_si128(x, _mm_set1_epi16(-1)); }
 
     inline int testzero_bitwise_and(simd_t<int,4> t) const     { return _mm_testz_si128(x, t.x); }
     inline int testzero_bitwise_andnot(simd_t<int,4> t) const  { return _mm_testc_si128(t.x, x); }
@@ -142,6 +146,32 @@ template<> struct simd_t<int,8>
 #endif
     }
 
+    inline simd_t<int,8> compare_ge(simd_t<int,8> t) const  
+    { 
+#ifdef __AVX2__
+	return compare_lt(t).bitwise_not(); 
+#else
+	simd_t<int,4> ret0 = _mm_cmplt_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_cmplt_epi32(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int,8> (ret0.bitwise_not(), ret1.bitwise_not());
+#endif
+    }
+
+    inline simd_t<int,8> compare_ne(simd_t<int,8> t) const  
+    {
+#ifdef __AVX2__
+	return compare_eq(t).bitwise_not(); 
+#else
+	simd_t<int,4> ret0 = _mm_cmpeq_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_cmpeq_epi32(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int,8> (ret0.bitwise_not(), ret1.bitwise_not());	
+#endif
+    }
+
+    inline simd_t<int,8> compare_lt(simd_t<int,8> t) const  { return t.compare_gt(x); }
+    inline simd_t<int,8> compare_le(simd_t<int,8> t) const  { return t.compare_ge(x); }
+
+
     inline simd_t<int,8> min(simd_t<int,8> t) const
     {
 #ifdef __AVX2__
@@ -205,6 +235,17 @@ template<> struct simd_t<int,8>
 	simd_t<int,4> ret0 = _mm_andnot_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
 	simd_t<int,4> ret1 = _mm_andnot_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
 	return simd_t<int,8> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int,8> bitwise_not() const
+    {
+#ifdef __AVX2__
+	return _mm256_xor_si256(x, _mm256_set1_epi16(-1));
+#else
+	simd_t<int,4> ret0 = _mm256_extractf128_si256(x,0);
+	simd_t<int,4> ret1 = _mm256_extractf128_si256(x,1);
+	return simd_t<int,8> (ret0.bitwise_not(), ret1.bitwise_not());
 #endif
     }
 

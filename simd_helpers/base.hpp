@@ -74,11 +74,6 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      simd_t<T,S> operator*(simd_t<T,S> x) const;               // note: multiplication not defined for integer types
 //      simd_t<T,S> operator/(simd_t<T,S> x) const;               // note: division not defined for integer types
 //
-//      simd_t<T,S> bitwise_and(smask_t<T,S> x) const;            // defined for all T
-//      simd_t<T,S> bitwise_andnot(smask_t<T,S> x) const;         // defined for all T
-//      simd_t<T,S> bitwise_or(simd_t<T,S> x) const;              // defined for integer T
-//      simd_t<T,S> bitwise_xor(simd_t<T,S> x) const;             // defined for integer T
-//
 //      // The output of a comparison operator is -1 (0xff..) for 'true' or 0 for 'false'.
 //      // Floating-point comparisons are quiet and ordered (e.g. NaN==NaN evaluates to false).
 //      // Note: in the integer case, compare_eq() and compare_gt() may be more efficient than others.
@@ -89,6 +84,12 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      smask_t<T,S> compare_gt(simd_t<T,S> x) const;
 //      smask_t<T,S> compare_le(simd_t<T,S> x) const;
 //      smask_t<T,S> compare_lt(simd_t<T,S> x) const;
+//
+//      simd_t<T,S> bitwise_and(smask_t<T,S> x) const;            // defined for all T
+//      simd_t<T,S> bitwise_andnot(smask_t<T,S> x) const;         // defined for all T
+//      simd_t<T,S> bitwise_or(simd_t<T,S> x) const;              // defined for integer T
+//      simd_t<T,S> bitwise_xor(simd_t<T,S> x) const;             // defined for integer T
+//      simd_t<T,S> bitwise_not() const;
 //
 //      simd_t<T,S> abs() const;                 // not defined for int64_t
 //      simd_t<T,S> sqrt() const;                // defined for floating-point T
