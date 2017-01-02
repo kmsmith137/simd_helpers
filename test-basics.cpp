@@ -203,7 +203,10 @@ inline void test_all(std::mt19937 &rng)
     test_all_T<int>(rng);
     test_all_T<int64_t>(rng);
     test_all_T<float>(rng);
+    test_all_T<double>(rng);
+
     test_fp_T<float>(rng);
+    test_fp_T<double>(rng);
 
     test_abs<int32_t,4> (rng);
     test_abs<int32_t,8> (rng);

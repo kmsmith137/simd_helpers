@@ -17,6 +17,7 @@
 #include "simd_int32.hpp"
 #include "simd_int64.hpp"
 #include "simd_float32.hpp"
+#include "simd_float64.hpp"
 #include "simd_ntuple.hpp"
 #include "simd_trimatrix.hpp"
 #include "udsample.hpp"
