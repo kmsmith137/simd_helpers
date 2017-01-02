@@ -248,10 +248,20 @@ template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_ge(simd_t<T,S>
 template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_lt(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_lt(y); }
 template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_le(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_le(y); }
 
+template<typename T> inline T bitwise_and(T x, T y)     { return (x & y); }
+template<typename T> inline T bitwise_or(T x, T y)      { return (x | y); }
+template<typename T> inline T bitwise_xor(T x, T y)     { return (x ^ y); }
+template<typename T> inline T bitwise_andnot(T x, T y)  { return (x & ~y); }
+
+template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_and(simd_t<T,S> x, simd_t<T,S> y)     { return x.bitwise_and(y); }
+template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_or(simd_t<T,S> x, simd_t<T,S> y)      { return x.bitwise_or(y); }
+template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_xor(simd_t<T,S> x, simd_t<T,S> y)     { return x.bitwise_xor(y); }
+template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_andnot(simd_t<T,S> x, simd_t<T,S> y)  { return x.bitwise_andnot(y); }
+
 
 // Runs unit tests which are defined for every pair (T,S)
 template<typename T, unsigned int S>
-inline void test_all_TS(std::mt19937 &rng)
+inline void test_TS(std::mt19937 &rng)
 {
     test_load_store_extract<T,S>(rng);
     test_constructors<T,S>(rng);
@@ -272,11 +282,12 @@ inline void test_all_TS(std::mt19937 &rng)
     test_horizontal_sum<T,S> (rng);
 }
 
-
-// Runs unit tests which are defined for a floating-point pair (T,S)
+// Unit tests which are defined for a floating-point pair (T,S)
 template<typename T, unsigned int S>
-inline void test_fp_TS(std::mt19937 &rng)
+inline void test_floating_point_TS(std::mt19937 &rng)
 {
+    test_TS<T,S> (rng);
+
     test_compound_assignment_operator(rng, assign_mul< simd_t<T,S> >, assign_mul<T>);   // operator*=
     test_compound_assignment_operator(rng, assign_div< simd_t<T,S> >, assign_div<T>);   // operator/=
 
@@ -288,48 +299,62 @@ inline void test_fp_TS(std::mt19937 &rng)
     test_abs<T,S>(rng);
 }
 
-
-// Runs unit tests which are defined for every T
-template<typename T>
-inline void test_all_T(std::mt19937 &rng)
+// Unit tests which are defined for an integer pair (T,S)
+template<typename T, unsigned int S>
+inline void test_integer_TS(std::mt19937 &rng)
 {
-    constexpr unsigned int S = 16 / sizeof(T);
+    test_TS<T,S> (rng);
 
-    test_all_TS<T,S> (rng);
-    test_all_TS<T,2*S> (rng);
-    test_merging_constructor<T,S> (rng);
+    test_binary_operator("bitwise_and", rng, simd_bitwise_and<T,S>, bitwise_and<T>);
+    test_binary_operator("bitwise_or", rng, simd_bitwise_or<T,S>, bitwise_or<T>);
+    test_binary_operator("bitwise_xor", rng, simd_bitwise_xor<T,S>, bitwise_xor<T>);
+    test_binary_operator("bitwise_andnot", rng, simd_bitwise_andnot<T,S>, bitwise_andnot<T>);    
 }
 
 // Unit tests which are defined for T=int32
 template<unsigned int S>
-inline void test_int32(std::mt19937 &rng)
+inline void test_int32_S(std::mt19937 &rng)
 {
+    test_integer_TS<int,S> (rng);
+
     test_binary_operator("min", rng, simd_min<int,S>, std_min<int>);
     test_binary_operator("max", rng, simd_max<int,S>, std_max<int>);
     test_abs<int,S> (rng);
 }
 
-// Runs unit tests which are defined for floating-point T
 template<typename T>
-inline void test_fp_T(std::mt19937 &rng)
+inline void test_floating_point_T(std::mt19937 &rng)
 {
     constexpr unsigned int S = 16 / sizeof(T);
 
-    test_fp_TS<T,S> (rng);
-    test_fp_TS<T,2*S> (rng);
+    test_floating_point_TS<T,S> (rng);
+    test_floating_point_TS<T,2*S> (rng);
+    test_merging_constructor<T,S> (rng);
+}
+
+template<typename T>
+inline void test_integer_T(std::mt19937 &rng)
+{
+    constexpr unsigned int S = 16 / sizeof(T);
+
+    test_integer_TS<T,S> (rng);
+    test_integer_TS<T,2*S> (rng);
+    test_merging_constructor<T,S> (rng);
+}
+
+inline void test_int32_T(std::mt19937 &rng)
+{
+    test_int32_S<4> (rng);
+    test_int32_S<8> (rng);
+    test_merging_constructor<int,4> (rng);
 }
 
 inline void test_all(std::mt19937 &rng)
 {
-    test_all_T<int>(rng);
-    test_all_T<int64_t>(rng);
-    test_all_T<float>(rng);
-    test_all_T<double>(rng);
-
-    test_fp_T<float>(rng);
-    test_fp_T<double>(rng);
-    test_int32<4> (rng);
-    test_int32<8> (rng);
+    test_int32_T(rng);
+    test_integer_T<int64_t> (rng);
+    test_floating_point_T<float> (rng);
+    test_floating_point_T<double> (rng);
 }
 
 }   // namespace simd_helpers
