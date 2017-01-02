@@ -226,7 +226,7 @@ template<> struct simd_t<int,8>
 	__m128i y = _mm_add_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(x,1));
 	y = _mm_add_epi32(y, _mm_shuffle_epi32(y, 0xb1));  // (2301)_4 = 0xb1
 	y = _mm_add_epi32(y, _mm_shuffle_epi32(y, 0x4e));  // (1032)_4 = 0x4e
-	return _mm256_insertf128_si256(_mm256_castsi128_si256(y, y, 1);
+	return _mm256_insertf128_si256(_mm256_castsi128_si256(y, y, 1));
 #endif
     }
 
