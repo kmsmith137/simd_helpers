@@ -47,6 +47,9 @@ template<> struct simd_t<int64_t,2>
     // Note: you might need to call this with the weird-looking syntax
     //    x.template extract<M> ();
     template<unsigned int M> inline int64_t extract() const  { return _mm_extract_epi64(x, M); }
+
+    inline simd_t<int64_t,2> horizontal_sum() const  { return _mm_add_epi64(x, _mm_shuffle_epi32(x, 0x4e)); }
+    inline int64_t sum() const                       { return _mm_extract_epi64(horizontal_sum().x, 0); }
 };
 
 
@@ -81,6 +84,25 @@ template<> struct simd_t<int64_t,4>
 
     template<unsigned int M> inline int extract() const                    { return _mm256_extract_epi64(x,M); }
     template<unsigned int M> inline simd_t<int64_t,2> extract128() const   { return _mm256_extractf128_si256(x,M); }
+
+    inline simd_t<int64_t,4> horizontal_sum() const
+    { 
+#ifdef __AVX2__
+	__m256i y = _mm256_add_epi64(x, _mm256_permute2f128_si256(x, x, 0x01));
+	return _mm256_add_epi64(y, _mm256_shuffle_epi32(y, 0x4e));
+#else
+	__m128i y = _mm_add_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(x,1));
+	y = _mm_add_epi64(y, _mm_shuffle_epi32(y, 0x4e));
+	return _mm256_insertf128_si256(_mm256_castsi128_si256(y), y, 1);
+#endif
+    }
+
+    inline int64_t sum() const
+    {
+	__m128i y = _mm_add_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(x,1));
+	y = _mm_add_epi64(y, _mm_shuffle_epi32(y, 0x4e));
+	return _mm_extract_epi64(y, 0);
+    }
 };
 
 
