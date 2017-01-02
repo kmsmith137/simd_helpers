@@ -98,7 +98,7 @@ inline void test_compound_assignment_operator(std::mt19937 &rng, void (*f1)(simd
 
 
 template<typename T, unsigned int S>
-inline void test_binary_operator(std::mt19937 &rng, simd_t<T,S> (*f1)(simd_t<T,S>, simd_t<T,S>), T (*f2)(T, T))
+inline void test_binary_operator(const char *name, std::mt19937 &rng, simd_t<T,S> (*f1)(simd_t<T,S>, simd_t<T,S>), T (*f2)(T, T))
 {
     const T epsilon = 100 * machine_epsilon<T>();
 
@@ -107,14 +107,26 @@ inline void test_binary_operator(std::mt19937 &rng, simd_t<T,S> (*f1)(simd_t<T,S
 
     vector<T> vx = vectorize(x);
     vector<T> vy = vectorize(y);
-
     vector<T> w1 = vectorize(f1(x,y));
 
     vector<T> w2(S);
     for (unsigned int s = 0; s < S; s++)
 	w2[s] = f2(vx[s], vy[s]);
 
-    assert(maxdiff(w1,w2) <= epsilon);    
+    if (maxdiff(w1,w2) > epsilon) {
+	cerr << "test_binary_operator(" << name << "," << type_name<T>() << "," << S << ") failed\n"
+	     << "   operand 1: " << x << endl
+	     << "   operand 2: " << y << endl
+	     << "   output: " << vecstr(w1) << endl
+	     << "   expected output: " << vecstr(w2) << endl
+	     << "   difference: [";
+
+	for (unsigned int s = 0; s < S; s++)
+	    cerr << " " << std::abs(w1[s]-w2[s]);
+
+	cerr << "]\n";
+	exit(1);
+    }
 }
 
 
@@ -145,6 +157,12 @@ template<typename T> inline T binary_sub(T x, T y) { return x - y; }
 template<typename T> inline T binary_mul(T x, T y) { return x * y; }
 template<typename T> inline T binary_div(T x, T y) { return x / y; }
 
+template<typename T> inline T std_min(T x, T y) { return std::min(x,y); }
+template<typename T> inline T std_max(T x, T y) { return std::max(x,y); }
+
+template<typename T, unsigned int S> inline simd_t<T,S> simd_min(simd_t<T,S> x, simd_t<T,S> y) { return x.min(y); }
+template<typename T, unsigned int S> inline simd_t<T,S> simd_max(simd_t<T,S> x, simd_t<T,S> y) { return x.max(y); }
+
 
 // Runs unit tests which are defined for every pair (T,S)
 template<typename T, unsigned int S>
@@ -156,8 +174,8 @@ inline void test_all_TS(std::mt19937 &rng)
     test_compound_assignment_operator(rng, assign_add< simd_t<T,S> >, assign_add<T>);   // operator+=
     test_compound_assignment_operator(rng, assign_sub< simd_t<T,S> >, assign_sub<T>);   // operator-=
 
-    test_binary_operator(rng, binary_add< simd_t<T,S> >, binary_add<T>);   // operator+
-    test_binary_operator(rng, binary_sub< simd_t<T,S> >, binary_sub<T>);   // operator-
+    test_binary_operator("+", rng, binary_add< simd_t<T,S> >, binary_add<T>);
+    test_binary_operator("-", rng, binary_sub< simd_t<T,S> >, binary_sub<T>);
 }
 
 
@@ -168,8 +186,10 @@ inline void test_fp_TS(std::mt19937 &rng)
     test_compound_assignment_operator(rng, assign_mul< simd_t<T,S> >, assign_mul<T>);   // operator*=
     test_compound_assignment_operator(rng, assign_div< simd_t<T,S> >, assign_div<T>);   // operator/=
 
-    test_binary_operator(rng, binary_mul< simd_t<T,S> >, binary_mul<T>);   // operator*
-    test_binary_operator(rng, binary_div< simd_t<T,S> >, binary_div<T>);   // operator/
+    test_binary_operator("*", rng, binary_mul< simd_t<T,S> >, binary_mul<T>);
+    test_binary_operator("/", rng, binary_div< simd_t<T,S> >, binary_div<T>);
+    test_binary_operator("min", rng, simd_min<T,S>, std_min<T>);
+    test_binary_operator("max", rng, simd_max<T,S>, std_max<T>);
 
     test_abs<T,S>(rng);
 }
@@ -186,6 +206,14 @@ inline void test_all_T(std::mt19937 &rng)
     test_merging_constructor<T,S> (rng);
 }
 
+// Unit tests which are defined for T=int32
+template<unsigned int S>
+inline void test_int32(std::mt19937 &rng)
+{
+    test_binary_operator("min", rng, simd_min<int,S>, std_min<int>);
+    test_binary_operator("max", rng, simd_max<int,S>, std_max<int>);
+    test_abs<int,S> (rng);
+}
 
 // Runs unit tests which are defined for floating-point T
 template<typename T>
@@ -207,9 +235,8 @@ inline void test_all(std::mt19937 &rng)
 
     test_fp_T<float>(rng);
     test_fp_T<double>(rng);
-
-    test_abs<int32_t,4> (rng);
-    test_abs<int32_t,8> (rng);
+    test_int32<4> (rng);
+    test_int32<8> (rng);
 }
 
 
