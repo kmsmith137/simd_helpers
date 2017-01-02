@@ -74,9 +74,10 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      simd_t<T,S> operator*(simd_t<T,S> x) const;               // note: multiplication not defined for integer types
 //      simd_t<T,S> operator/(simd_t<T,S> x) const;               // note: division not defined for integer types
 //
+//      // Comparison operators.
 //      // The output of a comparison operator is -1 (0xff..) for 'true' or 0 for 'false'.
 //      // Floating-point comparisons are quiet and ordered (e.g. NaN==NaN evaluates to false).
-//      // Note: in the integer case, compare_eq() and compare_gt() may be more efficient than others.
+//      // Note: in the integer case, eq/gt/lt will be a little more efficient than ne/ge/le.
 //
 //      smask_t<T,S> compare_eq(simd_t<T,S> x) const;
 //      smask_t<T,S> compare_ne(simd_t<T,S> x) const;
