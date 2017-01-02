@@ -147,6 +147,43 @@ inline void test_abs(std::mt19937 &rng)
 // -------------------------------------------------------------------------------------------------
 
 
+// Tests both horizontal_sum() and sum().
+template<typename T, unsigned int S>
+inline void test_horizontal_sum(std::mt19937 &rng)
+{
+    const T epsilon = 10000. * machine_epsilon<T> ();
+
+    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -1000, 1000);
+    vector<T> vx = vectorize(x);
+
+    T actual_sum = x.sum();
+
+    T expected_sum = 0;
+    for (unsigned int s = 0; s < S; s++)
+	expected_sum += vx[s];
+
+    simd_t<T,S> h = x.horizontal_sum();
+    vector<T> vh = vectorize(h);
+
+    vector<T> dh(S);
+    for (unsigned int s = 0; s < S; s++)
+	dh[s] = vh[s] - expected_sum;
+	    
+    if ((std::abs(actual_sum - expected_sum) > epsilon) || (maxabs(dh) > epsilon)) {
+	cerr << "test_horizontal_sum(" << type_name<T>() << "," << S << ") failed\n"
+	     << "   operand: " << x << endl
+	     << "   expected sum: " << expected_sum << endl
+	     << "   result of horizontal_sum(): " << h << ", difference=" << vecstr(dh) << "\n"
+	     << "   result of sum(): " << actual_sum << ", difference=" << (actual_sum-expected_sum) << "\n";
+
+	exit(1);
+    }
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
+
 template<typename T> inline void assign_add(T &x, T y) { x += y; }
 template<typename T> inline void assign_sub(T &x, T y) { x -= y; }
 template<typename T> inline void assign_mul(T &x, T y) { x *= y; }
@@ -176,6 +213,8 @@ inline void test_all_TS(std::mt19937 &rng)
 
     test_binary_operator("+", rng, binary_add< simd_t<T,S> >, binary_add<T>);
     test_binary_operator("-", rng, binary_sub< simd_t<T,S> >, binary_sub<T>);
+
+    test_horizontal_sum<T,S> (rng);
 }
 
 
