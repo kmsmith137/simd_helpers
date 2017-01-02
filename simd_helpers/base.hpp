@@ -23,6 +23,19 @@ namespace simd_helpers {
 template<typename T, unsigned int S> struct simd_t;
 
 
+// This boilerplate defines mask types, which are returned by comparison operators.
+//    smask_t<T> = scalar mask type (signed integer type with same size as T)
+//    smask_t<T,S> = simd mask type (same as simd_t<smask_t<T>,S>)
+
+template<typename T, unsigned int S> struct _smask_t { using type = simd_t<typename _smask_t<T,1>::type,S>; };
+template<typename T, unsigned int S=1> using smask_t = typename _smask_t<T,S>::type;
+
+template<> struct _smask_t<int,1> { using type = int; };
+template<> struct _smask_t<float,1> { using type = int; };
+template<> struct _smask_t<int64_t,1> { using type = int64_t; };
+template<> struct _smask_t<double,1> { using type = int64_t; };
+
+
 // machine_epsilon<T>(): fractional roundoff error for floating-point type T
 template<typename T> inline constexpr T machine_epsilon();
 template<> inline constexpr float machine_epsilon()  { return 1.19e-07; }
@@ -33,8 +46,6 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //
 //  struct simd_t<T,S>
 //  {
-//      using mask_t = int;                         // integer type with same size as T
-//
 //      simd_t();                                   // default constructor does not initialize 
 //      simd_t(__m256 x);                           // construct from low-level simd type (__m256 or similar)
 //      simd_t(T x);                                // construct from scalar
@@ -49,7 +60,7 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      void store(T *p);
 //      void storeu(T *p);
 //
-//      // Returns M-th element of the simd_vector.  You may need to use the syntax:
+//      // Returns M-th element of the simd vector.  You may need to use the syntax:
 //      //   x.template extract<M> ();
 //      template<unsigned int M> inline int extract() const;
 //
@@ -63,8 +74,8 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      simd_t<T,S> operator*(simd_t<T,S> x) const;               // note: multiplication not defined for integer types
 //      simd_t<T,S> operator/(simd_t<T,S> x) const;               // note: division not defined for integer types
 //
-//      simd_t<T,S> bitwise_and(simd_t<mask_t,S> x) const;        // defined for all T
-//      simd_t<T,S> bitwise_andnot(simd_t<mask_t,S> x) const;     // defined for all T
+//      simd_t<T,S> bitwise_and(smask_t<T,S> x) const;            // defined for all T
+//      simd_t<T,S> bitwise_andnot(smask_t<T,S> x) const;         // defined for all T
 //      simd_t<T,S> bitwise_or(simd_t<T,S> x) const;              // defined for integer T
 //      simd_t<T,S> bitwise_xor(simd_t<T,S> x) const;             // defined for integer T
 //
@@ -72,12 +83,12 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      // Floating-point comparisons are quiet and ordered (e.g. NaN==NaN evaluates to false).
 //      // Note: in the integer case, compare_eq() and compare_gt() may be more efficient than others.
 //
-//      simd_t<mask_t,S> compare_eq(simd_t<T,S> x) const;
-//      simd_t<mask_t,S> compare_ne(simd_t<T,S> x) const;
-//      simd_t<mask_t,S> compare_ge(simd_t<T,S> x) const;
-//      simd_t<mask_t,S> compare_gt(simd_t<T,S> x) const;
-//      simd_t<mask_t,S> compare_le(simd_t<T,S> x) const;
-//      simd_t<mask_t,S> compare_lt(simd_t<T,S> x) const;
+//      smask_t<T,S> compare_eq(simd_t<T,S> x) const;
+//      smask_t<T,S> compare_ne(simd_t<T,S> x) const;
+//      smask_t<T,S> compare_ge(simd_t<T,S> x) const;
+//      smask_t<T,S> compare_gt(simd_t<T,S> x) const;
+//      smask_t<T,S> compare_le(simd_t<T,S> x) const;
+//      smask_t<T,S> compare_lt(simd_t<T,S> x) const;
 //
 //      simd_t<T,S> abs() const;                 // not defined for int64_t
 //      simd_t<T,S> sqrt() const;                // defined for floating-point T
