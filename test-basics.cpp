@@ -131,6 +131,33 @@ inline void test_binary_operator(const char *name, std::mt19937 &rng, simd_t<T,S
 
 
 template<typename T, unsigned int S>
+inline void test_comparison_operator(std::mt19937 &rng, smask_t<T,S> (*f1)(simd_t<T,S>, simd_t<T,S>), bool (*f2)(T, T))
+{
+    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -10, 10);
+    simd_t<T,S> dx = uniform_random_simd_t<T,S> (rng, 1, 10);
+
+    vector<T> vx = vectorize(x);
+    vector<T> vdx = vectorize(dx);
+    vector<T> vy = vx;
+
+    for (unsigned int s = 0; s < S; s++) {
+	if (std::uniform_real_distribution<>()(rng) < 0.33)
+	    vy[s] += vdx[s];
+	else if (std::uniform_real_distribution<>()(rng) < 0.5)
+	    vy[s] -= vdx[s];
+    }
+
+    simd_t<T,S> y = pack_simd_t<T,S> (vy);
+    vector<T> vc = vectorize(f1(x,y));
+    
+    for (unsigned int s = 0; s < S; s++) {
+	smask_t<T> expected_c = f2(vx[s],vy[s]) ? -1 : 0;
+	assert(vc[s] == expected_c);
+    }
+}
+
+
+template<typename T, unsigned int S>
 inline void test_abs(std::mt19937 &rng)
 {
     simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -1000, 1000);
@@ -200,6 +227,10 @@ template<typename T> inline T std_max(T x, T y) { return std::max(x,y); }
 template<typename T, unsigned int S> inline simd_t<T,S> simd_min(simd_t<T,S> x, simd_t<T,S> y) { return x.min(y); }
 template<typename T, unsigned int S> inline simd_t<T,S> simd_max(simd_t<T,S> x, simd_t<T,S> y) { return x.max(y); }
 
+template<typename T> inline bool cmp_eq(T x, T y) { return (x == y); }
+
+template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_eq(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_eq(y); }
+
 
 // Runs unit tests which are defined for every pair (T,S)
 template<typename T, unsigned int S>
@@ -267,6 +298,8 @@ inline void test_fp_T(std::mt19937 &rng)
 
 inline void test_all(std::mt19937 &rng)
 {
+    test_comparison_operator(rng, simd_cmp_eq<int,4>, cmp_eq<int>);
+
     test_all_T<int>(rng);
     test_all_T<int64_t>(rng);
     test_all_T<float>(rng);
