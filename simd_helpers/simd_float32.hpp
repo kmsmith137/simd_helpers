@@ -44,10 +44,10 @@ template<> struct simd_t<float,4>
     inline simd_t<float,4> &operator*=(simd_t<float,4> t) { x = _mm_mul_ps(x,t.x); return *this; }
     inline simd_t<float,4> &operator/=(simd_t<float,4> t) { x = _mm_div_ps(x,t.x); return *this; }
 
-    inline simd_t<float,4> operator+(simd_t<float,4> t) { return _mm_add_ps(x,t.x); }
-    inline simd_t<float,4> operator-(simd_t<float,4> t) { return _mm_sub_ps(x,t.x); }
-    inline simd_t<float,4> operator*(simd_t<float,4> t) { return _mm_mul_ps(x,t.x); }
-    inline simd_t<float,4> operator/(simd_t<float,4> t) { return _mm_div_ps(x,t.x); }
+    inline simd_t<float,4> operator+(simd_t<float,4> t) const { return _mm_add_ps(x,t.x); }
+    inline simd_t<float,4> operator-(simd_t<float,4> t) const { return _mm_sub_ps(x,t.x); }
+    inline simd_t<float,4> operator*(simd_t<float,4> t) const { return _mm_mul_ps(x,t.x); }
+    inline simd_t<float,4> operator/(simd_t<float,4> t) const { return _mm_div_ps(x,t.x); }
 
     inline simd_t<float,4> sqrt() const { return _mm_sqrt_ps(x); }
     inline simd_t<float,4> rsqrt() const { return _mm_rsqrt_ps(x); }
@@ -122,10 +122,10 @@ template<> struct simd_t<float,8>
     inline simd_t<float,8> &operator*=(simd_t<float,8> t) { x = _mm256_mul_ps(x,t.x); return *this; }
     inline simd_t<float,8> &operator/=(simd_t<float,8> t) { x = _mm256_div_ps(x,t.x); return *this; }
 
-    inline simd_t<float,8> operator+(simd_t<float,8> t) { return _mm256_add_ps(x,t.x); }
-    inline simd_t<float,8> operator-(simd_t<float,8> t) { return _mm256_sub_ps(x,t.x); }
-    inline simd_t<float,8> operator*(simd_t<float,8> t) { return _mm256_mul_ps(x,t.x); }
-    inline simd_t<float,8> operator/(simd_t<float,8> t) { return _mm256_div_ps(x,t.x); }
+    inline simd_t<float,8> operator+(simd_t<float,8> t) const { return _mm256_add_ps(x,t.x); }
+    inline simd_t<float,8> operator-(simd_t<float,8> t) const { return _mm256_sub_ps(x,t.x); }
+    inline simd_t<float,8> operator*(simd_t<float,8> t) const { return _mm256_mul_ps(x,t.x); }
+    inline simd_t<float,8> operator/(simd_t<float,8> t) const { return _mm256_div_ps(x,t.x); }
 
     inline simd_t<float,8> sqrt() const { return _mm256_sqrt_ps(x); }
     inline simd_t<float,8> rsqrt() const { return _mm256_rsqrt_ps(x); }
