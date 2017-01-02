@@ -317,12 +317,26 @@ struct _simd_writer<T,S,1>
 
 
 template<typename T, unsigned int S>
-std::ostream &operator<<(std::ostream &os, simd_t<T,S> x)
+inline std::ostream &operator<<(std::ostream &os, simd_t<T,S> x)
 {
     os << "[";
     _simd_writer<T,S,S>::write(os, x);
     os << "]";
     return os;
+}
+
+
+template<typename T>
+inline std::string vecstr(const std::vector<T> &v)
+{
+    std::stringstream ss;
+
+    ss << "[";
+    for (size_t i = 0; i < v.size(); i++)
+	ss << " " << v[i];
+    ss << "]";
+
+    return ss.str();
 }
 
 
@@ -364,7 +378,7 @@ struct _simd_nwriter<T,S,1>
 
 
 template<typename T, unsigned int S, unsigned int N>
-std::ostream &operator<<(std::ostream &os, const simd_ntuple<T,S,N> &v)
+inline std::ostream &operator<<(std::ostream &os, const simd_ntuple<T,S,N> &v)
 {
     os << "{";
     _simd_nwriter<T,S,N>::write(os, v);
@@ -374,7 +388,7 @@ std::ostream &operator<<(std::ostream &os, const simd_ntuple<T,S,N> &v)
 
 
 template<typename T, unsigned int S, unsigned int N>
-std::ostream &operator<<(std::ostream &os, const simd_trimatrix<T,S,N> &m)
+inline std::ostream &operator<<(std::ostream &os, const simd_trimatrix<T,S,N> &m)
 {
     os << "{";
     _simd_nwriter<T,S,N>::write(os, m);
