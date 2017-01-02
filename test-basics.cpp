@@ -232,8 +232,18 @@ template<typename T, unsigned int S> inline simd_t<T,S> simd_min(simd_t<T,S> x, 
 template<typename T, unsigned int S> inline simd_t<T,S> simd_max(simd_t<T,S> x, simd_t<T,S> y) { return x.max(y); }
 
 template<typename T> inline bool cmp_eq(T x, T y) { return (x == y); }
+template<typename T> inline bool cmp_ne(T x, T y) { return (x != y); }
+template<typename T> inline bool cmp_gt(T x, T y) { return (x > y); }
+template<typename T> inline bool cmp_ge(T x, T y) { return (x >= y); }
+template<typename T> inline bool cmp_lt(T x, T y) { return (x < y); }
+template<typename T> inline bool cmp_le(T x, T y) { return (x <= y); }
 
 template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_eq(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_eq(y); }
+template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_ne(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_ne(y); }
+template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_gt(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_gt(y); }
+template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_ge(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_ge(y); }
+template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_lt(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_lt(y); }
+template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_le(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_le(y); }
 
 
 // Runs unit tests which are defined for every pair (T,S)
@@ -250,6 +260,11 @@ inline void test_all_TS(std::mt19937 &rng)
     test_binary_operator("-", rng, binary_sub< simd_t<T,S> >, binary_sub<T>);
 
     test_comparison_operator("compare_eq", rng, simd_cmp_eq<T,S>, cmp_eq<T>);
+    test_comparison_operator("compare_ne", rng, simd_cmp_ne<T,S>, cmp_ne<T>);
+    test_comparison_operator("compare_gt", rng, simd_cmp_gt<T,S>, cmp_gt<T>);
+    test_comparison_operator("compare_ge", rng, simd_cmp_ge<T,S>, cmp_ge<T>);
+    test_comparison_operator("compare_lt", rng, simd_cmp_lt<T,S>, cmp_lt<T>);
+    test_comparison_operator("compare_le", rng, simd_cmp_le<T,S>, cmp_le<T>);
 
     test_horizontal_sum<T,S> (rng);
 }
@@ -300,7 +315,6 @@ inline void test_fp_T(std::mt19937 &rng)
     test_fp_TS<T,S> (rng);
     test_fp_TS<T,2*S> (rng);
 }
-
 
 inline void test_all(std::mt19937 &rng)
 {
