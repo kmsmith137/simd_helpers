@@ -99,9 +99,8 @@ template<> struct simd_t<int64_t,4>
 
     inline int64_t sum() const
     {
-	__m128i y = _mm_add_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(x,1));
-	y = _mm_add_epi64(y, _mm_shuffle_epi32(y, 0x4e));
-	return _mm_extract_epi64(y, 0);
+	simd_t<int64_t,2> y = _mm_add_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(x,1));
+	return y.sum();
     }
 };
 

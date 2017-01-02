@@ -126,8 +126,8 @@ template<> struct simd_t<double,4>
 
     inline double sum() const
     { 
-	__m128d y = _mm256_extractf128_pd(x,0) + _mm256_extractf128_pd(x,1);
-	return _mm_cvtsd_f64(y + _mm_shuffle_pd(y,y,0x01));
+	simd_t<double,2> y = _mm256_extractf128_pd(x,0) + _mm256_extractf128_pd(x,1);
+	return y.sum();
     }
 };
 

@@ -166,10 +166,8 @@ template<> struct simd_t<float,8>
 
     inline float sum() const
     {
-	__m256 y = x + _mm256_permute2f128_ps(x, x, 0x01);
-	
-	simd_t<float,4> z = _mm256_extractf128_ps(y, 0);
-	return z.sum();
+	simd_t<float,4> y = _mm256_extractf128_ps(x,0) + _mm256_extractf128_ps(x,1);
+	return y.sum();
     }
 };
 
