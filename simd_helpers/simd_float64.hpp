@@ -59,7 +59,7 @@ template<> struct simd_t<double,2>
 };
 
 template<> inline double simd_t<double,2>::extract<0>() const { return _mm_cvtsd_f64(x); }
-template<> inline double simd_t<double,2>::extract<1>() const { return _mm_cvtsd_f64(_mm_shuffle_pd(x,x,0x00)); }
+template<> inline double simd_t<double,2>::extract<1>() const { return _mm_cvtsd_f64(_mm_shuffle_pd(x,x,0x01)); }
 
 
 // -------------------------------------------------------------------------------------------------
