@@ -59,6 +59,10 @@ template<> struct simd_t<double,2>
     inline simd_t<double,2> abs() const { return _mm_andnot_pd(_mm_set1_pd(-0.0), x); }
 
     template<unsigned int M> inline double extract() const;
+
+    inline simd_t<double,2> horizontal_sum() const  { return x + _mm_shuffle_pd(x,x,0x01); }
+    inline double sum() const                       { return _mm_cvtsd_f64(x + _mm_shuffle_pd(x,x,0x01)); }
+	
 };
 
 template<> inline double simd_t<double,2>::extract<0>() const { return _mm_cvtsd_f64(x); }
@@ -112,6 +116,18 @@ template<> struct simd_t<double,4>
     {
 	simd_t<double,2> x2 = _mm256_extractf128_pd(x, M/2);
 	return x2.extract<M%2> ();
+    }
+
+    inline simd_t<double,4> horizontal_sum() const
+    { 
+	__m256d y = x + _mm256_shuffle_pd(x, x, 0x05);
+        return y + _mm256_permute2f128_pd(y, y, 0x01);
+    }
+
+    inline double sum() const
+    { 
+	__m128d y = _mm256_extractf128_pd(x,0) + _mm256_extractf128_pd(x,1);
+	return _mm_cvtsd_f64(y + _mm_shuffle_pd(y,y,0x01));
     }
 };
 
