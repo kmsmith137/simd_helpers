@@ -86,6 +86,9 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      smask_t<T,S> compare_le(simd_t<T,S> x) const;
 //      smask_t<T,S> compare_lt(simd_t<T,S> x) const;
 //
+//      // Bitwise operators.
+//      // Note that x.bitwise_andnot(y) is (x & ~y)   [ not (~x & y) as in the underlying assembly language instruction ]
+//
 //      simd_t<T,S> bitwise_and(smask_t<T,S> x) const;            // defined for all T
 //      simd_t<T,S> bitwise_andnot(smask_t<T,S> x) const;         // defined for all T
 //      simd_t<T,S> bitwise_or(simd_t<T,S> x) const;              // defined for integer T

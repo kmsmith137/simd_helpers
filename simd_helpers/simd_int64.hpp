@@ -56,7 +56,7 @@ template<> struct simd_t<int64_t,2>
     inline simd_t<int64_t,2> bitwise_and(simd_t<int64_t,2> t) const     { return _mm_and_si128(x, t.x); }
     inline simd_t<int64_t,2> bitwise_or(simd_t<int64_t,2> t) const      { return _mm_or_si128(x, t.x); }
     inline simd_t<int64_t,2> bitwise_xor(simd_t<int64_t,2> t) const     { return _mm_xor_si128(x, t.x); }
-    inline simd_t<int64_t,2> bitwise_andnot(simd_t<int64_t,2> t) const  { return _mm_andnot_si128(x, t.x); }
+    inline simd_t<int64_t,2> bitwise_andnot(simd_t<int64_t,2> t) const  { return _mm_andnot_si128(t.x, x); }
     inline simd_t<int64_t,2> bitwise_not() const                        { return _mm_xor_si128(x, _mm_set1_epi16(-1)); }
 
     inline simd_t<int64_t,2> horizontal_sum() const  { return _mm_add_epi64(x, _mm_shuffle_epi32(x, 0x4e)); }
@@ -240,10 +240,10 @@ template<> struct simd_t<int64_t,4>
     inline simd_t<int64_t,4> bitwise_andnot(simd_t<int64_t,4> t) const
     {
 #ifdef __AVX2__
-	return _mm256_andnot_si256(x, t.x); 
+	return _mm256_andnot_si256(t.x, x); 
 #else
-	simd_t<int64_t,2> ret0 = _mm_andnot_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
-	simd_t<int64_t,2> ret1 = _mm_andnot_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	simd_t<int64_t,2> ret0 = _mm_andnot_si128(_mm256_extractf128_si256(t.x,0), _mm256_extractf128_si256(x,0));
+	simd_t<int64_t,2> ret1 = _mm_andnot_si128(_mm256_extractf128_si256(t.x,1), _mm256_extractf128_si256(x,1));
 	return simd_t<int64_t,4> (ret0, ret1);
 #endif
     }
