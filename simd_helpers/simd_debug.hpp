@@ -5,6 +5,7 @@
 #error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
 #endif
 
+#include <cmath>   // std::abs() gives cryptic errors without this
 #include <vector>
 #include <random>
 #include <cassert>
@@ -138,9 +139,9 @@ inline T maxdiff(S n, const T *v1, const T *v2)
 {
     assert(n > 0);
 
-    T ret = std::fabs(v1[0]-v2[0]);
+    T ret = std::abs(v1[0]-v2[0]);
     for (S i = 1; i < n; i++)
-	ret = std::max(ret, std::fabs(v1[i]-v2[i]));
+	ret = std::max(ret, std::abs(v1[i]-v2[i]));
 
     return ret;
 }
@@ -160,9 +161,9 @@ inline T maxabs(S n, const T *v)
 {
     assert(n > 0);
 
-    T ret = std::fabs(v[0]);
+    T ret = std::abs(v[0]);
     for (unsigned int i = 1; i < n; i++)
-	ret = std::max(ret, std::fabs(v[i]));
+	ret = std::max(ret, std::abs(v[i]));
 
     return ret;
 }
