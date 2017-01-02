@@ -4,6 +4,15 @@ using namespace std;
 using namespace simd_helpers;
 
 
+// Convenient when defining templated unit tests which work for both integral and floating-point types
+template<> inline constexpr int simd_helpers::machine_epsilon()  { return 0; }
+
+
+// -------------------------------------------------------------------------------------------------
+//
+// "Basics": load / store / extract / constructors
+
+
 template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N==0),int>::type = 0>
 inline bool _check_extract(simd_t<T,S> x, const T *v) { return true; }
 
@@ -61,6 +70,53 @@ inline void test_merging_constructor(std::mt19937 &rng)
 };
 
 
+// -------------------------------------------------------------------------------------------------
+//
+// Arithmetic ops
+
+
+template<typename T, unsigned int S>
+inline void test_compound_assignment_operator(std::mt19937 &rng, void (*f1)(simd_t<T,S> &, simd_t<T,S>), void (*f2)(T&, T))
+{
+    const T epsilon = 100 * machine_epsilon<T>();
+
+    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -10, 10);
+    simd_t<T,S> y = uniform_random_simd_t<T,S> (rng, 1, 10);
+
+    vector<T> vx = vectorize(x);
+    vector<T> vy = vectorize(y);
+
+    f1(x, y);
+    vector<T> vz = vectorize(x);
+
+    for (unsigned int s = 0; s < S; s++)
+	f2(vx[s], vy[s]);
+
+    assert(maxdiff(vx,vz) <= epsilon);
+}
+
+
+template<typename T, unsigned int S>
+inline void test_binary_operator(std::mt19937 &rng, simd_t<T,S> (*f1)(simd_t<T,S>, simd_t<T,S>), T (*f2)(T, T))
+{
+    const T epsilon = 100 * machine_epsilon<T>();
+
+    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -10, 10);
+    simd_t<T,S> y = uniform_random_simd_t<T,S> (rng, 1, 10);
+
+    vector<T> vx = vectorize(x);
+    vector<T> vy = vectorize(y);
+
+    vector<T> w1 = vectorize(f1(x,y));
+
+    vector<T> w2(S);
+    for (unsigned int s = 0; s < S; s++)
+	w2[s] = f2(vx[s], vy[s]);
+
+    assert(maxdiff(w1,w2) <= epsilon);    
+}
+
+
 template<typename T, unsigned int S>
 inline void test_abs(std::mt19937 &rng)
 {
@@ -78,12 +134,34 @@ inline void test_abs(std::mt19937 &rng)
 // -------------------------------------------------------------------------------------------------
 
 
+template<typename T> inline void assign_add(T &x, T y) { x += y; }
+template<typename T> inline void assign_sub(T &x, T y) { x -= y; }
+template<typename T> inline void assign_mul(T &x, T y) { x *= y; }
+template<typename T> inline void assign_div(T &x, T y) { x /= y; }
+
+template<typename T> inline T binary_add(T x, T y) { return x + y; }
+template<typename T> inline T binary_sub(T x, T y) { return x - y; }
+template<typename T> inline T binary_mul(T x, T y) { return x * y; }
+template<typename T> inline T binary_div(T x, T y) { return x / y; }
+
+
 // Runs unit tests which are defined for every pair (T,S)
 template<typename T, unsigned int S>
 inline void test_all_TS(std::mt19937 &rng)
 {
     test_load_store_extract<T,S>(rng);
     test_constructors<T,S>(rng);
+
+    test_compound_assignment_operator(rng, assign_add< simd_t<T,S> >, assign_add<T>);   // operator+=
+    test_compound_assignment_operator(rng, assign_sub< simd_t<T,S> >, assign_sub<T>);   // operator-=
+    test_compound_assignment_operator(rng, assign_mul< simd_t<T,S> >, assign_mul<T>);   // operator*=
+    test_compound_assignment_operator(rng, assign_div< simd_t<T,S> >, assign_div<T>);   // operator/=
+
+    test_binary_operator(rng, binary_add< simd_t<T,S> >, binary_add<T>);   // operator+
+    test_binary_operator(rng, binary_sub< simd_t<T,S> >, binary_sub<T>);   // operator-
+    test_binary_operator(rng, binary_mul< simd_t<T,S> >, binary_mul<T>);   // operator*
+    test_binary_operator(rng, binary_div< simd_t<T,S> >, binary_div<T>);   // operator/
+
     test_abs<T,S>(rng);
 }
 
