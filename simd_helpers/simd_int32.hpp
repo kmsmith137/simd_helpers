@@ -66,8 +66,8 @@ template<> struct simd_t<int,4>
 
     inline simd_t<int,4> horizontal_sum() const
     {
-	__m128i y = x + _mm_shuffle_epi32(x, 0xb1);  // (2301)_4 = 0xb1
-	return y + _mm_shuffle_epi32(y, 0x4e);       // (1032)_4 = 0x4e
+	__m128i y = _mm_add_epi32(x, _mm_shuffle_epi32(x, 0xb1));  // (2301)_4 = 0xb1
+	return _mm_add_epi32(y, _mm_shuffle_epi32(y, 0x4e));       // (1032)_4 = 0x4e
     }
 
     inline int sum() const { return _mm_extract_epi32(horizontal_sum().x, 0); }
@@ -219,9 +219,9 @@ template<> struct simd_t<int,8>
     inline simd_t<int,8> horizontal_sum() const
     {
 #ifdef __AVX2__
-	__m256i y = x + _mm256_shuffle_epi32(x, 0xb1);  // (2301)_4 = 0xb1
-	y += _mm256_shuffle_epi32(y, 0x4e);             // (1032)_4 = 0x4e
-	return y + _mm256_permute2f128_si256(y, y, 0x01);
+	__m256i y = _mm256_add_epi32(x, _mm256_shuffle_epi32(x, 0xb1));  // (2301)_4 = 0xb1
+	y = _mm256_add_epi32(y, _mm256_shuffle_epi32(y, 0x4e));          // (1032)_4 = 0x4e
+	return _mm256_add_epi32(y, _mm256_permute2f128_si256(y, y, 0x01));
 #else
 	simd_t<int,4> x0 = _mm256_extractf128_si256(x,0) + _mm256_extractf128_si256(x,1);
 	x0 = x0.horizontal_sum();
