@@ -21,6 +21,7 @@ INCFILES_TOP=simd_helpers.hpp
 
 INCFILES_SUB=simd_helpers/base.hpp \
 	simd_helpers/simd_int32.hpp \
+	simd_helpers/simd_int64.hpp \
 	simd_helpers/simd_float32.hpp \
 	simd_helpers/simd_ntuple.hpp \
 	simd_helpers/simd_trimatrix.hpp \

@@ -6,6 +6,7 @@ using namespace simd_helpers;
 
 // Convenient when defining templated unit tests which work for both integral and floating-point types
 template<> inline constexpr int simd_helpers::machine_epsilon()  { return 0; }
+template<> inline constexpr int64_t simd_helpers::machine_epsilon()  { return 0; }
 
 
 // -------------------------------------------------------------------------------------------------
@@ -65,7 +66,7 @@ inline void test_merging_constructor(std::mt19937 &rng)
 
     for (int i = 0; i < S; i++) {
 	assert(va[i] == vc[i]);
-	assert(vb[i] == vc[i+4]);
+	assert(vb[i] == vc[i+S]);
     }
 };
 
@@ -157,8 +158,6 @@ inline void test_all_TS(std::mt19937 &rng)
 
     test_binary_operator(rng, binary_add< simd_t<T,S> >, binary_add<T>);   // operator+
     test_binary_operator(rng, binary_sub< simd_t<T,S> >, binary_sub<T>);   // operator-
-
-    test_abs<T,S>(rng);
 }
 
 
@@ -171,6 +170,8 @@ inline void test_fp_TS(std::mt19937 &rng)
 
     test_binary_operator(rng, binary_mul< simd_t<T,S> >, binary_mul<T>);   // operator*
     test_binary_operator(rng, binary_div< simd_t<T,S> >, binary_div<T>);   // operator/
+
+    test_abs<T,S>(rng);
 }
 
 
@@ -200,8 +201,12 @@ inline void test_fp_T(std::mt19937 &rng)
 inline void test_all(std::mt19937 &rng)
 {
     test_all_T<int>(rng);
+    test_all_T<int64_t>(rng);
     test_all_T<float>(rng);
     test_fp_T<float>(rng);
+
+    test_abs<int32_t,4> (rng);
+    test_abs<int32_t,8> (rng);
 }
 
 

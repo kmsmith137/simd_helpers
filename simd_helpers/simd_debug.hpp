@@ -15,6 +15,7 @@
 
 #include "base.hpp"
 #include "simd_int32.hpp"
+#include "simd_int64.hpp"
 #include "simd_float32.hpp"
 #include "simd_ntuple.hpp"
 #include "simd_trimatrix.hpp"
@@ -28,9 +29,10 @@ namespace simd_helpers {
 
 // type_name(): useful for debugging.  (Note that typename is a reserved word!)
 template<typename T> inline std::string type_name();
-template<> inline std::string type_name<int> () { return "int"; }
-template<> inline std::string type_name<float> () { return "float"; }
-template<> inline std::string type_name<double> () { return "double"; }
+template<> inline std::string type_name<int> ()      { return "int"; }
+template<> inline std::string type_name<int64_t> ()  { return "int64_t"; }
+template<> inline std::string type_name<float> ()    { return "float"; }
+template<> inline std::string type_name<double> ()   { return "double"; }
 
 template<typename T, unsigned int S>
 inline std::string type_name(const simd_t<T,S> &x) { std::stringstream ss; ss << "simd_t<" << type_name<T>() << "," << S << ">"; return ss.str(); }

@@ -10,6 +10,7 @@
 
 #include "simd_helpers/base.hpp"
 #include "simd_helpers/simd_int32.hpp"       // simd_t<int,S>
+#include "simd_helpers/simd_int64.hpp"       // simd_t<int64_t,S>
 #include "simd_helpers/simd_float32.hpp"     // simd_t<float,S>
 #include "simd_helpers/simd_ntuple.hpp"      // simd_ntuple<T,S,N>
 #include "simd_helpers/simd_trimatrix.hpp"   // simd_trimatrix<T,S,N>
