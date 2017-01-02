@@ -57,11 +57,11 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      simd_t<T,S> &operator+=(simd_t<T,S> x);
 //      simd_t<T,S> &operator-=(simd_t<T,S> x);
 //      simd_t<T,S> &operator*=(simd_t<T,S> x);
-//      simd_t<T,S> &operator/=(simd_t<T,S> x);
+//      simd_t<T,S> &operator/=(simd_t<T,S> x);                   // note: division not defined for integer types
 //      simd_t<T,S> operator+(simd_t<T,S> x) const;
 //      simd_t<T,S> operator-(simd_t<T,S> x) const;
 //      simd_t<T,S> operator*(simd_t<T,S> x) const;
-//      simd_t<T,S> operator/(simd_t<T,S> x) const;
+//      simd_t<T,S> operator/(simd_t<T,S> x) const;               // note: division not defined for integer types
 //
 //      simd_t<T,S> bitwise_and(simd_t<mask_t,S> x) const;        // defined for all T
 //      simd_t<T,S> bitwise_andnot(simd_t<mask_t,S> x) const;     // defined for all T
@@ -95,17 +95,6 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      int is_all_ones() const;                             // returns true if all bits are one
 //  };
 
-
-// FIXME will remove this soon
-template<typename T, unsigned int S> inline simd_t<T,S> &operator+=(simd_t<T,S> &a, simd_t<T,S> b) { a.x += b.x; return a; }
-template<typename T, unsigned int S> inline simd_t<T,S> &operator-=(simd_t<T,S> &a, simd_t<T,S> b) { a.x -= b.x; return a; }
-template<typename T, unsigned int S> inline simd_t<T,S> &operator*=(simd_t<T,S> &a, simd_t<T,S> b) { a.x *= b.x; return a; }
-template<typename T, unsigned int S> inline simd_t<T,S> &operator/=(simd_t<T,S> &a, simd_t<T,S> b) { a.x /= b.x; return a; }
-
-template<typename T, unsigned int S> inline simd_t<T,S> operator+(simd_t<T,S> a, simd_t<T,S> b) { return a.x + b.x; }
-template<typename T, unsigned int S> inline simd_t<T,S> operator-(simd_t<T,S> a, simd_t<T,S> b) { return a.x - b.x; }
-template<typename T, unsigned int S> inline simd_t<T,S> operator*(simd_t<T,S> a, simd_t<T,S> b) { return a.x * b.x; }
-template<typename T, unsigned int S> inline simd_t<T,S> operator/(simd_t<T,S> a, simd_t<T,S> b) { return a.x / b.x; }
 
 template<typename T, unsigned int S> inline simd_t<T,S> operator*(T a, simd_t<T,S> b) { return simd_t<T,S>(a) * b; }
 template<typename T, unsigned int S> inline simd_t<T,S> operator*(simd_t<T,S> a, T b) { return a * simd_t<T,S>(b); }

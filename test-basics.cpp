@@ -155,12 +155,12 @@ inline void test_all_TS(std::mt19937 &rng)
     test_compound_assignment_operator(rng, assign_add< simd_t<T,S> >, assign_add<T>);   // operator+=
     test_compound_assignment_operator(rng, assign_sub< simd_t<T,S> >, assign_sub<T>);   // operator-=
     test_compound_assignment_operator(rng, assign_mul< simd_t<T,S> >, assign_mul<T>);   // operator*=
-    test_compound_assignment_operator(rng, assign_div< simd_t<T,S> >, assign_div<T>);   // operator/=
+    // test_compound_assignment_operator(rng, assign_div< simd_t<T,S> >, assign_div<T>);   // operator/=
 
     test_binary_operator(rng, binary_add< simd_t<T,S> >, binary_add<T>);   // operator+
     test_binary_operator(rng, binary_sub< simd_t<T,S> >, binary_sub<T>);   // operator-
     test_binary_operator(rng, binary_mul< simd_t<T,S> >, binary_mul<T>);   // operator*
-    test_binary_operator(rng, binary_div< simd_t<T,S> >, binary_div<T>);   // operator/
+    // test_binary_operator(rng, binary_div< simd_t<T,S> >, binary_div<T>);   // operator/
 
     test_abs<T,S>(rng);
 }

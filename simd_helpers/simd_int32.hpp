@@ -38,6 +38,14 @@ template<> struct simd_t<int,4>
     inline void store(int *p) const  { _mm_store_si128((__m128i *)p, x); }
     inline void storeu(int *p) const { _mm_storeu_si128((__m128i *)p, x); }
 
+    inline simd_t<int,4> &operator+=(simd_t<int,4> t) { x = _mm_add_epi32(x,t.x); return *this; }
+    inline simd_t<int,4> &operator-=(simd_t<int,4> t) { x = _mm_sub_epi32(x,t.x); return *this; }
+    inline simd_t<int,4> &operator*=(simd_t<int,4> t) { x = _mm_mul_epi32(x,t.x); return *this; }
+
+    inline simd_t<int,4> operator+(simd_t<int,4> t) { return _mm_add_epi32(x,t.x); }
+    inline simd_t<int,4> operator-(simd_t<int,4> t) { return _mm_sub_epi32(x,t.x); }
+    inline simd_t<int,4> operator*(simd_t<int,4> t) { return _mm_mul_epi32(x,t.x); }
+
     inline simd_t<int,4> abs() const { return _mm_abs_epi32(x); }
 
     // The comparison operators return all ones (0xff..) if "true".
@@ -94,6 +102,14 @@ template<> struct simd_t<int,8>
 
     inline void store(int *p) const  { _mm256_store_si256((__m256i *)p, x); }
     inline void storeu(int *p) const { _mm256_storeu_si256((__m256i *)p, x); }
+
+    inline simd_t<int,8> &operator+=(simd_t<int,8> t) { x = _mm256_add_epi32(x,t.x); return *this; }
+    inline simd_t<int,8> &operator-=(simd_t<int,8> t) { x = _mm256_sub_epi32(x,t.x); return *this; }
+    inline simd_t<int,8> &operator*=(simd_t<int,8> t) { x = _mm256_mul_epi32(x,t.x); return *this; }
+
+    inline simd_t<int,8> operator+(simd_t<int,8> t) { return _mm256_add_epi32(x,t.x); }
+    inline simd_t<int,8> operator-(simd_t<int,8> t) { return _mm256_sub_epi32(x,t.x); }
+    inline simd_t<int,8> operator*(simd_t<int,8> t) { return _mm256_mul_epi32(x,t.x); }
 
     inline simd_t<int,8> abs() const
     {
