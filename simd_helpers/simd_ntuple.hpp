@@ -6,6 +6,7 @@
 #endif
 
 #include "base.hpp"
+#include <type_traits>
 
 namespace simd_helpers {
 #if 0
