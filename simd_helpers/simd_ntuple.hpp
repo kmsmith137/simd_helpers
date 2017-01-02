@@ -5,7 +5,7 @@
 #error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
 #endif
 
-#include "base.hpp"
+#include "core.hpp"
 #include <type_traits>
 
 namespace simd_helpers {

@@ -13,7 +13,7 @@
 #include <iostream>
 #include <type_traits>
 
-#include "base.hpp"
+#include "core.hpp"
 #include "simd_int32.hpp"
 #include "simd_int64.hpp"
 #include "simd_float32.hpp"

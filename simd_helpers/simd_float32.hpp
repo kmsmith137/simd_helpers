@@ -5,7 +5,7 @@
 #error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
 #endif
 
-#include "base.hpp"
+#include "core.hpp"
 #include "simd_int32.hpp"
 
 namespace simd_helpers {
@@ -19,7 +19,7 @@ namespace simd_helpers {
 // simd_t<float,4>
 //
 // Note: for a "declaration" of the key class simd_t<T,S>,
-// see the extended comment in simd_helpers/base.hpp
+// see the extended comment in simd_helpers/core.hpp
 
 
 template<> struct simd_t<float,4>
