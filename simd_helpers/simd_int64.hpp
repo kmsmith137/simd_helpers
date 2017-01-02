@@ -38,17 +38,26 @@ template<> struct simd_t<int64_t,2>
     inline void store(int64_t *p) const  { _mm_store_si128((__m128i *)p, x); }
     inline void storeu(int64_t *p) const { _mm_storeu_si128((__m128i *)p, x); }
 
+    template<unsigned int M> inline int64_t extract() const  { return _mm_extract_epi64(x, M); }
+
     inline simd_t<int64_t,2> &operator+=(simd_t<int64_t,2> t) { x = _mm_add_epi64(x,t.x); return *this; }
     inline simd_t<int64_t,2> &operator-=(simd_t<int64_t,2> t) { x = _mm_sub_epi64(x,t.x); return *this; }
 
     inline simd_t<int64_t,2> operator+(simd_t<int64_t,2> t) const { return _mm_add_epi64(x,t.x); }
     inline simd_t<int64_t,2> operator-(simd_t<int64_t,2> t) const { return _mm_sub_epi64(x,t.x); }
 
-    inline simd_t<int64_t,2> compare_eq(simd_t<int64_t,2> t) const { return _mm_cmpeq_epi64(x, t.x); }
+    inline simd_t<int64_t,2> compare_eq(simd_t<int64_t,2> t) const  { return _mm_cmpeq_epi64(x, t.x); }
+    inline simd_t<int64_t,2> compare_gt(simd_t<int64_t,2> t) const  { return _mm_cmpgt_epi64(x, t.x); }
+    inline simd_t<int64_t,2> compare_lt(simd_t<int64_t,2> t) const  { return _mm_cmpgt_epi64(t.x, x); }
+    inline simd_t<int64_t,2> compare_ne(simd_t<int64_t,2> t) const  { return compare_eq(t).bitwise_not(); }
+    inline simd_t<int64_t,2> compare_ge(simd_t<int64_t,2> t) const  { return compare_lt(t).bitwise_not(); }
+    inline simd_t<int64_t,2> compare_le(simd_t<int64_t,2> t) const  { return compare_gt(t).bitwise_not(); }
 
-    // Note: you might need to call this with the weird-looking syntax
-    //    x.template extract<M> ();
-    template<unsigned int M> inline int64_t extract() const  { return _mm_extract_epi64(x, M); }
+    inline simd_t<int64_t,2> bitwise_and(simd_t<int64_t,2> t) const     { return _mm_and_si128(x, t.x); }
+    inline simd_t<int64_t,2> bitwise_or(simd_t<int64_t,2> t) const      { return _mm_or_si128(x, t.x); }
+    inline simd_t<int64_t,2> bitwise_xor(simd_t<int64_t,2> t) const     { return _mm_xor_si128(x, t.x); }
+    inline simd_t<int64_t,2> bitwise_andnot(simd_t<int64_t,2> t) const  { return _mm_andnot_si128(x, t.x); }
+    inline simd_t<int64_t,2> bitwise_not() const                        { return _mm_xor_si128(x, _mm_set1_epi16(-1)); }
 
     inline simd_t<int64_t,2> horizontal_sum() const  { return _mm_add_epi64(x, _mm_shuffle_epi32(x, 0x4e)); }
     inline int64_t sum() const                       { return _mm_extract_epi64(horizontal_sum().x, 0); }
@@ -78,16 +87,136 @@ template<> struct simd_t<int64_t,4>
     inline void store(int64_t *p) const  { _mm256_store_si256((__m256i *)p, x); }
     inline void storeu(int64_t *p) const { _mm256_storeu_si256((__m256i *)p, x); }
 
+    template<unsigned int M> inline int extract() const                    { return _mm256_extract_epi64(x,M); }
+    template<unsigned int M> inline simd_t<int64_t,2> extract128() const   { return _mm256_extractf128_si256(x,M); }
+
     inline simd_t<int64_t,4> &operator+=(simd_t<int64_t,4> t) { x = _mm256_add_epi64(x,t.x); return *this; }
     inline simd_t<int64_t,4> &operator-=(simd_t<int64_t,4> t) { x = _mm256_sub_epi64(x,t.x); return *this; }
 
     inline simd_t<int64_t,4> operator+(simd_t<int64_t,4> t) const { return _mm256_add_epi64(x,t.x); }
     inline simd_t<int64_t,4> operator-(simd_t<int64_t,4> t) const { return _mm256_sub_epi64(x,t.x); }
 
-    inline simd_t<int64_t,4> compare_eq(simd_t<int64_t,4> t) const { return _mm256_cmpeq_epi64(x, t.x); }
+    inline simd_t<int64_t,4> compare_eq(simd_t<int64_t,4> t) const 
+    { 
+#ifdef __AVX2__
+	return _mm256_cmpeq_epi64(x, t.x); 
+#else
+	simd_t<int64_t,2> ret0 = _mm_cmpeq_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int64_t,2> ret1 = _mm_cmpeq_epi64(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int64_t,4> (ret0, ret1);
+#endif
+    }
 
-    template<unsigned int M> inline int extract() const                    { return _mm256_extract_epi64(x,M); }
-    template<unsigned int M> inline simd_t<int64_t,2> extract128() const   { return _mm256_extractf128_si256(x,M); }
+    inline simd_t<int64_t,4> compare_gt(simd_t<int64_t,4> t) const  
+    { 
+#ifdef __AVX2__
+	return _mm256_cmpgt_epi64(x, t.x); 
+#else
+	simd_t<int64_t,2> ret0 = _mm_cmpgt_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int64_t,2> ret1 = _mm_cmpgt_epi64(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int64_t,4> (ret0, ret1);	
+#endif
+    }
+
+    inline simd_t<int64_t,4> compare_lt(simd_t<int64_t,4> t) const  
+    { 
+#ifdef __AVX2__
+	return _mm256_cmpgt_epi64(t.x, x); 
+#else
+	simd_t<int64_t,2> ret0 = _mm_cmpgt_epi64(_mm256_extractf128_si256(t.x,0), _mm256_extractf128_si256(x,0));
+	simd_t<int64_t,2> ret1 = _mm_cmpgt_epi64(_mm256_extractf128_si256(t.x,1), _mm256_extractf128_si256(x,1));
+	return simd_t<int64_t,4> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int64_t,4> compare_ne(simd_t<int64_t,4> t) const  
+    { 
+#ifdef __AVX2__
+	return compare_eq(t).bitwise_not(); 
+#else
+	simd_t<int64_t,2> ret0 = _mm_cmpeq_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int64_t,2> ret1 = _mm_cmpeq_epi64(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int64_t,4> (ret0.bitwise_not(), ret1.bitwise_not());
+#endif
+    }
+
+    inline simd_t<int64_t,4> compare_ge(simd_t<int64_t,4> t) const  
+    { 
+#ifdef __AVX2__
+	return compare_lt(t).bitwise_not(); 
+#else
+	simd_t<int64_t,2> ret0 = _mm_cmpgt_epi64(_mm256_extractf128_si256(t.x,0), _mm256_extractf128_si256(x,0));
+	simd_t<int64_t,2> ret1 = _mm_cmpgt_epi64(_mm256_extractf128_si256(t.x,1), _mm256_extractf128_si256(x,1));
+	return simd_t<int64_t,4> (ret0.bitwise_not(), ret1.bitwise_not());
+#endif
+    }
+
+    inline simd_t<int64_t,4> compare_le(simd_t<int64_t,4> t) const  
+    { 
+#ifdef __AVX2__
+	return compare_gt(t).bitwise_not(); 
+#else
+	simd_t<int64_t,2> ret0 = _mm_cmpgt_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int64_t,2> ret1 = _mm_cmpgt_epi64(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int64_t,4> (ret0.bitwise_not(), ret1.bitwise_not());
+#endif
+    }
+    
+    inline simd_t<int64_t,4> bitwise_and(simd_t<int64_t,4> t) const
+    {
+#ifdef __AVX2__
+	return _mm256_and_si256(x, t.x); 
+#else
+	simd_t<int64_t,2> ret0 = _mm_and_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int64_t,2> ret1 = _mm_and_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int64_t,4> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int64_t,4> bitwise_or(simd_t<int64_t,4> t) const
+    {
+#ifdef __AVX2__
+	return _mm256_or_si256(x, t.x); 
+#else
+	simd_t<int64_t,2> ret0 = _mm_or_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int64_t,2> ret1 = _mm_or_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int64_t,4> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int64_t,4> bitwise_xor(simd_t<int64_t,4> t) const
+    {
+#ifdef __AVX2__
+	return _mm256_xor_si256(x, t.x); 
+#else
+	simd_t<int64_t,2> ret0 = _mm_xor_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int64_t,2> ret1 = _mm_xor_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int64_t,4> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int64_t,4> bitwise_andnot(simd_t<int64_t,4> t) const
+    {
+#ifdef __AVX2__
+	return _mm256_andnot_si256(x, t.x); 
+#else
+	simd_t<int64_t,2> ret0 = _mm_andnot_si128(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int64_t,2> ret1 = _mm_andnot_si128(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return simd_t<int64_t,4> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int64_t,4> bitwise_not() const
+    {
+#ifdef __AVX2__
+	return _mm256_xor_si256(x, _mm256_set1_epi16(-1));
+#else
+	simd_t<int64_t,2> ret0 = _mm256_extractf128_si256(x,0);
+	simd_t<int64_t,2> ret1 = _mm256_extractf128_si256(x,1);
+	return simd_t<int64_t,4> (ret0.bitwise_not(), ret1.bitwise_not());
+#endif
+    }
+
 
     inline simd_t<int64_t,4> horizontal_sum() const
     { 
