@@ -1,12 +1,15 @@
 #include "simd_helpers/simd_debug.hpp"
 
 using namespace std;
-using namespace simd_helpers;
 
+namespace simd_helpers {
+#if 0
+}  // emacs pacifier
+#endif
 
 // Convenient when defining templated unit tests which work for both integral and floating-point types
-template<> inline constexpr int simd_helpers::machine_epsilon()  { return 0; }
-template<> inline constexpr int64_t simd_helpers::machine_epsilon()  { return 0; }
+template<> inline constexpr int machine_epsilon()  { return 0; }
+template<> inline constexpr int64_t machine_epsilon()  { return 0; }
 
 
 // -------------------------------------------------------------------------------------------------
@@ -329,6 +332,8 @@ inline void test_all(std::mt19937 &rng)
     test_int32<8> (rng);
 }
 
+}   // namespace simd_helpers
+
 
 int main(int argc, char **argv)
 {
@@ -336,7 +341,7 @@ int main(int argc, char **argv)
     std::mt19937 rng(rd());
 
     for (int iter = 0; iter < 1000; iter++)
-	test_all(rng);
+	simd_helpers::test_all(rng);
 
     cout << "test-basics: pass\n";
     return 0;

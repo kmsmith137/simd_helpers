@@ -90,11 +90,53 @@ template<> struct simd_t<int64_t,4>
     template<unsigned int M> inline int extract() const                    { return _mm256_extract_epi64(x,M); }
     template<unsigned int M> inline simd_t<int64_t,2> extract128() const   { return _mm256_extractf128_si256(x,M); }
 
-    inline simd_t<int64_t,4> &operator+=(simd_t<int64_t,4> t) { x = _mm256_add_epi64(x,t.x); return *this; }
-    inline simd_t<int64_t,4> &operator-=(simd_t<int64_t,4> t) { x = _mm256_sub_epi64(x,t.x); return *this; }
+    inline simd_t<int64_t,4> &operator+=(simd_t<int64_t,4> t) 
+    { 
+#ifdef __AVX2__
+	x = _mm256_add_epi64(x,t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_add_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_add_epi64(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	x = _mm256_insertf128_si256(_mm256_castsi128_si256(ret0.x), (ret1.x), 1);
 
-    inline simd_t<int64_t,4> operator+(simd_t<int64_t,4> t) const { return _mm256_add_epi64(x,t.x); }
-    inline simd_t<int64_t,4> operator-(simd_t<int64_t,4> t) const { return _mm256_sub_epi64(x,t.x); }
+#endif
+	return *this; 
+    }
+
+    inline simd_t<int64_t,4> &operator-=(simd_t<int64_t,4> t) 
+    { 
+#ifdef __AVX2__
+	x = _mm256_sub_epi64(x,t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_sub_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_sub_epi64(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	x = _mm256_insertf128_si256(_mm256_castsi128_si256(ret0.x), (ret1.x), 1);
+
+#endif
+	return *this; 
+    }
+
+    inline simd_t<int64_t,4> operator+(simd_t<int64_t,4> t) const 
+    { 
+#ifdef __AVX2__
+	return _mm256_add_epi64(x,t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_add_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_add_epi64(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return _mm256_insertf128_si256(_mm256_castsi128_si256(ret0.x), (ret1.x), 1);
+#endif
+    }
+
+    inline simd_t<int64_t,4> operator-(simd_t<int64_t,4> t) const 
+    { 
+#ifdef __AVX2__
+	return _mm256_sub_epi64(x,t.x); 
+#else
+	simd_t<int,4> ret0 = _mm_sub_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
+	simd_t<int,4> ret1 = _mm_sub_epi64(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
+	return _mm256_insertf128_si256(_mm256_castsi128_si256(ret0.x), (ret1.x), 1);
+#endif
+    }
 
     inline simd_t<int64_t,4> compare_eq(simd_t<int64_t,4> t) const 
     { 
