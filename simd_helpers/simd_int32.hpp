@@ -156,7 +156,7 @@ template<> struct simd_t<int,8>
     inline simd_t<int,8> max(simd_t<int,8> t) const
     {
 #ifdef __AVX2__
-	return _mm256_min_epi32(x, t.x); 
+	return _mm256_max_epi32(x, t.x); 
 #else
 	simd_t<int,4> ret0 = _mm_max_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
 	simd_t<int,4> ret1 = _mm_max_epi32(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
