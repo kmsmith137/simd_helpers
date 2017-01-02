@@ -97,7 +97,6 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //
 //      simd_t<T,S> abs() const;                 // not defined for int64_t
 //      simd_t<T,S> sqrt() const;                // defined for floating-point T
-//      simd_t<T,S> rsqrt() const;               // defined for floating-point T
 //      simd_t<T,S> min(simd_t<T,S> x) const;
 //      simd_t<T,S> max(simd_t<T,S> x) const;
 //

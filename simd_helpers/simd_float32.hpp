@@ -50,7 +50,6 @@ template<> struct simd_t<float,4>
     inline simd_t<float,4> operator/(simd_t<float,4> t) const { return _mm_div_ps(x,t.x); }
 
     inline simd_t<float,4> sqrt() const { return _mm_sqrt_ps(x); }
-    inline simd_t<float,4> rsqrt() const { return _mm_rsqrt_ps(x); }
     
     // Fastest abs()?  (A little bit of a hack, clearing the sign bit with a bitwise operator.)
     inline simd_t<float,4> abs() const { return _mm_andnot_ps(_mm_set1_ps(-0.0), x); }
@@ -128,7 +127,6 @@ template<> struct simd_t<float,8>
     inline simd_t<float,8> operator/(simd_t<float,8> t) const { return _mm256_div_ps(x,t.x); }
 
     inline simd_t<float,8> sqrt() const { return _mm256_sqrt_ps(x); }
-    inline simd_t<float,8> rsqrt() const { return _mm256_rsqrt_ps(x); }
 
     // Fastest abs()?  (A little bit of a hack, clearing the sign bit with a bitwise operator.)
     inline simd_t<float,8> abs() const { return _mm256_andnot_ps(_mm256_set1_ps(-0.0), x); }
