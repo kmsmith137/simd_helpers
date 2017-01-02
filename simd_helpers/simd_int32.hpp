@@ -230,7 +230,13 @@ template<> struct simd_t<int,8>
 #endif
     }
 
-    inline int sum() const { return _mm256_extract_epi32(horizontal_sum().x, 0); }
+    inline int sum() const 
+    { 
+	__m128i y = _mm_add_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(x,1));
+	y = _mm_add_epi32(y, _mm_shuffle_epi32(y, 0xb1));  // (2301)_4 = 0xb1
+	y = _mm_add_epi32(y, _mm_shuffle_epi32(y, 0x4e));  // (1032)_4 = 0x4e
+	return _mm_extract_epi32(y, 0);
+    }
 };
 
 
