@@ -40,11 +40,9 @@ template<> struct simd_t<int,4>
 
     inline simd_t<int,4> &operator+=(simd_t<int,4> t) { x = _mm_add_epi32(x,t.x); return *this; }
     inline simd_t<int,4> &operator-=(simd_t<int,4> t) { x = _mm_sub_epi32(x,t.x); return *this; }
-    inline simd_t<int,4> &operator*=(simd_t<int,4> t) { x = _mm_mul_epi32(x,t.x); return *this; }
 
     inline simd_t<int,4> operator+(simd_t<int,4> t) { return _mm_add_epi32(x,t.x); }
     inline simd_t<int,4> operator-(simd_t<int,4> t) { return _mm_sub_epi32(x,t.x); }
-    inline simd_t<int,4> operator*(simd_t<int,4> t) { return _mm_mul_epi32(x,t.x); }
 
     inline simd_t<int,4> abs() const { return _mm_abs_epi32(x); }
 
@@ -105,11 +103,9 @@ template<> struct simd_t<int,8>
 
     inline simd_t<int,8> &operator+=(simd_t<int,8> t) { x = _mm256_add_epi32(x,t.x); return *this; }
     inline simd_t<int,8> &operator-=(simd_t<int,8> t) { x = _mm256_sub_epi32(x,t.x); return *this; }
-    inline simd_t<int,8> &operator*=(simd_t<int,8> t) { x = _mm256_mul_epi32(x,t.x); return *this; }
 
     inline simd_t<int,8> operator+(simd_t<int,8> t) { return _mm256_add_epi32(x,t.x); }
     inline simd_t<int,8> operator-(simd_t<int,8> t) { return _mm256_sub_epi32(x,t.x); }
-    inline simd_t<int,8> operator*(simd_t<int,8> t) { return _mm256_mul_epi32(x,t.x); }
 
     inline simd_t<int,8> abs() const
     {

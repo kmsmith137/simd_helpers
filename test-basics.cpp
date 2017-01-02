@@ -154,15 +154,23 @@ inline void test_all_TS(std::mt19937 &rng)
 
     test_compound_assignment_operator(rng, assign_add< simd_t<T,S> >, assign_add<T>);   // operator+=
     test_compound_assignment_operator(rng, assign_sub< simd_t<T,S> >, assign_sub<T>);   // operator-=
-    test_compound_assignment_operator(rng, assign_mul< simd_t<T,S> >, assign_mul<T>);   // operator*=
-    // test_compound_assignment_operator(rng, assign_div< simd_t<T,S> >, assign_div<T>);   // operator/=
 
     test_binary_operator(rng, binary_add< simd_t<T,S> >, binary_add<T>);   // operator+
     test_binary_operator(rng, binary_sub< simd_t<T,S> >, binary_sub<T>);   // operator-
-    test_binary_operator(rng, binary_mul< simd_t<T,S> >, binary_mul<T>);   // operator*
-    // test_binary_operator(rng, binary_div< simd_t<T,S> >, binary_div<T>);   // operator/
 
     test_abs<T,S>(rng);
+}
+
+
+// Runs unit tests which are defined for a floating-point pair (T,S)
+template<typename T, unsigned int S>
+inline void test_fp_TS(std::mt19937 &rng)
+{
+    test_compound_assignment_operator(rng, assign_mul< simd_t<T,S> >, assign_mul<T>);   // operator*=
+    test_compound_assignment_operator(rng, assign_div< simd_t<T,S> >, assign_div<T>);   // operator/=
+
+    test_binary_operator(rng, binary_mul< simd_t<T,S> >, binary_mul<T>);   // operator*
+    test_binary_operator(rng, binary_div< simd_t<T,S> >, binary_div<T>);   // operator/
 }
 
 
@@ -178,15 +186,32 @@ inline void test_all_T(std::mt19937 &rng)
 }
 
 
+// Runs unit tests which are defined for floating-point T
+template<typename T>
+inline void test_fp_T(std::mt19937 &rng)
+{
+    constexpr unsigned int S = 16 / sizeof(T);
+
+    test_fp_TS<T,S> (rng);
+    test_fp_TS<T,2*S> (rng);
+}
+
+
+inline void test_all(std::mt19937 &rng)
+{
+    test_all_T<int>(rng);
+    test_all_T<float>(rng);
+    test_fp_T<float>(rng);
+}
+
+
 int main(int argc, char **argv)
 {
     std::random_device rd;
     std::mt19937 rng(rd());
 
-    for (int iter = 0; iter < 1000; iter++) {
-	test_all_T<int>(rng);
-	test_all_T<float>(rng);
-    }
+    for (int iter = 0; iter < 1000; iter++)
+	test_all(rng);
 
     cout << "test-basics: pass\n";
     return 0;

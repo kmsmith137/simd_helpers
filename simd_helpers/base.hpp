@@ -56,11 +56,11 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      // Arithmetic operators
 //      simd_t<T,S> &operator+=(simd_t<T,S> x);
 //      simd_t<T,S> &operator-=(simd_t<T,S> x);
-//      simd_t<T,S> &operator*=(simd_t<T,S> x);
+//      simd_t<T,S> &operator*=(simd_t<T,S> x);                   // note: multiplication not defined for integer types
 //      simd_t<T,S> &operator/=(simd_t<T,S> x);                   // note: division not defined for integer types
 //      simd_t<T,S> operator+(simd_t<T,S> x) const;
 //      simd_t<T,S> operator-(simd_t<T,S> x) const;
-//      simd_t<T,S> operator*(simd_t<T,S> x) const;
+//      simd_t<T,S> operator*(simd_t<T,S> x) const;               // note: multiplication not defined for integer types
 //      simd_t<T,S> operator/(simd_t<T,S> x) const;               // note: division not defined for integer types
 //
 //      simd_t<T,S> bitwise_and(simd_t<mask_t,S> x) const;        // defined for all T
