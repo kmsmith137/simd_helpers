@@ -223,9 +223,10 @@ template<> struct simd_t<int,8>
 	y = _mm256_add_epi32(y, _mm256_shuffle_epi32(y, 0x4e));          // (1032)_4 = 0x4e
 	return _mm256_add_epi32(y, _mm256_permute2f128_si256(y, y, 0x01));
 #else
-	simd_t<int,4> x0 = _mm256_extractf128_si256(x,0) + _mm256_extractf128_si256(x,1);
-	x0 = x0.horizontal_sum();
-	return simd_t<int,8> (x0, x0);
+	__m128i y = _mm_add_epi32(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(x,1));
+	y = _mm_add_epi32(y, _mm_shuffle_epi32(y, 0xb1));  // (2301)_4 = 0xb1
+	y = _mm_add_epi32(y, _mm_shuffle_epi32(y, 0x4e));  // (1032)_4 = 0x4e
+	return _mm256_insertf128_si256(_mm256_castsi128_si256(y, y, 1);
 #endif
     }
 
