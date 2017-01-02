@@ -113,11 +113,9 @@ template<> struct simd_t<double,4>
 // -------------------------------------------------------------------------------------------------
 
 
-#if 0
 // blendv(mask,a,b) is morally equivalent to (mask ? a : b)
-inline simd_t<float,4> blendv(simd_t<int,4> mask, simd_t<float,4> a, simd_t<float,4> b)  { return _mm_blendv_ps(b.x, a.x, _mm_castsi128_ps(mask.x)); }
-inline simd_t<double,4> blendv(simd_t<int,8> mask, simd_t<double,4> a, simd_t<double,4> b)  { return _mm256_blendv_ps(b.x, a.x, _mm256_castsi256_ps(mask.x)); }
-#endif
+inline simd_t<double,2> blendv(simd_t<int64_t,2> mask, simd_t<double,2> a, simd_t<double,2> b)  { return _mm_blendv_pd(b.x, a.x, _mm_castsi128_pd(mask.x)); }
+inline simd_t<double,4> blendv(simd_t<int64_t,4> mask, simd_t<double,4> a, simd_t<double,4> b)  { return _mm256_blendv_pd(b.x, a.x, _mm256_castsi256_pd(mask.x)); }
 
 
 }  // namespace simd_helpers
