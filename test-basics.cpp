@@ -131,7 +131,7 @@ inline void test_binary_operator(const char *name, std::mt19937 &rng, simd_t<T,S
 
 
 template<typename T, unsigned int S>
-inline void test_comparison_operator(std::mt19937 &rng, smask_t<T,S> (*f1)(simd_t<T,S>, simd_t<T,S>), bool (*f2)(T, T))
+inline void test_comparison_operator(const char *name, std::mt19937 &rng, smask_t<T,S> (*f1)(simd_t<T,S>, simd_t<T,S>), bool (*f2)(T, T))
 {
     simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -10, 10);
     simd_t<T,S> dx = uniform_random_simd_t<T,S> (rng, 1, 10);
@@ -148,11 +148,15 @@ inline void test_comparison_operator(std::mt19937 &rng, smask_t<T,S> (*f1)(simd_
     }
 
     simd_t<T,S> y = pack_simd_t<T,S> (vy);
-    vector<T> vc = vectorize(f1(x,y));
+    vector<smask_t<T> > vc = vectorize(f1(x,y));
     
     for (unsigned int s = 0; s < S; s++) {
 	smask_t<T> expected_c = f2(vx[s],vy[s]) ? -1 : 0;
-	assert(vc[s] == expected_c);
+	if (vc[s] == expected_c)
+	    continue;
+	
+	cerr << "test_comparison_operator(" << name << "," << type_name<T>() << "," << S << ") failed\n";
+	exit(1);
     }
 }
 
@@ -245,6 +249,8 @@ inline void test_all_TS(std::mt19937 &rng)
     test_binary_operator("+", rng, binary_add< simd_t<T,S> >, binary_add<T>);
     test_binary_operator("-", rng, binary_sub< simd_t<T,S> >, binary_sub<T>);
 
+    test_comparison_operator("compare_eq", rng, simd_cmp_eq<T,S>, cmp_eq<T>);
+
     test_horizontal_sum<T,S> (rng);
 }
 
@@ -298,8 +304,6 @@ inline void test_fp_T(std::mt19937 &rng)
 
 inline void test_all(std::mt19937 &rng)
 {
-    test_comparison_operator(rng, simd_cmp_eq<int,4>, cmp_eq<int>);
-
     test_all_T<int>(rng);
     test_all_T<int64_t>(rng);
     test_all_T<float>(rng);

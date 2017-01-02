@@ -44,6 +44,8 @@ template<> struct simd_t<int64_t,2>
     inline simd_t<int64_t,2> operator+(simd_t<int64_t,2> t) const { return _mm_add_epi64(x,t.x); }
     inline simd_t<int64_t,2> operator-(simd_t<int64_t,2> t) const { return _mm_sub_epi64(x,t.x); }
 
+    inline simd_t<int64_t,2> compare_eq(simd_t<int64_t,2> t) const { return _mm_cmpeq_epi64(x, t.x); }
+
     // Note: you might need to call this with the weird-looking syntax
     //    x.template extract<M> ();
     template<unsigned int M> inline int64_t extract() const  { return _mm_extract_epi64(x, M); }
@@ -81,6 +83,8 @@ template<> struct simd_t<int64_t,4>
 
     inline simd_t<int64_t,4> operator+(simd_t<int64_t,4> t) const { return _mm256_add_epi64(x,t.x); }
     inline simd_t<int64_t,4> operator-(simd_t<int64_t,4> t) const { return _mm256_sub_epi64(x,t.x); }
+
+    inline simd_t<int64_t,4> compare_eq(simd_t<int64_t,4> t) const { return _mm256_cmpeq_epi64(x, t.x); }
 
     template<unsigned int M> inline int extract() const                    { return _mm256_extract_epi64(x,M); }
     template<unsigned int M> inline simd_t<int64_t,2> extract128() const   { return _mm256_extractf128_si256(x,M); }

@@ -49,6 +49,8 @@ template<> struct simd_t<double,2>
     inline simd_t<double,2> operator*(simd_t<double,2> t) const { return _mm_mul_pd(x,t.x); }
     inline simd_t<double,2> operator/(simd_t<double,2> t) const { return _mm_div_pd(x,t.x); }
 
+    inline simd_t<int64_t,2> compare_eq(simd_t<double,2> t) const  { return _mm_castpd_si128(_mm_cmpeq_pd(x, t.x)); }
+
     inline simd_t<double,2> min(simd_t<double,2> t) const { return _mm_min_pd(x, t.x); }
     inline simd_t<double,2> max(simd_t<double,2> t) const { return _mm_max_pd(x, t.x); }
 
@@ -101,6 +103,8 @@ template<> struct simd_t<double,4>
     inline simd_t<double,4> operator-(simd_t<double,4> t) const { return _mm256_sub_pd(x,t.x); }
     inline simd_t<double,4> operator*(simd_t<double,4> t) const { return _mm256_mul_pd(x,t.x); }
     inline simd_t<double,4> operator/(simd_t<double,4> t) const { return _mm256_div_pd(x,t.x); }
+
+    inline simd_t<int64_t,4> compare_eq(simd_t<double,4> t) const  { return _mm256_castpd_si256(_mm256_cmp_pd(x, t.x, _CMP_EQ_OQ)); }
 
     inline simd_t<double,4> min(simd_t<double,4> t) const { return _mm256_min_pd(x, t.x); }
     inline simd_t<double,4> max(simd_t<double,4> t) const { return _mm256_max_pd(x, t.x); }
