@@ -52,6 +52,14 @@ template<> struct simd_t<int64_t,2>
 	return _mm_xor_si128(_mm_add_epi64(x,t), t);
     }
 
+    inline simd_t<int64_t,2> abs() const
+    {
+	__m128i t = _mm_set1_epi16(-1);
+	__m128i nx = _mm_xor_si128(_mm_add_epi64(x,t), t);
+	__m128i pos = _mm_cmpgt_epi64(x, _mm_setzero_si128());
+	return _mm_blendv_epi8(nx, x, pos);
+    }
+
     inline simd_t<int64_t,2> compare_eq(simd_t<int64_t,2> t) const  { return _mm_cmpeq_epi64(x, t.x); }
     inline simd_t<int64_t,2> compare_gt(simd_t<int64_t,2> t) const  { return _mm_cmpgt_epi64(x, t.x); }
     inline simd_t<int64_t,2> compare_lt(simd_t<int64_t,2> t) const  { return _mm_cmpgt_epi64(t.x, x); }
@@ -154,6 +162,28 @@ template<> struct simd_t<int64_t,4>
 	simd_t<int,4> ret0 = _mm_xor_si128(_mm_add_epi64(_mm256_extractf128_si256(x,0),t), t);
 	simd_t<int,4> ret1 = _mm_xor_si128(_mm_add_epi64(_mm256_extractf128_si256(x,1),t), t);
 	return simd_t<int,8> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int64_t,4> abs() const
+    {
+#ifdef __AVX2__
+	__m256i t = _mm256_set1_epi16(-1);
+	__m256i nx = _mm256_xor_si256(_mm256_add_epi64(x,t), t);
+	__m256i pos = _mm256_cmpgt_epi64(x, _mm256_setzero_si256());
+	return _mm256_blendv_epi8(nx, x, pos);
+#else
+	__m128i z = _mm_setzero_si128();
+	__m128i t = _mm_set1_epi16(-1);
+	__m128i x0 = _mm256_extractf128_si256(x,0);
+	__m128i x1 = _mm256_extractf128_si256(x,1);
+	__m128i nx0 = _mm_xor_si128(_mm_add_epi64(x0,t), t);
+	__m128i nx1 = _mm_xor_si128(_mm_add_epi64(x1,t), t);
+	__m128i pos0 = _mm_cmpgt_epi64(x0, z);
+	__m128i pos1 = _mm_cmpgt_epi64(x1, z);
+	__m128i ret0 = _mm_blendv_epi8(nx0, x0, pos0);
+	__m128i ret1 = _mm_blendv_epi8(nx1, x1, pos1);
+	return simd_t<int64_t,4> (ret0, ret1);
 #endif
     }
 
@@ -297,6 +327,14 @@ template<> struct simd_t<int64_t,4>
 	return y.sum();
     }
 };
+
+
+// -------------------------------------------------------------------------------------------------
+
+
+// blendv(mask,a,b) is morally equivalent to (mask ? a : b)
+inline simd_t<int64_t,2> blendv(simd_t<int64_t,2> mask, simd_t<int64_t,2> a, simd_t<int64_t,2> b)  { return _mm_blendv_epi8(b.x, a.x, mask.x); }
+inline simd_t<int64_t,4> blendv(simd_t<int64_t,4> mask, simd_t<int64_t,4> a, simd_t<int64_t,4> b)  { return _mm256_blendv_epi8(b.x, a.x, mask.x); }
 
 
 }  // namespace simd_helpers

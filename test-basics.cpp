@@ -314,6 +314,8 @@ inline void test_TS(std::mt19937 &rng)
     test_binary_operator("-", rng, binary_sub< simd_t<T,S> >, binary_sub<T>);
     test_unary_operation<T> ("-", rng, unary_minus< simd_t<T,S> >, unary_minus<T>, -10000, 10000, 0);
 
+    test_abs<T,S>(rng);
+
     test_comparison_operator("compare_eq", rng, simd_cmp_eq<T,S>, cmp_eq<T>);
     test_comparison_operator("compare_ne", rng, simd_cmp_ne<T,S>, cmp_ne<T>);
     test_comparison_operator("compare_gt", rng, simd_cmp_gt<T,S>, cmp_gt<T>);
@@ -339,8 +341,6 @@ inline void test_floating_point_TS(std::mt19937 &rng)
     test_binary_operator("max", rng, simd_max<T,S>, std_max<T>);
 
     test_unary_operation<T> ("sqrt", rng, simd_sqrt<T,S>, std_sqrt<T>, 10.0, 1000.0, 50.0);
-
-    test_abs<T,S>(rng);
 }
 
 // Unit tests which are defined for an integer pair (T,S)
@@ -364,7 +364,6 @@ inline void test_int32_S(std::mt19937 &rng)
 
     test_binary_operator("min", rng, simd_min<int,S>, std_min<int>);
     test_binary_operator("max", rng, simd_max<int,S>, std_max<int>);
-    test_abs<int,S> (rng);
 }
 
 template<typename T>
