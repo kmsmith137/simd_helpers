@@ -20,6 +20,7 @@
 #include "simd_float64.hpp"
 #include "simd_ntuple.hpp"
 #include "simd_trimatrix.hpp"
+#include "convert.hpp"
 #include "udsample.hpp"
 
 namespace simd_helpers {
@@ -44,7 +45,8 @@ inline std::string type_name(const simd_ntuple<T,S,N> &x) { std::stringstream ss
 
 // -------------------------------------------------------------------------------------------------
 //
-// T extract_slow(simd_t<T,S> x, int i): extracts the i-th element of a simd_t.
+// T extract_slow(simd_t<T,S> x, int i)                    extracts the i-th element of a simd_t.
+// T extract_slow(simd_ntuple<T,S,N> x, int i, int j)      extracts the i-th element of a simd_ntuple, then the j-th element of the resulting simd_t
 //
 // void set_slow(simd_t<T,S> x, int i, T t): sets the i-th element of a simd_t.
 //
@@ -67,6 +69,25 @@ template<typename T, unsigned int S>
 inline T extract_slow(simd_t<T,S> x, int i)
 {
     return _extract_slow<T,S,S> (x, i);
+}
+
+
+template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N>0),int>::type = 0>
+inline simd_t<T,S> extract_slow(simd_ntuple<T,S,N> x, int i)
+{
+    return (i == N-1) ? x.x : extract_slow(x.v,i);
+}
+
+template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N==0),int>::type = 0>
+inline simd_t<T,S> extract_slow(simd_ntuple<T,S,N> x, int i)
+{
+    throw std::runtime_error("simd_debug internal error: index to extract_slow() is out-of-range");
+}
+
+template<typename T, unsigned int S, unsigned int N> 
+inline T extract_slow(simd_ntuple<T,S,N> x, int i, int j)
+{
+    return extract_slow(extract_slow(x,i), j);
 }
 
 
