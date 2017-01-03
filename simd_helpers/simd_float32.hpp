@@ -79,7 +79,7 @@ template<> struct simd_t<float,4>
 	u.i = _mm_extract_ps(x, M);
 	return u.x;
     }
-
+    
     inline simd_t<float,4> horizontal_sum() const
     {
 	__m128 y = x + _mm_shuffle_ps(x, x, 0xb1);   // (2301)_4 = 0xb1

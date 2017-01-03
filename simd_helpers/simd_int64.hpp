@@ -79,6 +79,9 @@ template<> struct simd_t<int64_t,2>
     inline simd_t<int64_t,2> bitwise_andnot(simd_t<int64_t,2> t) const  { return _mm_andnot_si128(t.x, x); }
     inline simd_t<int64_t,2> bitwise_not() const                        { return _mm_xor_si128(x, _mm_set1_epi16(-1)); }
 
+    inline int is_all_zeros() const  { return _mm_testz_si128(x, x); }
+    inline int is_all_ones() const   { return _mm_test_all_ones(x); }
+
     inline simd_t<int64_t,2> horizontal_sum() const  { return _mm_add_epi64(x, _mm_shuffle_epi32(x, 0x4e)); }
     inline int64_t sum() const                       { return _mm_extract_epi64(horizontal_sum().x, 0); }
 };
@@ -347,6 +350,8 @@ template<> struct simd_t<int64_t,4>
 #endif
     }
 
+    inline int is_all_zeros() const  { return _mm256_testz_si256(x, x); }
+    inline int is_all_ones() const   { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
 
     inline simd_t<int64_t,4> horizontal_sum() const
     { 

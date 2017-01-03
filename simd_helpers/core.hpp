@@ -65,6 +65,7 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      template<unsigned int M> inline int extract() const;
 //
 //      // Arithmetic operators
+//
 //      simd_t<T,S> &operator+=(simd_t<T,S> x);
 //      simd_t<T,S> &operator-=(simd_t<T,S> x);
 //      simd_t<T,S> &operator*=(simd_t<T,S> x);                   // note: multiplication not defined for integer types
@@ -79,6 +80,19 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      simd_t<T,S> sqrt() const;                // defined for floating-point types T
 //      simd_t<T,S> min(simd_t<T,S> x) const;
 //      simd_t<T,S> max(simd_t<T,S> x) const;
+//
+//      // "Horizontal reducers"
+//
+//      simd_t<T,S> horizontal_sum() const;      // returns [ t ... t ], where t is the sum of all elements in the simd_t
+//      T sum() const;                           // returns t, where t is the sum of all elements in the simd_t
+//
+//      // "Boolean reducers": these are only defined for integer types, and return either 0 or 1.
+//      // Note: it would be possible to define floating-point versions which test positivity (sign bits).
+//
+//      int is_all_zeros() const;                            // returns true if all bits are zero
+//      int is_all_ones() const;                             // returns true if all bits are one.
+//      int testzero_bitwise_and(smask_t<T,S> t) const;      // returns true if all bits in (this & t) are zero
+//      int testzero_bitwise_andnot(smask_t<T,S> t) const;   // returns true if all bits in (this & ~t) are zero
 //
 //      // Comparison operators.
 //      // The output of a comparison operator is -1 (0xff..) for 'true' or 0 for 'false'.
@@ -106,14 +120,6 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      simd_t<T,S> bitwise_xor(simd_t<T,S> x) const;
 //      simd_t<T,S> bitwise_not() const;
 //
-//      simd_t<T,S> horizontal_sum() const;      // returns [ t ... t ], where t is the sum of all elements in the simd_t
-//      T sum() const;                           // returns t, where t is the sum of all elements in the simd_t
-//
-//      // Defined only for integer types
-//      int testzero_bitwise_and(simd_t<T,S> t) const;       // returns true if all bits in (this & t) are zero
-//      int testzero_bitwise_andnot(simd_t<T,S> t) const;    // returns true if all bits in (this & ~t) are zero
-//      int is_all_zeros() const;                            // returns true if all bits are zero
-//      int is_all_ones() const;                             // returns true if all bits are one
 //  };
 
 

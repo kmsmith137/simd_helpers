@@ -249,7 +249,34 @@ inline void test_masking_operator(const char *name, std::mt19937 &rng, simd_t<T,
 }
 
 
+
 // -------------------------------------------------------------------------------------------------
+
+
+template<typename T, unsigned int S>
+inline void test_is_all_zeros(std::mt19937 &rng)
+{
+    simd_t<T,S> x = simd_t<T,S>::zero();
+    int expected_result = 1;
+
+    for (unsigned int s = 0; s < S; s++) {
+	if (std::uniform_real_distribution<>()(rng) < 1/(1.5*S)) {
+	    T t = uniform_rand<T>(rng, -10, 10);
+	    set_slow(x, s, t);
+	    if (t != 0)
+		expected_result = 0;
+	}
+    }
+
+    if (x.is_all_zeros() != expected_result) {
+	cerr << "test_is_all_zeros(" << type_name<T>() << "," << S << ") failed\n"
+	     << "   argument = " << x << "\n"
+	     << "   result = " << x.is_all_zeros() << "\n"
+	     << "   expected result = " << expected_result << "\n";
+
+	exit(1);
+    }
+}
 
 
 // Tests both horizontal_sum() and sum().
@@ -404,6 +431,8 @@ inline void test_integer_TS(std::mt19937 &rng)
     test_binary_operator("bitwise_xor", rng, simd_bitwise_xor<T,S>, bitwise_xor<T>);
     test_binary_operator("bitwise_andnot", rng, simd_bitwise_andnot<T,S>, bitwise_andnot<T>);
     test_unary_operation<T> ("bitwise_not", rng, simd_bitwise_not<T,S>, bitwise_not<T>, -10000, 10000, 0);
+
+    test_is_all_zeros<T,S> (rng);
 }
 
 template<typename T>
