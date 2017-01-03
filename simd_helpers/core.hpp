@@ -5,6 +5,12 @@
 #error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
 #endif
 
+#ifndef __AVX__
+#error "Fatal: either you're compiling on a machine which doesn't have the AVX instruction set, or you forgot the -march=native compiler flag"
+#endif
+
+#define SIMD_HELPERS_VERSION 2
+
 #include "immintrin.h"
 
 #ifndef __AVX2__
