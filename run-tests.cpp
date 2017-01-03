@@ -524,11 +524,14 @@ static vector<T> reference_upsample(const vector<T> &v, int N)
 template<typename T, unsigned int S, unsigned int N>
 static void test_downsample(std::mt19937 &rng)
 {
+    // a placeholder, since we currently have single-precision downsamplers but not double-precision
+    const double epsilon0 = 10 * machine_epsilon<T>();
+
     simd_ntuple<T,S,N> x = gaussian_random_simd_ntuple<T,S,N> (rng);
     simd_t<T,S> y = downsample(x);
 
     double epsilon = compare(vectorize(y), reference_downsample(vectorize(x),N));
-    assert(epsilon < 1.0e-6);
+    assert(epsilon <= epsilon0);
 }
 
 
