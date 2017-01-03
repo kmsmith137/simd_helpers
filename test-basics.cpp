@@ -251,6 +251,8 @@ inline void test_masking_operator(const char *name, std::mt19937 &rng, simd_t<T,
 
 
 // -------------------------------------------------------------------------------------------------
+//
+// "Boolean reducers": these are different enough that I decided not to make a generic test routine
 
 
 template<typename T, unsigned int S>
@@ -277,6 +279,35 @@ inline void test_is_all_zeros(std::mt19937 &rng)
 	exit(1);
     }
 }
+
+
+template<typename T, unsigned int S>
+inline void test_is_all_ones(std::mt19937 &rng)
+{
+    simd_t<T,S> x = simd_t<T,S>(-1);
+    int expected_result = 1;
+
+    for (unsigned int s = 0; s < S; s++) {
+	if (std::uniform_real_distribution<>()(rng) < 1/(1.5*S)) {
+	    T t = uniform_rand<T>(rng, -10, 10);
+	    set_slow(x, s, t);
+	    if (t != -1)
+		expected_result = 0;
+	}
+    }
+
+    if (x.is_all_ones() != expected_result) {
+	cerr << "test_is_all_ones(" << type_name<T>() << "," << S << ") failed\n"
+	     << "   argument = " << x << "\n"
+	     << "   result = " << x.is_all_ones() << "\n"
+	     << "   expected result = " << expected_result << "\n";
+
+	exit(1);
+    }
+}
+
+
+// -------------------------------------------------------------------------------------------------
 
 
 // Tests both horizontal_sum() and sum().
@@ -433,6 +464,7 @@ inline void test_integer_TS(std::mt19937 &rng)
     test_unary_operation<T> ("bitwise_not", rng, simd_bitwise_not<T,S>, bitwise_not<T>, -10000, 10000, 0);
 
     test_is_all_zeros<T,S> (rng);
+    test_is_all_ones<T,S> (rng);
 }
 
 template<typename T>
