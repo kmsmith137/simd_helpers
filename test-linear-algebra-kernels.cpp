@@ -83,6 +83,8 @@ static vector<T> reference_multiply_symmetric(const vector<T> &mat, const vector
 template<typename T, unsigned int S, unsigned int N>
 void test_linear_algebra_kernels_N(std::mt19937 &rng)
 {
+    double epsilon0 = 10. * machine_epsilon<T> ();
+
     simd_trimatrix<T,S,N> m = random_simd_trimatrix<T,S,N> (rng);
     simd_ntuple<T,S,N> v = gaussian_random_simd_ntuple<T,S,N> (rng);
     simd_ntuple<T,S,N> x;
@@ -91,31 +93,31 @@ void test_linear_algebra_kernels_N(std::mt19937 &rng)
     simd_ntuple<T,S,N> w = m.multiply_lower(v);
     vector<T> wbuf = reference_multiply_lower(vectorize(m), vectorize(v), S, N);
     double epsilon = compare(vectorize(w), wbuf);
-    assert(epsilon < 1.0e-6);
+    assert(epsilon < epsilon0);
     
     // multiply_upper()
     w = m.multiply_upper(v);
     wbuf = reference_multiply_upper(vectorize(m), vectorize(v), S, N);
     epsilon = compare(vectorize(w), wbuf);
-    assert(epsilon < 1.0e-6);
+    assert(epsilon < epsilon0);
     
     // multiply_symmetric()
     w = m.multiply_symmetric(v);
     wbuf = reference_multiply_symmetric(vectorize(m), vectorize(v), S, N);
     epsilon = compare(vectorize(w), wbuf);
-    assert(epsilon < 1.0e-6);
+    assert(epsilon < epsilon0);
 
     // solve_lower()
     w = m.solve_lower(v);
     x = m.multiply_lower(w);
     epsilon = compare(vectorize(v), vectorize(x));
-    assert(epsilon < 1.0e-6);
+    assert(epsilon < epsilon0);
 
     // solve_upper()
     w = m.solve_upper(v);
     x = m.multiply_upper(w);
     epsilon = compare(vectorize(v), vectorize(x));
-    assert(epsilon < 1.0e-6);
+    assert(epsilon < epsilon0);
 
     // decholesky()
     simd_trimatrix<T,S,N> p = m.decholesky();
@@ -123,18 +125,18 @@ void test_linear_algebra_kernels_N(std::mt19937 &rng)
     x = m.multiply_upper(v);
     x = m.multiply_lower(x);
     epsilon = compare(vectorize(w), vectorize(x));
-    assert(epsilon < 1.0e-6);
+    assert(epsilon < epsilon0);
 
     // cholesky()
     simd_trimatrix<T,S,N> m2 = p.cholesky();
     epsilon = compare(vectorize(m), vectorize(m2));
-    assert(epsilon < 1.0e-6);
+    assert(epsilon < epsilon0);
 
     // cholseky_flagged_in_place(), in case where all matrices are positive definite
     simd_trimatrix<T,S,N> m3 = p;
     smask_t<T,S> flags = m3.cholesky_in_place_checked(1.0e-3);
     epsilon = compare(vectorize(m), vectorize(m3));
-    assert(epsilon < 1.0e-6);
+    assert(epsilon < epsilon0);
     assert(flags.is_all_ones());
 
     // cholseky_flagged_in_place(), with some random non positive definite matrices along for the ride
@@ -186,7 +188,7 @@ void test_linear_algebra_kernels_N(std::mt19937 &rng)
     }
 
     epsilon = (den > 0.0) ? sqrt(num/den) : 0.0;
-    assert(epsilon < 1.0e-6);
+    assert(epsilon < epsilon0);
 }
 
 
@@ -209,6 +211,8 @@ void test_all_linear_algebra_kernels(std::mt19937 &rng)
     for (int iter = 0; iter < 100; iter++) {
 	test_linear_algebra_kernels<float,4> (rng);
 	test_linear_algebra_kernels<float,8> (rng);
+	test_linear_algebra_kernels<double,2> (rng);
+	test_linear_algebra_kernels<double,4> (rng);
     }
 
     cout << "test_all_linear_algebra_kernels: pass\n";
