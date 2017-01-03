@@ -60,9 +60,11 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      void store(T *p);
 //      void storeu(T *p);
 //
-//      // Returns M-th element of the simd vector.  You may need to use the syntax:
+//      // Reminder: you may need to use a syntax such as
 //      //   x.template extract<M> ();
-//      template<unsigned int M> inline int extract() const;
+//
+//      template<unsigned int M> inline T extract() const;                       // extracts M-th element of simd vector
+//      template<unsigned int M> inline simd_t<T,(S/2)> extract_half() const;    // extracts lower or upper half (only for 256-bit types)
 //
 //      // Arithmetic operators
 //

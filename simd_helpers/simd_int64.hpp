@@ -112,8 +112,8 @@ template<> struct simd_t<int64_t,4>
     inline void store(int64_t *p) const  { _mm256_store_si256((__m256i *)p, x); }
     inline void storeu(int64_t *p) const { _mm256_storeu_si256((__m256i *)p, x); }
 
-    template<unsigned int M> inline int extract() const                    { return _mm256_extract_epi64(x,M); }
-    template<unsigned int M> inline simd_t<int64_t,2> extract128() const   { return _mm256_extractf128_si256(x,M); }
+    template<unsigned int M> inline int extract() const                     { return _mm256_extract_epi64(x,M); }
+    template<unsigned int M> inline simd_t<int64_t,2> extract_half() const  { return _mm256_extractf128_si256(x,M); }
 
     inline simd_t<int64_t,4> &operator+=(simd_t<int64_t,4> t) 
     { 

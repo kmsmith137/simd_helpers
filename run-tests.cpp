@@ -67,6 +67,7 @@ inline void test_constructors(std::mt19937 &rng)
 
 
 // Tests constructor (simd_t<T,S>, simd_t<T,S>) -> simd_t<T,2*S>
+// Also tests simd_t<T,2*S>::extract_half().
 template<typename T, unsigned int S>
 inline void test_merging_constructor(std::mt19937 &rng) 
 {
@@ -82,6 +83,12 @@ inline void test_merging_constructor(std::mt19937 &rng)
 	assert(va[i] == vc[i]);
 	assert(vb[i] == vc[i+S]);
     }
+
+    simd_t<T,S> c0 = c.template extract_half<0> ();
+    simd_t<T,S> c1 = c.template extract_half<1> ();
+
+    assert(strictly_equal(va, vectorize(c0)));
+    assert(strictly_equal(vb, vectorize(c1)));
 };
 
 

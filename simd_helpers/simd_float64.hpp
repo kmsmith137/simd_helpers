@@ -138,6 +138,12 @@ template<> struct simd_t<double,4>
 	return x2.extract<M%2> ();
     }
 
+    template<unsigned int M> 
+    inline simd_t<double,2> extract_half() const
+    {
+	return _mm256_extractf128_pd(x, M);
+    }
+
     inline simd_t<double,4> horizontal_sum() const
     { 
 	__m256d y = x + _mm256_shuffle_pd(x, x, 0x05);

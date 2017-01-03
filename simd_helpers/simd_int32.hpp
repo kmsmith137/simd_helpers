@@ -319,8 +319,8 @@ template<> struct simd_t<int,8>
     inline int is_all_zeros_masked(simd_t<int,8> mask) const          { return _mm256_testz_si256(x, mask.x); }
     inline int is_all_zeros_inverse_masked(simd_t<int,8> mask) const  { return _mm256_testc_si256(mask.x, x); }
 
-    template<unsigned int M> inline int extract() const                { return _mm256_extract_epi32(x,M); }
-    template<unsigned int M> inline simd_t<int,4> extract128() const   { return _mm256_extractf128_si256(x,M); }
+    template<unsigned int M> inline int extract() const                 { return _mm256_extract_epi32(x,M); }
+    template<unsigned int M> inline simd_t<int,4> extract_half() const  { return _mm256_extractf128_si256(x,M); }
 
     inline simd_t<int,8> horizontal_sum() const
     {
