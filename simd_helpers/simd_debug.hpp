@@ -46,7 +46,9 @@ inline std::string type_name(const simd_ntuple<T,S,N> &x) { std::stringstream ss
 //
 // T extract_slow(simd_t<T,S> x, int i): extracts the i-th element of a simd_t.
 //
-// As the name suggests, this is very slow and not intended for production use!
+// void set_slow(simd_t<T,S> x, int i, T t): sets the i-th element of a simd_t.
+//
+// As the name suggests, these are very slow and not intended for production use!
 
 
 template<typename T, unsigned int S, unsigned int Imax, typename std::enable_if<(Imax>0),int>::type = 0>
@@ -65,6 +67,14 @@ template<typename T, unsigned int S>
 inline T extract_slow(simd_t<T,S> x, int i)
 {
     return _extract_slow<T,S,S> (x, i);
+}
+
+
+template<typename T, unsigned int S>
+inline void set_slow(simd_t<T,S> &x, int i, T t)
+{
+    smask_t<T,S> mask = simd_t<T,S>::range().compare_eq(simd_t<T,S>(i));
+    x = blendv(mask, simd_t<T,S>(t), x);
 }
 
 

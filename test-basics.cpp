@@ -36,8 +36,16 @@ inline void test_load_store_extract(std::mt19937 &rng)
     bool extract_ok = _check_extract<T,S,S>(x, &v[0]);
     assert(extract_ok);
 
+    // tests simd_t<T,S>::storeu()
     vector<T> w = vectorize(x);
-    assert(strictly_equal(v,w));   // tests simd_t<T,S>::storeu()
+    assert(strictly_equal(v,w));
+
+    v = uniform_randvec<T> (rng, S, -1000, 1000);
+    for (unsigned int s = 0; s < S; s++)
+	set_slow(x, s, v[s]);
+
+    w = vectorize(x);
+    assert(strictly_equal(v,w));
 }
 
 
