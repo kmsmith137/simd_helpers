@@ -16,7 +16,7 @@ ifndef INCDIR
 $(error Fatal: Makefile.local must define INCDIR variable)
 endif
 
-
+# Note: if more files are added here, 'make uninstall' will need to be updated
 INCFILES_TOP=simd_helpers.hpp
 
 INCFILES_SUB=simd_helpers/core.hpp \
@@ -34,10 +34,13 @@ TESTFILES=run-tests
 
 all: $(TESTFILES)
 
-# FIXME needs 'make test'
-
 clean:
 	rm -f *~ simd_helpers/*~ .gitignore~ $(TESTFILES)
+
+test: .touchfile_test
+
+.touchfile_test: run-tests
+	./run-tests && touch $@
 
 install:
 	mkdir -p $(INCDIR)
@@ -46,7 +49,7 @@ install:
 	cp -f $(INCFILES_SUB) $(INCDIR)/simd_helpers
 
 uninstall:
-	for f in $(INCFILES_TOP) $(INCFILES_SUB); do rm -f $(INCDIR)/$$f; done
+	rm -f $(INCDIR)/simd_helpers.hpp $(INCDIR)/simd_helpers/*.hpp
 	rmdir $(INCDIR)/simd_helpers
 
 run-tests: run-tests.cpp $(INCFILES_TOP) $(INCFILES_SUB)

@@ -21,12 +21,6 @@ Compilation instructions:
 # Assuming you're not installing as root
 ln -s site/Makefile.local.norootprivs Makefile.local
 
-# Compiles everything
-make
-
-# Currently unit tests must be run by hand
-./run-tests
-
-# Installs .hpp files to $(INCDIR)
-make install
+make test      # optional but recommended
+make install   # Installs .hpp files to $(INCDIR)
 ```

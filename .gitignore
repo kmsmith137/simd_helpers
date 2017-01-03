@@ -2,3 +2,4 @@
 *.o
 Makefile.local
 run-tests
+.touchfile_test
