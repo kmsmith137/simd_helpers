@@ -26,6 +26,7 @@
   (downgraded from -march=native), e.g. to test non-AVX2 kernels on an AVX2 machine.
 
 - Generally speaking, the non-AVX2 kernels are not very well-optimized, but I'm not sure how much of a priority this is.
+  When documentation exists, it should say somewhere that 256-bit integer types are dubious without AVX2, and may be slower than 128-bit types.
 
 - Lots more integer types are possible (int8, uint8, int16, uint16, uint32, uint64)
 

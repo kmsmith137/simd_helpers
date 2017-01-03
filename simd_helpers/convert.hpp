@@ -11,6 +11,7 @@
 #include "simd_float32.hpp"
 #include "simd_float64.hpp"
 
+// FIXME: this file is incomplete!  It only contains float <-> double conversions, but many more are possible.
 
 namespace simd_helpers {
 #if 0
@@ -20,7 +21,7 @@ namespace simd_helpers {
 
 // ------------------------------------------------------------------------------------------------
 //
-// convert() can take one of three generic forms
+// convert() can take one of three generic forms.
 
 template<typename T, typename T2, unsigned int S>
 inline void convert(simd_t<T,S> &dst, simd_t<T2,S> src);
