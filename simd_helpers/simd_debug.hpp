@@ -244,28 +244,25 @@ inline bool strictly_equal(const std::vector<T> &v, const std::vector<T> &w)
 //   std::mt19937 rng(rd());
 
 
-
-// The helper function uniform_randvec() has syntax
-//    std::vector<T> uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T hi);
+// The helper function
+//    T uniform_randvec(std::mt19937 &rng, T lo, T hi);
 // but is implemented differently for integral and floating-point types.
 
 // Integral case: generate random number in range [lo,hi].  Note that endpoints are included in range.
 template<typename T, typename std::enable_if<std::is_integral<T>::value,int>::type = 0>
-inline std::vector<T> uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T hi)
-{
-    std::vector<T> ret(n);
-    for (unsigned int i = 0; i < n; i++)
-	ret[i] = std::uniform_int_distribution<T>(lo,hi)(rng);
-    return ret;
-}
+inline T uniform_rand(std::mt19937 &rng, T lo, T hi) { return std::uniform_int_distribution<T>(lo,hi)(rng); }
 
 // Floating-point case
 template<typename T, typename std::enable_if<std::is_floating_point<T>::value,int>::type = 0>
+inline T uniform_rand(std::mt19937 &rng, T lo, T hi) { return std::uniform_real_distribution<T>(lo,hi)(rng); }
+
+
+template<typename T>
 inline std::vector<T> uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T hi)
 {
     std::vector<T> ret(n);
     for (unsigned int i = 0; i < n; i++)
-	ret[i] = lo + (hi-lo) * std::uniform_real_distribution<T>()(rng);
+	ret[i] = uniform_rand<T> (rng,lo,hi);
     return ret;
 }
 
