@@ -60,6 +60,9 @@ template<> struct simd_t<int64_t,2>
 	return _mm_blendv_epi8(nx, x, pos);
     }
 
+    inline simd_t<int64_t,2> min(simd_t<int64_t,2> t) const  { return _mm_blendv_epi8(x, t.x, _mm_cmpgt_epi64(x,t.x)); }
+    inline simd_t<int64_t,2> max(simd_t<int64_t,2> t) const  { return _mm_blendv_epi8(t.x, x, _mm_cmpgt_epi64(x,t.x)); }
+
     inline simd_t<int64_t,2> compare_eq(simd_t<int64_t,2> t) const  { return _mm_cmpeq_epi64(x, t.x); }
     inline simd_t<int64_t,2> compare_gt(simd_t<int64_t,2> t) const  { return _mm_cmpgt_epi64(x, t.x); }
     inline simd_t<int64_t,2> compare_lt(simd_t<int64_t,2> t) const  { return _mm_cmpgt_epi64(t.x, x); }
@@ -183,6 +186,36 @@ template<> struct simd_t<int64_t,4>
 	__m128i pos1 = _mm_cmpgt_epi64(x1, z);
 	__m128i ret0 = _mm_blendv_epi8(nx0, x0, pos0);
 	__m128i ret1 = _mm_blendv_epi8(nx1, x1, pos1);
+	return simd_t<int64_t,4> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int64_t,4> min(simd_t<int64_t,4> t) const
+    {
+#ifdef __AVX2__
+	return _mm256_blendv_epi8(x, t.x, _mm256_cmpgt_epi64(x,t.x));
+#else
+	__m128i x0 = _mm256_extractf128_si256(x,0);
+	__m128i x1 = _mm256_extractf128_si256(x,1);
+	__m128i t0 = _mm256_extractf128_si256(t.x,0);
+	__m128i t1 = _mm256_extractf128_si256(t.x,1);
+	__m128i ret0 = _mm_blendv_epi8(x0, t0, _mm_cmpgt_epi64(x0,t0));
+	__m128i ret1 = _mm_blendv_epi8(x1, t1, _mm_cmpgt_epi64(x1,t1));
+	return simd_t<int64_t,4> (ret0, ret1);
+#endif
+    }
+
+    inline simd_t<int64_t,4> max(simd_t<int64_t,4> t) const
+    {
+#ifdef __AVX2__
+	return _mm256_blendv_epi8(t.x, x, _mm256_cmpgt_epi64(x,t.x));
+#else
+	__m128i x0 = _mm256_extractf128_si256(x,0);
+	__m128i x1 = _mm256_extractf128_si256(x,1);
+	__m128i t0 = _mm256_extractf128_si256(t.x,0);
+	__m128i t1 = _mm256_extractf128_si256(t.x,1);
+	__m128i ret0 = _mm_blendv_epi8(t0, x0, _mm_cmpgt_epi64(x0,t0));
+	__m128i ret1 = _mm_blendv_epi8(t1, x1, _mm_cmpgt_epi64(x1,t1));
 	return simd_t<int64_t,4> (ret0, ret1);
 #endif
     }

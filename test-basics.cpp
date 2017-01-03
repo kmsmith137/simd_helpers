@@ -304,6 +304,9 @@ inline void test_TS(std::mt19937 &rng)
     test_unary_operation<T> ("-", rng, unary_minus< simd_t<T,S> >, unary_minus<T>, -10000, 10000, 0);
     test_unary_operation<T> ("abs", rng, simd_abs<T,S>, std_abs<T>, -10000, 10000, 0);
 
+    test_binary_operator("min", rng, simd_min<T,S>, std_min<T>);
+    test_binary_operator("max", rng, simd_max<T,S>, std_max<T>);
+
     test_comparison_operator("compare_eq", rng, simd_cmp_eq<T,S>, cmp_eq<T>);
     test_comparison_operator("compare_ne", rng, simd_cmp_ne<T,S>, cmp_ne<T>);
     test_comparison_operator("compare_gt", rng, simd_cmp_gt<T,S>, cmp_gt<T>);
@@ -325,8 +328,6 @@ inline void test_floating_point_TS(std::mt19937 &rng)
 
     test_binary_operator("*", rng, binary_mul< simd_t<T,S> >, binary_mul<T>);
     test_binary_operator("/", rng, binary_div< simd_t<T,S> >, binary_div<T>);
-    test_binary_operator("min", rng, simd_min<T,S>, std_min<T>);
-    test_binary_operator("max", rng, simd_max<T,S>, std_max<T>);
 
     test_unary_operation<T> ("sqrt", rng, simd_sqrt<T,S>, std_sqrt<T>, 10.0, 1000.0, 50.0);
 }
@@ -342,16 +343,6 @@ inline void test_integer_TS(std::mt19937 &rng)
     test_binary_operator("bitwise_xor", rng, simd_bitwise_xor<T,S>, bitwise_xor<T>);
     test_binary_operator("bitwise_andnot", rng, simd_bitwise_andnot<T,S>, bitwise_andnot<T>);
     test_unary_operation<T> ("bitwise_not", rng, simd_bitwise_not<T,S>, bitwise_not<T>, -10000, 10000, 0);
-}
-
-// Unit tests which are defined for T=int32
-template<unsigned int S>
-inline void test_int32_S(std::mt19937 &rng)
-{
-    test_integer_TS<int,S> (rng);
-
-    test_binary_operator("min", rng, simd_min<int,S>, std_min<int>);
-    test_binary_operator("max", rng, simd_max<int,S>, std_max<int>);
 }
 
 template<typename T>
@@ -374,16 +365,9 @@ inline void test_integer_T(std::mt19937 &rng)
     test_merging_constructor<T,S> (rng);
 }
 
-inline void test_int32_T(std::mt19937 &rng)
-{
-    test_int32_S<4> (rng);
-    test_int32_S<8> (rng);
-    test_merging_constructor<int,4> (rng);
-}
-
 inline void test_all(std::mt19937 &rng)
 {
-    test_int32_T(rng);
+    test_integer_T<int> (rng);
     test_integer_T<int64_t> (rng);
     test_floating_point_T<float> (rng);
     test_floating_point_T<double> (rng);
