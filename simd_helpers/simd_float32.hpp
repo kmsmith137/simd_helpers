@@ -49,10 +49,11 @@ template<> struct simd_t<float,4>
     inline simd_t<float,4> operator*(simd_t<float,4> t) const { return _mm_mul_ps(x,t.x); }
     inline simd_t<float,4> operator/(simd_t<float,4> t) const { return _mm_div_ps(x,t.x); }
 
+    // Unary minus and abs() are implemented by flipping the sign bit
+    inline simd_t<float,4> operator-() const  { return _mm_xor_ps(_mm_set1_ps(-0.0), x); }    
+    inline simd_t<float,4> abs() const        { return _mm_andnot_ps(_mm_set1_ps(-0.0), x); }
+
     inline simd_t<float,4> sqrt() const { return _mm_sqrt_ps(x); }
-    
-    // Fastest abs()?  (A little bit of a hack, clearing the sign bit with a bitwise operator.)
-    inline simd_t<float,4> abs() const { return _mm_andnot_ps(_mm_set1_ps(-0.0), x); }
 
     // Comparison operators.
     // Note: the output of a comparison is -1 (0xff..) for "true" or 0 for "false".
@@ -126,10 +127,11 @@ template<> struct simd_t<float,8>
     inline simd_t<float,8> operator*(simd_t<float,8> t) const { return _mm256_mul_ps(x,t.x); }
     inline simd_t<float,8> operator/(simd_t<float,8> t) const { return _mm256_div_ps(x,t.x); }
 
-    inline simd_t<float,8> sqrt() const { return _mm256_sqrt_ps(x); }
+    // Unary minus and abs() are implemented by flipping the sign bit
+    inline simd_t<float,8> operator-() const  { return _mm256_xor_ps(_mm256_set1_ps(-0.0), x); }
+    inline simd_t<float,8> abs() const        { return _mm256_andnot_ps(_mm256_set1_ps(-0.0), x); }
 
-    // Fastest abs()?  (A little bit of a hack, clearing the sign bit with a bitwise operator.)
-    inline simd_t<float,8> abs() const { return _mm256_andnot_ps(_mm256_set1_ps(-0.0), x); }
+    inline simd_t<float,8> sqrt() const { return _mm256_sqrt_ps(x); }
 
     // Comparison operators.
     // Note: the output of a comparison is -1 (0xff..) for "true" or 0 for "false".

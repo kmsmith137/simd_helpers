@@ -48,7 +48,7 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //  {
 //      simd_t();                                   // default constructor does not initialize 
 //      simd_t(__m256 x);                           // construct from low-level simd type (__m256 or similar)
-//      simd_t(T x);                                // construct from scalar
+//      simd_t(T x);                                // construct from scalar (note: for integer-valued types, -1 is faster than +1)
 //      simd_t(simd_t<T,S/2> x, simd_t<T,S/2> y);   // construct 256-bit simd_t from two 128-bit simd_t's
 //
 //      static simd_t<T,S> zero();                  // factory function returning all zeros

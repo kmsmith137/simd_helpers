@@ -49,6 +49,10 @@ template<> struct simd_t<double,2>
     inline simd_t<double,2> operator*(simd_t<double,2> t) const { return _mm_mul_pd(x,t.x); }
     inline simd_t<double,2> operator/(simd_t<double,2> t) const { return _mm_div_pd(x,t.x); }
 
+    // Unary minus and abs() are implemented by flipping the sign bit    
+    inline simd_t<double,2> operator-() const  { return _mm_xor_pd(_mm_set1_pd(-0.0), x); }
+    inline simd_t<double,2> abs() const        { return _mm_andnot_pd(_mm_set1_pd(-0.0), x); }
+
     inline simd_t<int64_t,2> compare_eq(simd_t<double,2> t) const  { return _mm_castpd_si128(_mm_cmpeq_pd(x, t.x)); }
     inline simd_t<int64_t,2> compare_ne(simd_t<double,2> t) const  { return _mm_castpd_si128(_mm_cmpneq_pd(x, t.x)); }
     inline simd_t<int64_t,2> compare_ge(simd_t<double,2> t) const  { return _mm_castpd_si128(_mm_cmpge_pd(x, t.x)); }
@@ -60,9 +64,6 @@ template<> struct simd_t<double,2>
     inline simd_t<double,2> max(simd_t<double,2> t) const { return _mm_max_pd(x, t.x); }
 
     inline simd_t<double,2> sqrt() const  { return _mm_sqrt_pd(x); }
-    
-    // Fastest abs()?  (A little bit of a hack, clearing the sign bit with a bitwise operator.)
-    inline simd_t<double,2> abs() const { return _mm_andnot_pd(_mm_set1_pd(-0.0), x); }
 
     template<unsigned int M> inline double extract() const;
 
@@ -108,6 +109,10 @@ template<> struct simd_t<double,4>
     inline simd_t<double,4> operator*(simd_t<double,4> t) const { return _mm256_mul_pd(x,t.x); }
     inline simd_t<double,4> operator/(simd_t<double,4> t) const { return _mm256_div_pd(x,t.x); }
 
+    // Unary minus and abs() are implemented by flipping the sign bit    
+    inline simd_t<double,4> operator-() const  { return _mm256_xor_pd(_mm256_set1_pd(-0.0), x); }
+    inline simd_t<double,4> abs() const        { return _mm256_andnot_pd(_mm256_set1_pd(-0.0), x); }
+
     inline simd_t<int64_t,4> compare_eq(simd_t<double,4> t) const  { return _mm256_castpd_si256(_mm256_cmp_pd(x, t.x, _CMP_EQ_OQ)); }
     inline simd_t<int64_t,4> compare_ne(simd_t<double,4> t) const  { return _mm256_castpd_si256(_mm256_cmp_pd(x, t.x, _CMP_NEQ_OQ)); }
     inline simd_t<int64_t,4> compare_gt(simd_t<double,4> t) const  { return _mm256_castpd_si256(_mm256_cmp_pd(x, t.x, _CMP_GT_OQ)); }
@@ -119,9 +124,6 @@ template<> struct simd_t<double,4>
     inline simd_t<double,4> max(simd_t<double,4> t) const { return _mm256_max_pd(x, t.x); }
 
     inline simd_t<double,4> sqrt() const  { return _mm256_sqrt_pd(x); }
-
-    // Fastest abs()?  (A little bit of a hack, clearing the sign bit with a bitwise operator.)
-    inline simd_t<double,4> abs() const { return _mm256_andnot_pd(_mm256_set1_pd(-0.0), x); }
 
     template<unsigned int M> 
     inline double extract() const

@@ -263,6 +263,7 @@ template<typename T> inline T binary_add(T x, T y) { return x + y; }
 template<typename T> inline T binary_sub(T x, T y) { return x - y; }
 template<typename T> inline T binary_mul(T x, T y) { return x * y; }
 template<typename T> inline T binary_div(T x, T y) { return x / y; }
+template<typename T> inline T unary_minus(T x) { return -x; }
 
 template<typename T> inline T std_min(T x, T y) { return std::min(x,y); }
 template<typename T> inline T std_max(T x, T y) { return std::max(x,y); }
@@ -311,6 +312,7 @@ inline void test_TS(std::mt19937 &rng)
 
     test_binary_operator("+", rng, binary_add< simd_t<T,S> >, binary_add<T>);
     test_binary_operator("-", rng, binary_sub< simd_t<T,S> >, binary_sub<T>);
+    test_unary_operation<T> ("-", rng, unary_minus< simd_t<T,S> >, unary_minus<T>, -10000, 10000, 0);
 
     test_comparison_operator("compare_eq", rng, simd_cmp_eq<T,S>, cmp_eq<T>);
     test_comparison_operator("compare_ne", rng, simd_cmp_ne<T,S>, cmp_ne<T>);
@@ -336,7 +338,7 @@ inline void test_floating_point_TS(std::mt19937 &rng)
     test_binary_operator("min", rng, simd_min<T,S>, std_min<T>);
     test_binary_operator("max", rng, simd_max<T,S>, std_max<T>);
 
-    test_unary_operation("sqrt", rng, simd_sqrt<T,S>, std_sqrt<T>, T(10.0), T(1000.0), T(50.0));
+    test_unary_operation<T> ("sqrt", rng, simd_sqrt<T,S>, std_sqrt<T>, 10.0, 1000.0, 50.0);
 
     test_abs<T,S>(rng);
 }
@@ -351,7 +353,7 @@ inline void test_integer_TS(std::mt19937 &rng)
     test_binary_operator("bitwise_or", rng, simd_bitwise_or<T,S>, bitwise_or<T>);
     test_binary_operator("bitwise_xor", rng, simd_bitwise_xor<T,S>, bitwise_xor<T>);
     test_binary_operator("bitwise_andnot", rng, simd_bitwise_andnot<T,S>, bitwise_andnot<T>);
-    test_unary_operation("bitwise_not", rng, simd_bitwise_not<T,S>, bitwise_not<T>, T(-10000), T(10000), T(0));
+    test_unary_operation<T> ("bitwise_not", rng, simd_bitwise_not<T,S>, bitwise_not<T>, -10000, 10000, 0);
 }
 
 // Unit tests which are defined for T=int32

@@ -46,6 +46,12 @@ template<> struct simd_t<int64_t,2>
     inline simd_t<int64_t,2> operator+(simd_t<int64_t,2> t) const { return _mm_add_epi64(x,t.x); }
     inline simd_t<int64_t,2> operator-(simd_t<int64_t,2> t) const { return _mm_sub_epi64(x,t.x); }
 
+    inline simd_t<int64_t,2> operator-() const
+    {
+	__m128i t = _mm_set1_epi16(-1);
+	return _mm_xor_si128(_mm_add_epi64(x,t), t);
+    }
+
     inline simd_t<int64_t,2> compare_eq(simd_t<int64_t,2> t) const  { return _mm_cmpeq_epi64(x, t.x); }
     inline simd_t<int64_t,2> compare_gt(simd_t<int64_t,2> t) const  { return _mm_cmpgt_epi64(x, t.x); }
     inline simd_t<int64_t,2> compare_lt(simd_t<int64_t,2> t) const  { return _mm_cmpgt_epi64(t.x, x); }
@@ -135,6 +141,19 @@ template<> struct simd_t<int64_t,4>
 	simd_t<int,4> ret0 = _mm_sub_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
 	simd_t<int,4> ret1 = _mm_sub_epi64(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
 	return _mm256_insertf128_si256(_mm256_castsi128_si256(ret0.x), (ret1.x), 1);
+#endif
+    }
+
+    inline simd_t<int64_t,4> operator-() const
+    {
+#ifdef __AVX2__
+	__m256i t = _mm256_set1_epi16(-1);
+	return _mm256_xor_si256(_mm256_add_epi64(x,t), t);
+#else
+	__m128i t = _mm_set1_epi16(-1);
+	simd_t<int,4> ret0 = _mm_xor_si128(_mm_add_epi64(_mm256_extractf128_si256(x,0),t), t);
+	simd_t<int,4> ret1 = _mm_xor_si128(_mm_add_epi64(_mm256_extractf128_si256(x,1),t), t);
+	return simd_t<int,8> (ret0, ret1);
 #endif
     }
 
