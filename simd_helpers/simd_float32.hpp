@@ -69,8 +69,8 @@ template<> struct simd_t<float,4>
     inline simd_t<float,4> min(simd_t<float,4> t) const { return _mm_min_ps(x, t.x); }
     inline simd_t<float,4> max(simd_t<float,4> t) const { return _mm_max_ps(x, t.x); }
 
-    // Only makes sense if each 32-bit word in 't' is either 0x0 or 0xff..
-    inline simd_t<float,4> bitwise_and(simd_t<int,4> t) const { return _mm_and_ps(x, _mm_castsi128_ps(t.x)); }
+    inline simd_t<float,4> apply_mask(simd_t<int,4> t) const          { return _mm_and_ps(_mm_castsi128_ps(t.x), x); }
+    inline simd_t<float,4> apply_inverse_mask(simd_t<int,4> t) const  { return _mm_andnot_ps(_mm_castsi128_ps(t.x), x); }
 
     template<unsigned int M> 
     inline float extract() const
@@ -147,8 +147,8 @@ template<> struct simd_t<float,8>
     inline simd_t<float,8> min(simd_t<float,8> t) const { return _mm256_min_ps(x, t.x); }
     inline simd_t<float,8> max(simd_t<float,8> t) const { return _mm256_max_ps(x, t.x); }
 
-    // Only makes sense if each 32-bit word in 't' is either 0x0 or 0xff..
-    inline simd_t<float,8> bitwise_and(simd_t<int,8> t) const { return _mm256_and_ps(x, _mm256_castsi256_ps(t.x)); }
+    inline simd_t<float,8> apply_mask(simd_t<int,8> t) const          { return _mm256_and_ps(_mm256_castsi256_ps(t.x), x); }
+    inline simd_t<float,8> apply_inverse_mask(simd_t<int,8> t) const  { return _mm256_andnot_ps(_mm256_castsi256_ps(t.x), x); }
 
     template<unsigned int M> 
     inline float extract() const

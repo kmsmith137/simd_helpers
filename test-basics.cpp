@@ -200,6 +200,44 @@ inline void test_comparison_operator(const char *name, std::mt19937 &rng, smask_
 }
 
 
+// Used to test apply_mask(), apply_inverse_mask(), and blendv().
+template<typename T, unsigned int S>
+inline void test_masking_operator(const char *name, std::mt19937 &rng, simd_t<T,S> (*f1)(smask_t<T,S>, simd_t<T,S>, simd_t<T,S>), T (*f2)(bool,T,T))
+{
+    smask_t<T,S> mask = uniform_random_simd_t<smask_t<T>,S> (rng, -1, 0);
+    simd_t<T,S> a = uniform_random_simd_t<T,S> (rng, -10000, 10000);
+    simd_t<T,S> b = uniform_random_simd_t<T,S> (rng, -10000, 10000);
+    simd_t<T,S> c1 = f1(mask, a, b);
+
+    vector<smask_t<T> > vmask = vectorize(mask);
+    vector<T> va = vectorize(a);
+    vector<T> vb = vectorize(b);
+    vector<T> vc1 = vectorize(c1);
+    
+    vector<T> vc2(S);
+    for (unsigned int s = 0; s < S; s++) {
+	if (vmask[s] == 0)
+	    vc2[s] = f2(false, va[s], vb[s]);
+	else if (vmask[s] == smask_t<T>(-1))
+	    vc2[s] = f2(true, va[s], vb[s]);	    
+	else {
+	    cerr << "internal error in test_masking_operator(" << name << "," << type_name<T>() << "," << S << ")\n";
+	    exit(1);
+	}
+    }
+
+    if (!strictly_equal(vc1, vc2)) {
+	cerr << "test_masking_operator(" << name << "," << type_name<T>() << "," << S << ") failed\n"
+	     << "   mask: " << mask << "\n"
+	     << "   arg 1: " << a << "\n"
+	     << "   arg 2: " << b << "\n"
+	     << "   output: " << c1 << "\n"
+	     << "   expected output: " << vecstr(vc2) << "\n";
+	exit(1);
+    }
+}
+
+
 // -------------------------------------------------------------------------------------------------
 
 
@@ -287,6 +325,14 @@ template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_xor(simd_t<
 template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_andnot(simd_t<T,S> x, simd_t<T,S> y)  { return x.bitwise_andnot(y); }
 template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_not(simd_t<T,S> x)                    { return x.bitwise_not(); }
 
+template<typename T, unsigned int S> inline simd_t<T,S> simd_blendv(smask_t<T,S> mask, simd_t<T,S> a, simd_t<T,S> b)              { return blendv(mask,a,b); }
+template<typename T, unsigned int S> inline simd_t<T,S> simd_apply_mask(smask_t<T,S> mask, simd_t<T,S> a, simd_t<T,S> b)          { return a.apply_mask(mask); }
+template<typename T, unsigned int S> inline simd_t<T,S> simd_apply_inverse_mask(smask_t<T,S> mask, simd_t<T,S> a, simd_t<T,S> b)  { return a.apply_inverse_mask(mask); }
+
+template<typename T> inline T std_blendv(bool mask, T a, T b)              { return mask ? a : b; }
+template<typename T> inline T std_apply_mask(bool mask, T a, T b)          { return mask ? a : T(0); }
+template<typename T> inline T std_apply_inverse_mask(bool mask, T a, T b)  { return mask ? T(0) : a; }
+
 
 // Runs unit tests which are defined for every pair (T,S)
 template<typename T, unsigned int S>
@@ -313,6 +359,10 @@ inline void test_TS(std::mt19937 &rng)
     test_comparison_operator("compare_ge", rng, simd_cmp_ge<T,S>, cmp_ge<T>);
     test_comparison_operator("compare_lt", rng, simd_cmp_lt<T,S>, cmp_lt<T>);
     test_comparison_operator("compare_le", rng, simd_cmp_le<T,S>, cmp_le<T>);
+
+    test_masking_operator("blendv", rng, simd_blendv<T,S>, std_blendv<T>);
+    test_masking_operator("apply_mask", rng, simd_apply_mask<T,S>, std_apply_mask<T>);
+    test_masking_operator("apply_inverse_mask", rng, simd_apply_inverse_mask<T,S>, std_apply_inverse_mask<T>);
 
     test_horizontal_sum<T,S> (rng);
 }

@@ -70,6 +70,9 @@ template<> struct simd_t<int64_t,2>
     inline simd_t<int64_t,2> compare_ge(simd_t<int64_t,2> t) const  { return compare_lt(t).bitwise_not(); }
     inline simd_t<int64_t,2> compare_le(simd_t<int64_t,2> t) const  { return compare_gt(t).bitwise_not(); }
 
+    inline simd_t<int64_t,2> apply_mask(simd_t<int64_t,2> t) const          { return bitwise_and(t); }
+    inline simd_t<int64_t,2> apply_inverse_mask(simd_t<int64_t,2> t) const  { return bitwise_andnot(t); }
+
     inline simd_t<int64_t,2> bitwise_and(simd_t<int64_t,2> t) const     { return _mm_and_si128(x, t.x); }
     inline simd_t<int64_t,2> bitwise_or(simd_t<int64_t,2> t) const      { return _mm_or_si128(x, t.x); }
     inline simd_t<int64_t,2> bitwise_xor(simd_t<int64_t,2> t) const     { return _mm_xor_si128(x, t.x); }
@@ -286,6 +289,9 @@ template<> struct simd_t<int64_t,4>
 #endif
     }
     
+    inline simd_t<int64_t,4> apply_mask(simd_t<int64_t,4> t) const          { return bitwise_and(t); }
+    inline simd_t<int64_t,4> apply_inverse_mask(simd_t<int64_t,4> t) const  { return bitwise_andnot(t); }
+
     inline simd_t<int64_t,4> bitwise_and(simd_t<int64_t,4> t) const
     {
 #ifdef __AVX2__
@@ -363,25 +369,24 @@ template<> struct simd_t<int64_t,4>
 
 
 // -------------------------------------------------------------------------------------------------
-
-
+//
 // blendv(mask,a,b) is morally equivalent to (mask ? a : b)
 
 inline simd_t<int64_t,2> blendv(simd_t<int64_t,2> mask, simd_t<int64_t,2> a, simd_t<int64_t,2> b)
 { 
-    __m128d dmask = _mm_castsi128_pd(mask.x);
-    __m128d da = _mm_castsi128_pd(a.x);
-    __m128d db = _mm_castsi128_pd(b.x);
-    __m128d ret = _mm_blendv_pd(db, da, dmask);
+    __m128d xmask = _mm_castsi128_pd(mask.x);
+    __m128d xa = _mm_castsi128_pd(a.x);
+    __m128d xb = _mm_castsi128_pd(b.x);
+    __m128d ret = _mm_blendv_pd(xb, xa, xmask);
     return _mm_castpd_si128(ret);
 }
 
 inline simd_t<int64_t,4> blendv(simd_t<int64_t,4> mask, simd_t<int64_t,4> a, simd_t<int64_t,4> b)
 { 
-    __m256d dmask = _mm256_castsi256_pd(mask.x);
-    __m256d da = _mm256_castsi256_pd(a.x);
-    __m256d db = _mm256_castsi256_pd(b.x);
-    __m256d ret = _mm256_blendv_pd(db, da, dmask);
+    __m256d xmask = _mm256_castsi256_pd(mask.x);
+    __m256d xa = _mm256_castsi256_pd(a.x);
+    __m256d xb = _mm256_castsi256_pd(b.x);
+    __m256d ret = _mm256_blendv_pd(xb, xa, xmask);
     return _mm256_castpd_si256(ret);
 }
 

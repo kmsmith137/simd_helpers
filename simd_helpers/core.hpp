@@ -73,6 +73,12 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      simd_t<T,S> operator-(simd_t<T,S> x) const;
 //      simd_t<T,S> operator*(simd_t<T,S> x) const;               // note: multiplication not defined for integer types
 //      simd_t<T,S> operator/(simd_t<T,S> x) const;               // note: division not defined for integer types
+//      simd_t<T,S> operator-() const;
+//
+//      simd_t<T,S> abs() const;
+//      simd_t<T,S> sqrt() const;                // defined for floating-point types T
+//      simd_t<T,S> min(simd_t<T,S> x) const;
+//      simd_t<T,S> max(simd_t<T,S> x) const;
 //
 //      // Comparison operators.
 //      // The output of a comparison operator is -1 (0xff..) for 'true' or 0 for 'false'.
@@ -86,19 +92,19 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      smask_t<T,S> compare_le(simd_t<T,S> x) const;
 //      smask_t<T,S> compare_lt(simd_t<T,S> x) const;
 //
-//      // Bitwise operators.
-//      // Note that x.bitwise_andnot(y) is (x & ~y)   [ not (~x & y) as in the underlying assembly language instruction ]
+//      // Masking operators.  These are useful for processing the output of a comparison.
+//      // Note: another very useful function is the non-member function
+//      //    simd_t<T,S> blendv(smask_t<T,S> mask, simd_t<T,S> a simd_t<T,S> b);   // mask ? a : b
 //
-//      simd_t<T,S> bitwise_and(smask_t<T,S> x) const;            // defined for all T
-//      simd_t<T,S> bitwise_andnot(smask_t<T,S> x) const;         // defined for all T
-//      simd_t<T,S> bitwise_or(simd_t<T,S> x) const;              // defined for integer T
-//      simd_t<T,S> bitwise_xor(simd_t<T,S> x) const;             // defined for integer T
+//      simd_t<T,S> apply_mask(smask_t<T,S> x) const;           // mask ? x : 0
+//      simd_t<T,S> apply_inverse_mask(smask_t<T,S> x) const;   // mask ? 0 : x
+//
+//      // Bitwise operators, defined for integer types T.
+//      simd_t<T,S> bitwise_and(smask_t<T,S> x) const;
+//      simd_t<T,S> bitwise_andnot(smask_t<T,S> x) const;   // (this & ~x)   [ not (~this & x) as in the underlying asm instruction ]
+//      simd_t<T,S> bitwise_or(simd_t<T,S> x) const;
+//      simd_t<T,S> bitwise_xor(simd_t<T,S> x) const;
 //      simd_t<T,S> bitwise_not() const;
-//
-//      simd_t<T,S> abs() const;                 // not defined for int64_t
-//      simd_t<T,S> sqrt() const;                // defined for floating-point T
-//      simd_t<T,S> min(simd_t<T,S> x) const;
-//      simd_t<T,S> max(simd_t<T,S> x) const;
 //
 //      simd_t<T,S> horizontal_sum() const;      // returns [ t ... t ], where t is the sum of all elements in the simd_t
 //      T sum() const;                           // returns t, where t is the sum of all elements in the simd_t

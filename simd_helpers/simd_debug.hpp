@@ -219,7 +219,7 @@ inline std::vector<T> uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T
 {
     std::vector<T> ret(n);
     for (unsigned int i = 0; i < n; i++)
-	ret[i] = std::uniform_int_distribution<>(lo,hi)(rng);
+	ret[i] = std::uniform_int_distribution<T>(lo,hi)(rng);
     return ret;
 }
 
@@ -229,7 +229,7 @@ inline std::vector<T> uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T
 {
     std::vector<T> ret(n);
     for (unsigned int i = 0; i < n; i++)
-	ret[i] = lo + (hi-lo) * std::uniform_real_distribution<>()(rng);
+	ret[i] = lo + (hi-lo) * std::uniform_real_distribution<T>()(rng);
     return ret;
 }
 
@@ -250,7 +250,7 @@ inline simd_ntuple<T,S,N> uniform_random_simd_ntuple(std::mt19937 &rng, T lo, T 
 template<typename T, typename std::enable_if<std::is_floating_point<T>::value,int>::type = 0>
 inline std::vector<T> gaussian_randvec(std::mt19937 &rng, unsigned int n)
 {
-    std::normal_distribution<> dist;
+    std::normal_distribution<T> dist;
 
     std::vector<T> ret(n);
     for (unsigned int i = 0; i < n; i++)
@@ -276,14 +276,14 @@ template<typename T, unsigned int S, unsigned int N>
 inline simd_trimatrix<T,S,N> random_simd_trimatrix(std::mt19937 &rng)
 {
     std::vector<T> buf((N*(N+1)*S)/2, 0);
-    std::normal_distribution<> dist;
+    std::normal_distribution<T> dist;
 
     for (int i = 0; i < N; i++) {
 	int r = (i*(i+1)*S) / 2;
 	for (int j = r; j < r+i*S; j++)
 	    buf[j] = dist(rng);
 	for (int j = r+i*S; j < r+(i+1)*S; j++)
-	    buf[j] = 5.0 + 5.0 * std::uniform_real_distribution<>()(rng);
+	    buf[j] = 5.0 + 5.0 * std::uniform_real_distribution<T>()(rng);
     }
 
     return pack_simd_trimatrix<T,S,N> (buf);

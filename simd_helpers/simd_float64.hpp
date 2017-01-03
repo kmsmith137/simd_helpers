@@ -60,6 +60,9 @@ template<> struct simd_t<double,2>
     inline simd_t<int64_t,2> compare_le(simd_t<double,2> t) const  { return _mm_castpd_si128(_mm_cmple_pd(x, t.x)); }
     inline simd_t<int64_t,2> compare_lt(simd_t<double,2> t) const  { return _mm_castpd_si128(_mm_cmplt_pd(x, t.x)); }
 
+    inline simd_t<double,2> apply_mask(simd_t<int64_t,2> t) const          { return _mm_and_pd(_mm_castsi128_pd(t.x), x); }
+    inline simd_t<double,2> apply_inverse_mask(simd_t<int64_t,2> t) const  { return _mm_andnot_pd(_mm_castsi128_pd(t.x), x); }
+
     inline simd_t<double,2> min(simd_t<double,2> t) const { return _mm_min_pd(x, t.x); }
     inline simd_t<double,2> max(simd_t<double,2> t) const { return _mm_max_pd(x, t.x); }
 
@@ -119,6 +122,9 @@ template<> struct simd_t<double,4>
     inline simd_t<int64_t,4> compare_ge(simd_t<double,4> t) const  { return _mm256_castpd_si256(_mm256_cmp_pd(x, t.x, _CMP_GE_OQ)); }
     inline simd_t<int64_t,4> compare_lt(simd_t<double,4> t) const  { return _mm256_castpd_si256(_mm256_cmp_pd(x, t.x, _CMP_LT_OQ)); }
     inline simd_t<int64_t,4> compare_le(simd_t<double,4> t) const  { return _mm256_castpd_si256(_mm256_cmp_pd(x, t.x, _CMP_LE_OQ)); }
+
+    inline simd_t<double,4> apply_mask(simd_t<int64_t,4> t) const          { return _mm256_and_pd(_mm256_castsi256_pd(t.x), x); }
+    inline simd_t<double,4> apply_inverse_mask(simd_t<int64_t,4> t) const  { return _mm256_andnot_pd(_mm256_castsi256_pd(t.x), x); }
 
     inline simd_t<double,4> min(simd_t<double,4> t) const { return _mm256_min_pd(x, t.x); }
     inline simd_t<double,4> max(simd_t<double,4> t) const { return _mm256_max_pd(x, t.x); }

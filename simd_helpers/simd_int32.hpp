@@ -60,6 +60,9 @@ template<> struct simd_t<int,4>
     inline simd_t<int,4> compare_ge(simd_t<int,4> t) const  { return compare_lt(t).bitwise_not(); }
     inline simd_t<int,4> compare_le(simd_t<int,4> t) const  { return compare_gt(t).bitwise_not(); }
 
+    inline simd_t<int,4> apply_mask(simd_t<int,4> t) const          { return bitwise_and(t); }
+    inline simd_t<int,4> apply_inverse_mask(simd_t<int,4> t) const  { return bitwise_andnot(t); }
+
     inline simd_t<int,4> min(simd_t<int,4> t) const { return _mm_min_epi32(x, t.x); }
     inline simd_t<int,4> max(simd_t<int,4> t) const { return _mm_max_epi32(x, t.x); }
 
@@ -308,6 +311,9 @@ template<> struct simd_t<int,8>
 #endif
     }
 
+    inline simd_t<int,8> apply_mask(simd_t<int,8> t) const          { return bitwise_and(t); }
+    inline simd_t<int,8> apply_inverse_mask(simd_t<int,8> t) const  { return bitwise_andnot(t); }
+
     inline int testzero_bitwise_and(simd_t<int,8> t) const     { return _mm256_testz_si256(x, t.x); }
     inline int testzero_bitwise_andnot(simd_t<int,8> t) const  { return _mm256_testc_si256(t.x, x); }
     inline int is_all_zeros() const                            { return _mm256_testz_si256(x, x); }
@@ -336,6 +342,29 @@ template<> struct simd_t<int,8>
 	return y.sum();
     }
 };
+
+
+// -------------------------------------------------------------------------------------------------
+//
+// blendv(mask,a,b) is morally equivalent to (mask ? a : b)
+
+inline simd_t<int,4> blendv(simd_t<int,4> mask, simd_t<int,4> a, simd_t<int,4> b)
+{ 
+    __m128 xmask = _mm_castsi128_ps(mask.x);
+    __m128 xa = _mm_castsi128_ps(a.x);
+    __m128 xb = _mm_castsi128_ps(b.x);
+    __m128 ret = _mm_blendv_ps(xb, xa, xmask);
+    return _mm_castps_si128(ret);
+}
+
+inline simd_t<int,8> blendv(simd_t<int,8> mask, simd_t<int,8> a, simd_t<int,8> b)
+{ 
+    __m256 xmask = _mm256_castsi256_ps(mask.x);
+    __m256 xa = _mm256_castsi256_ps(a.x);
+    __m256 xb = _mm256_castsi256_ps(b.x);
+    __m256 ret = _mm256_blendv_ps(xb, xa, xmask);
+    return _mm256_castps_si256(ret);
+}
 
 
 }  // namespace simd_helpers
