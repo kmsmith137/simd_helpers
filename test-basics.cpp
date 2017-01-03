@@ -403,6 +403,88 @@ inline void test_horizontal_sum(std::mt19937 &rng)
 // -------------------------------------------------------------------------------------------------
 
 
+// convert(simd_t<T,S> &dst, simd_t<T2,S> src)
+template<typename T, typename T2, unsigned int S>
+static void test_convert(std::mt19937 &rng)
+{
+    const double epsilon = 2000. * max<double> (machine_epsilon<T>(), machine_epsilon<T2>());
+
+    simd_t<T,S> dst;
+    simd_t<T2,S> src = uniform_random_simd_t<T2,S> (rng, -1000, 1000);
+
+    convert(dst, src);
+
+    for (unsigned int s = 0; s < S; s++) {
+	if (std::abs(extract_slow(dst,s) - extract_slow(src,s)) <= epsilon)
+	    continue;
+
+	cerr << "test_convert() failed: simd_t<" << type_name<T2>() << "," << S << ">"
+	     << " -> simd_t<" << type_name<T>() << "," << S << ">\n"
+	     << "   input: " << src << "\n"
+	     << "   output: " << dst << "\n";
+
+	exit(1);
+    }
+}
+
+
+// convert(simd_ntuple<T,S,N> &dst, simd_t<T2,S*N> src)
+template<typename T, typename T2, unsigned int S, unsigned int N>
+inline void test_upconvert(std::mt19937 &rng)
+{
+    const double epsilon = 2000. * max<double> (machine_epsilon<T>(), machine_epsilon<T2>());
+
+    simd_ntuple<T,S,N> dst;
+    simd_t<T2,S*N> src = uniform_random_simd_t<T2,S*N> (rng, -1000, 1000);
+
+    convert(dst, src);
+
+    for (unsigned int n = 0; n < N; n++) {
+	for (unsigned int s = 0; s < S; s++) {
+	    if (std::abs(extract_slow(dst,n,s) - extract_slow(src,n*S+s)) <= epsilon)
+		continue;
+
+	    cerr << "test_upconvert() failed: simd_t<" << type_name<T2>() << "," << S << ">"
+		 << " -> simd_ntuple<" << type_name<T>() << "," << S << "," << N << ">\n"
+		 << "   input: " << src << "\n"
+		 << "   output: " << dst << "\n";
+	    
+	    exit(1);
+	}
+    }
+}
+
+
+// convert(simd_t<T,S*N> &dst, simd_ntuple<T2,S,N> src)
+template<typename T, typename T2, unsigned int S, unsigned int N>
+inline void test_downconvert(std::mt19937 &rng)
+{
+    const double epsilon = 2000. * max<double> (machine_epsilon<T>(), machine_epsilon<T2>());
+
+    simd_t<T,S*N> dst;
+    simd_ntuple<T2,S,N> src = uniform_random_simd_ntuple<T2,S,N> (rng, -1000, 1000);
+
+    convert(dst, src);
+
+    for (unsigned int n = 0; n < N; n++) {
+	for (unsigned int s = 0; s < S; s++) {
+	    if (std::abs(extract_slow(dst,n*S+s) - extract_slow(src,n,s)) <= epsilon)
+		continue;
+
+	    cerr << "test_downconvert() failed: simd_ntuple<" << type_name<T2>() << "," << S << "," << N << ">"
+		 << " -> simd_t<" << type_name<T>() << "," << (S*N) << ">\n"
+		 << "   input: " << src << "\n"
+		 << "   output: " << dst << "\n";
+	    
+	    exit(1);
+	}
+    }
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
+
 template<typename T> inline void assign_add(T &x, T y) { x += y; }
 template<typename T> inline void assign_sub(T &x, T y) { x -= y; }
 template<typename T> inline void assign_mul(T &x, T y) { x *= y; }
@@ -551,7 +633,13 @@ inline void test_all(std::mt19937 &rng)
     test_integer_T<int64_t> (rng);
     test_floating_point_T<float> (rng);
     test_floating_point_T<double> (rng);
+
+    test_convert<float,double,4> (rng);
+    test_convert<double,float,4> (rng);
+    test_upconvert<double,float,4,2> (rng);
+    test_downconvert<float,double,4,2> (rng);
 }
+
 
 }   // namespace simd_helpers
 
