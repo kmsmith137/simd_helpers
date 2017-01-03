@@ -334,6 +334,35 @@ inline void test_is_all_zeros_masked(std::mt19937 &rng)
     }
 }
 
+
+template<typename T, unsigned int S>
+inline void test_is_all_zeros_inverse_masked(std::mt19937 &rng)
+{
+    simd_t<T,S> x = simd_t<T,S>::zero();
+    smask_t<T,S> mask = uniform_random_simd_t<smask_t<T>,S> (rng, -1, 0);
+    int expected_result = 1;
+
+    for (unsigned int s = 0; s < S; s++) {
+	if (std::uniform_real_distribution<>()(rng) < 1.5/S) {
+	    T t = uniform_rand<T>(rng, -10, 10);
+	    set_slow(x, s, t);
+	    if ((t != 0) && (extract_slow(mask,s) == 0))
+		expected_result = 0;
+	}
+    }
+
+    if (x.is_all_zeros_inverse_masked(mask) != expected_result) {
+	cerr << "test_is_all_zeros_inverse_masked(" << type_name<T>() << "," << S << ") failed\n"
+	     << "   argument = " << x << "\n"
+	     << "   mask = " << mask << "\n"
+	     << "   result = " << x.is_all_zeros_inverse_masked(mask) << "\n"
+	     << "   expected result = " << expected_result << "\n";
+
+	exit(1);
+    }
+}
+
+
 // -------------------------------------------------------------------------------------------------
 
 
@@ -493,6 +522,7 @@ inline void test_integer_TS(std::mt19937 &rng)
     test_is_all_ones<T,S> (rng);
     test_is_all_zeros<T,S> (rng);
     test_is_all_zeros_masked<T,S> (rng);
+    test_is_all_zeros_inverse_masked<T,S> (rng);
 }
 
 template<typename T>

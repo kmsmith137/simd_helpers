@@ -314,10 +314,10 @@ template<> struct simd_t<int,8>
     inline simd_t<int,8> apply_mask(simd_t<int,8> t) const          { return bitwise_and(t); }
     inline simd_t<int,8> apply_inverse_mask(simd_t<int,8> t) const  { return bitwise_andnot(t); }
 
-    inline int is_all_ones() const                                 { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
-    inline int is_all_zeros() const                                { return _mm256_testz_si256(x, x); }
-    inline int is_all_zeros_masked(simd_t<int,8> mask) const       { return _mm256_testz_si256(x, mask.x); }
-    inline int is_all_zeros_inverse_masked(simd_t<int,8> t) const  { return _mm256_testc_si256(t.x, x); }
+    inline int is_all_ones() const                                    { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
+    inline int is_all_zeros() const                                   { return _mm256_testz_si256(x, x); }
+    inline int is_all_zeros_masked(simd_t<int,8> mask) const          { return _mm256_testz_si256(x, mask.x); }
+    inline int is_all_zeros_inverse_masked(simd_t<int,8> mask) const  { return _mm256_testc_si256(mask.x, x); }
 
     template<unsigned int M> inline int extract() const                { return _mm256_extract_epi32(x,M); }
     template<unsigned int M> inline simd_t<int,4> extract128() const   { return _mm256_extractf128_si256(x,M); }

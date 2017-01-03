@@ -352,10 +352,10 @@ template<> struct simd_t<int64_t,4>
 #endif
     }
 
-    inline int is_all_ones() const                                     { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
-    inline int is_all_zeros() const                                    { return _mm256_testz_si256(x, x); }
-    inline int is_all_zeros_masked(simd_t<int64_t,4> mask) const       { return _mm256_testz_si256(x, mask.x); }
-    inline int is_all_zeros_inverse_masked(simd_t<int64_t,4> t) const  { return _mm256_testc_si256(t.x, x); }
+    inline int is_all_ones() const                                        { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
+    inline int is_all_zeros() const                                       { return _mm256_testz_si256(x, x); }
+    inline int is_all_zeros_masked(simd_t<int64_t,4> mask) const          { return _mm256_testz_si256(x, mask.x); }
+    inline int is_all_zeros_inverse_masked(simd_t<int64_t,4> mask) const  { return _mm256_testc_si256(mask.x, x); }
 
     inline simd_t<int64_t,4> horizontal_sum() const
     { 
