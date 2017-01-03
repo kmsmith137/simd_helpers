@@ -200,20 +200,6 @@ inline void test_comparison_operator(const char *name, std::mt19937 &rng, smask_
 }
 
 
-template<typename T, unsigned int S>
-inline void test_abs(std::mt19937 &rng)
-{
-    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -1000, 1000);
-    simd_t<T,S> y = x.abs();
-
-    vector<T> vx = vectorize(x);
-    vector<T> vy = vectorize(y);
-    
-    for (unsigned int i = 0; i < S; i++)
-	assert(vy[i] == max(vx[i],-vx[i]));
-}
-
-
 // -------------------------------------------------------------------------------------------------
 
 
@@ -267,10 +253,12 @@ template<typename T> inline T unary_minus(T x) { return -x; }
 
 template<typename T> inline T std_min(T x, T y) { return std::min(x,y); }
 template<typename T> inline T std_max(T x, T y) { return std::max(x,y); }
+template<typename T> inline T std_abs(T x)      { return std::abs(x); }
 template<typename T> inline T std_sqrt(T x)     { return std::sqrt(x); }
 
 template<typename T, unsigned int S> inline simd_t<T,S> simd_min(simd_t<T,S> x, simd_t<T,S> y) { return x.min(y); }
 template<typename T, unsigned int S> inline simd_t<T,S> simd_max(simd_t<T,S> x, simd_t<T,S> y) { return x.max(y); }
+template<typename T, unsigned int S> inline simd_t<T,S> simd_abs(simd_t<T,S> x)   { return x.abs(); }
 template<typename T, unsigned int S> inline simd_t<T,S> simd_sqrt(simd_t<T,S> x)  { return x.sqrt(); }
 
 template<typename T> inline bool cmp_eq(T x, T y) { return (x == y); }
@@ -312,9 +300,9 @@ inline void test_TS(std::mt19937 &rng)
 
     test_binary_operator("+", rng, binary_add< simd_t<T,S> >, binary_add<T>);
     test_binary_operator("-", rng, binary_sub< simd_t<T,S> >, binary_sub<T>);
-    test_unary_operation<T> ("-", rng, unary_minus< simd_t<T,S> >, unary_minus<T>, -10000, 10000, 0);
 
-    test_abs<T,S>(rng);
+    test_unary_operation<T> ("-", rng, unary_minus< simd_t<T,S> >, unary_minus<T>, -10000, 10000, 0);
+    test_unary_operation<T> ("abs", rng, simd_abs<T,S>, std_abs<T>, -10000, 10000, 0);
 
     test_comparison_operator("compare_eq", rng, simd_cmp_eq<T,S>, cmp_eq<T>);
     test_comparison_operator("compare_ne", rng, simd_cmp_ne<T,S>, cmp_ne<T>);
