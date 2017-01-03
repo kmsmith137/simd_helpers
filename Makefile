@@ -30,10 +30,7 @@ INCFILES_SUB=simd_helpers/core.hpp \
 	simd_helpers/convert.hpp \
 	simd_helpers/udsample.hpp
 
-TESTFILES=run-tests \
-	test-linear-algebra-kernels \
-	test-udsample
-
+TESTFILES=run-tests
 
 all: $(TESTFILES)
 
@@ -53,10 +50,4 @@ uninstall:
 	rmdir $(INCDIR)/simd_helpers
 
 run-tests: run-tests.cpp $(INCFILES_TOP) $(INCFILES_SUB)
-	$(CPP) -o $@ $<
-
-test-linear-algebra-kernels: test-linear-algebra-kernels.cpp $(INCFILES_TOP) $(INCFILES_SUB)
-	$(CPP) -o $@ $<
-
-test-udsample: test-udsample.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<

@@ -21,10 +21,8 @@ ln -s site/Makefile.local.norootprivs Makefile.local
 # Compiles everything
 make
 
-# Currently unit tests must be run individually by hand
-./test-basics
-./test-linear-algebra-kernels
-./test-udsample
+# Currently unit tests must be run by hand
+./run-tests
 
 # Installs .hpp files to $(INCDIR)
 make install

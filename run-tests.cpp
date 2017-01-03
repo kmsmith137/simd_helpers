@@ -28,7 +28,7 @@ inline bool _check_extract(simd_t<T,S> x, const T *v)
 
 
 template<typename T, unsigned int S>
-inline void test_load_store_extract(std::mt19937 &rng)
+inline void test_basics(std::mt19937 &rng)
 {
     vector<T> v = uniform_randvec<T> (rng, S, -1000, 1000);
     simd_t<T,S> x = simd_t<T,S>::loadu(&v[0]);
@@ -483,6 +483,271 @@ inline void test_downconvert(std::mt19937 &rng)
 
 
 // -------------------------------------------------------------------------------------------------
+//
+// Upsample/downsample
+
+
+
+template<typename T>
+static vector<T> reference_downsample(const vector<T> &v, int N)
+{
+    assert(N > 0);
+    assert(v.size() > 0);
+    assert(v.size() % N == 0);
+
+    int m = v.size() / N;
+    vector<T> ret(m, 0);
+
+    for (int i = 0; i < m; i++)
+	for (int j = 0; j < N; j++)
+	    ret[i] += v[i*N+j];
+
+    return ret;
+}
+
+template<typename T>
+static vector<T> reference_upsample(const vector<T> &v, int N)
+{
+    assert(N > 0);
+    assert(v.size() > 0);
+
+    vector<T> ret(v.size()*N, 0);
+
+    for (unsigned int i = 0; i < v.size(); i++)
+	for (int j = 0; j < N; j++)
+	    ret[i*N+j] = v[i];
+    
+    return ret;
+}
+
+
+template<typename T, unsigned int S, unsigned int N>
+static void test_downsample(std::mt19937 &rng)
+{
+    simd_ntuple<T,S,N> x = gaussian_random_simd_ntuple<T,S,N> (rng);
+    simd_t<T,S> y = downsample(x);
+
+    double epsilon = compare(vectorize(y), reference_downsample(vectorize(x),N));
+    assert(epsilon < 1.0e-6);
+}
+
+
+template<typename T, unsigned int S, unsigned int N>
+static void test_upsample(std::mt19937 &rng)
+{
+    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, 0, 100);
+
+    simd_ntuple<T,S,N> y;
+    upsample(y, x);
+
+    assert(strictly_equal(vectorize(y), reference_upsample(vectorize(x),N)));
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
+
+
+template<typename T>
+static vector<T> reference_multiply_lower(const vector<T> &mat, const vector<T> &v, int S, int N)
+{
+    int NN = (N*(N+1))/2;
+    assert(mat.size() == NN*S);
+    assert(v.size() == N*S);
+
+    vector<T> ret(N*S, 0.0);
+    
+    for (int i = 0; i < N; i++) {
+	for (int j = 0; j <= i; j++) {
+	    int ij = (i*(i+1)*S)/2 + j*S;
+	    for (int s = 0; s < S; s++)
+		ret[i*S+s] += mat[ij+s] * v[j*S+s];
+	}
+    }
+
+    return ret;
+}
+
+
+template<typename T>
+static vector<T> reference_multiply_upper(const vector<T> &mat, const vector<T> &v, int S, int N)
+{
+    int NN = (N*(N+1))/2;
+    assert(mat.size() == NN*S);
+    assert(v.size() == N*S);
+
+    vector<T> ret(N*S, 0.0);
+    
+    for (int i = 0; i < N; i++) {
+	for (int j = 0; j <= i; j++) {
+	    int ij = (i*(i+1)*S)/2 + j*S;
+	    for (int s = 0; s < S; s++)
+		ret[j*S+s] += mat[ij+s] * v[i*S+s];
+	}
+    }
+
+    return ret;
+}
+
+
+template<typename T>
+static vector<T> reference_multiply_symmetric(const vector<T> &mat, const vector<T> &v, int S, int N)
+{
+    int NN = (N*(N+1))/2;
+    assert(mat.size() == NN*S);
+    assert(v.size() == N*S);
+
+    vector<T> ret(N*S, 0.0);
+    
+    for (int i = 0; i < N; i++) {
+	for (int j = 0; j <= i; j++) {
+	    int ij = (i*(i+1)*S)/2 + j*S;
+
+	    for (int s = 0; s < S; s++)
+		ret[i*S+s] += mat[ij+s] * v[j*S+s];
+
+	    if (i == j)
+		continue;
+
+	    for (int s = 0; s < S; s++)
+		ret[j*S+s] += mat[ij+s] * v[i*S+s];
+	}
+    }
+
+    return ret;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
+
+template<typename T, unsigned int S, unsigned int N>
+void test_linear_algebra_kernels_N(std::mt19937 &rng)
+{
+    double epsilon0 = 10. * machine_epsilon<T> ();
+
+    simd_trimatrix<T,S,N> m = random_simd_trimatrix<T,S,N> (rng);
+    simd_ntuple<T,S,N> v = gaussian_random_simd_ntuple<T,S,N> (rng);
+    simd_ntuple<T,S,N> x;
+
+    // multiply_lower()
+    simd_ntuple<T,S,N> w = m.multiply_lower(v);
+    vector<T> wbuf = reference_multiply_lower(vectorize(m), vectorize(v), S, N);
+    double epsilon = compare(vectorize(w), wbuf);
+    assert(epsilon < epsilon0);
+    
+    // multiply_upper()
+    w = m.multiply_upper(v);
+    wbuf = reference_multiply_upper(vectorize(m), vectorize(v), S, N);
+    epsilon = compare(vectorize(w), wbuf);
+    assert(epsilon < epsilon0);
+    
+    // multiply_symmetric()
+    w = m.multiply_symmetric(v);
+    wbuf = reference_multiply_symmetric(vectorize(m), vectorize(v), S, N);
+    epsilon = compare(vectorize(w), wbuf);
+    assert(epsilon < epsilon0);
+
+    // solve_lower()
+    w = m.solve_lower(v);
+    x = m.multiply_lower(w);
+    epsilon = compare(vectorize(v), vectorize(x));
+    assert(epsilon < epsilon0);
+
+    // solve_upper()
+    w = m.solve_upper(v);
+    x = m.multiply_upper(w);
+    epsilon = compare(vectorize(v), vectorize(x));
+    assert(epsilon < epsilon0);
+
+    // decholesky()
+    simd_trimatrix<T,S,N> p = m.decholesky();
+    w = p.multiply_symmetric(v);
+    x = m.multiply_upper(v);
+    x = m.multiply_lower(x);
+    epsilon = compare(vectorize(w), vectorize(x));
+    assert(epsilon < epsilon0);
+
+    // cholesky()
+    simd_trimatrix<T,S,N> m2 = p.cholesky();
+    epsilon = compare(vectorize(m), vectorize(m2));
+    assert(epsilon < epsilon0);
+
+    // cholseky_flagged_in_place(), in case where all matrices are positive definite
+    simd_trimatrix<T,S,N> m3 = p;
+    smask_t<T,S> flags = m3.cholesky_in_place_checked(1.0e-3);
+    epsilon = compare(vectorize(m), vectorize(m3));
+    assert(epsilon < epsilon0);
+    assert(flags.is_all_ones());
+
+    // cholseky_flagged_in_place(), with some random non positive definite matrices along for the ride
+
+    smask_t<T,S> target_flags = uniform_random_simd_t<smask_t<T>,S> (rng, -1, 0);
+
+    vector<smask_t<T> > v_f = vectorize(target_flags);
+    vector<T> v_p = vectorize(p);
+
+    for (unsigned int s = 0; s < S; s++) {
+	if (v_f[s])
+	    continue;
+	
+	// construct non-full-rank matrix by A A^T where A is shape (N-1,N)
+	// note: gaussian_randvec() is defined in simd_debug.hpp
+	vector<T> amat = gaussian_randvec<T> (rng, N*(N-1));
+	for (int i = 0; i < N; i++) {
+	    for (int j = 0; j <= i; j++) {
+		T t = 0;
+		for (int k = 0; k < N-1; k++)
+		    t += amat[i*(N-1)+k] * amat[j*(N-1)+k];
+		v_p[(i*(i+1)*S)/2 + j*S + s] = t;
+	    }
+	}
+    }
+
+    simd_trimatrix<T,S,N> m4 = pack_simd_trimatrix<T,S,N> (v_p);
+    
+    smask_t<T,S> actual_flags = m4.cholesky_in_place_checked(1.0e-2);
+    int flags_agree = actual_flags.compare_eq(target_flags).is_all_ones();
+    assert(flags_agree);
+
+    vector<T> v_m = vectorize(m);
+    vector<T> v_m4 = vectorize(m4);
+
+    T num = 0;
+    T den = 0;
+
+    for (int s = 0; s < S; s++) {
+	if (!v_f[s])
+	    continue;
+
+	for (int i = 0; i < (N*(N+1))/2; i++) {
+	    T x = v_m[i*S+s];
+	    T y = v_m4[i*S+s];
+	    num += (x-y) * (x-y);
+	    den += x*x + y*y;
+	}
+    }
+
+    epsilon = (den > 0.0) ? sqrt(num/den) : 0.0;
+    assert(epsilon < epsilon0);
+}
+
+
+template<typename T, unsigned int S>
+void test_linear_algebra_kernels(std::mt19937 &rng)
+{
+    test_linear_algebra_kernels_N<T,S,1> (rng);
+    test_linear_algebra_kernels_N<T,S,2> (rng);
+    test_linear_algebra_kernels_N<T,S,3> (rng);
+    test_linear_algebra_kernels_N<T,S,4> (rng);
+    test_linear_algebra_kernels_N<T,S,5> (rng);
+    test_linear_algebra_kernels_N<T,S,6> (rng);
+    test_linear_algebra_kernels_N<T,S,7> (rng);
+    test_linear_algebra_kernels_N<T,S,8> (rng);
+}
+
+
+// -------------------------------------------------------------------------------------------------
 
 
 template<typename T> inline void assign_add(T &x, T y) { x += y; }
@@ -545,7 +810,7 @@ template<typename T> inline T std_apply_inverse_mask(bool mask, T a, T b)  { ret
 template<typename T, unsigned int S>
 inline void test_TS(std::mt19937 &rng)
 {
-    test_load_store_extract<T,S>(rng);
+    test_basics<T,S>(rng);
     test_constructors<T,S>(rng);
 
     test_compound_assignment_operator(rng, assign_add< simd_t<T,S> >, assign_add<T>);   // operator+=
@@ -638,6 +903,29 @@ inline void test_all(std::mt19937 &rng)
     test_convert<double,float,4> (rng);
     test_upconvert<double,float,4,2> (rng);
     test_downconvert<float,double,4,2> (rng);
+
+    test_downsample<float,4,2> (rng);
+    test_downsample<float,4,4> (rng);
+    test_downsample<float,8,2> (rng);
+    test_downsample<float,8,4> (rng);
+    test_downsample<float,8,8> (rng);
+    
+    test_upsample<float,4,2> (rng);
+    test_upsample<float,4,4> (rng);
+    test_upsample<float,8,2> (rng);
+    test_upsample<float,8,4> (rng);
+    test_upsample<float,8,8> (rng);
+    
+    test_upsample<int,4,2> (rng);
+    test_upsample<int,4,4> (rng);
+    test_upsample<int,8,2> (rng);
+    test_upsample<int,8,4> (rng);
+    test_upsample<int,8,8> (rng);
+
+    test_linear_algebra_kernels<float,4> (rng);
+    test_linear_algebra_kernels<float,8> (rng);
+    test_linear_algebra_kernels<double,2> (rng);
+    test_linear_algebra_kernels<double,4> (rng);
 }
 
 
@@ -652,6 +940,6 @@ int main(int argc, char **argv)
     for (int iter = 0; iter < 1000; iter++)
 	simd_helpers::test_all(rng);
 
-    cout << "test-basics: pass\n";
+    cout << "simd_helpers: all tests passed\n";
     return 0;
 }

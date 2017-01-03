@@ -2,5 +2,3 @@
 *.o
 Makefile.local
 run-tests
-test-linear-algebra-kernels
-test-udsample
