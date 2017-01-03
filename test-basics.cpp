@@ -256,32 +256,6 @@ inline void test_masking_operator(const char *name, std::mt19937 &rng, simd_t<T,
 
 
 template<typename T, unsigned int S>
-inline void test_is_all_zeros(std::mt19937 &rng)
-{
-    simd_t<T,S> x = simd_t<T,S>::zero();
-    int expected_result = 1;
-
-    for (unsigned int s = 0; s < S; s++) {
-	if (std::uniform_real_distribution<>()(rng) < 1/(1.5*S)) {
-	    T t = uniform_rand<T>(rng, -10, 10);
-	    set_slow(x, s, t);
-	    if (t != 0)
-		expected_result = 0;
-	}
-    }
-
-    if (x.is_all_zeros() != expected_result) {
-	cerr << "test_is_all_zeros(" << type_name<T>() << "," << S << ") failed\n"
-	     << "   argument = " << x << "\n"
-	     << "   result = " << x.is_all_zeros() << "\n"
-	     << "   expected result = " << expected_result << "\n";
-
-	exit(1);
-    }
-}
-
-
-template<typename T, unsigned int S>
 inline void test_is_all_ones(std::mt19937 &rng)
 {
     simd_t<T,S> x = simd_t<T,S>(-1);
@@ -300,6 +274,32 @@ inline void test_is_all_ones(std::mt19937 &rng)
 	cerr << "test_is_all_ones(" << type_name<T>() << "," << S << ") failed\n"
 	     << "   argument = " << x << "\n"
 	     << "   result = " << x.is_all_ones() << "\n"
+	     << "   expected result = " << expected_result << "\n";
+
+	exit(1);
+    }
+}
+
+
+template<typename T, unsigned int S>
+inline void test_is_all_zeros(std::mt19937 &rng)
+{
+    simd_t<T,S> x = simd_t<T,S>::zero();
+    int expected_result = 1;
+
+    for (unsigned int s = 0; s < S; s++) {
+	if (std::uniform_real_distribution<>()(rng) < 1/(1.5*S)) {
+	    T t = uniform_rand<T>(rng, -10, 10);
+	    set_slow(x, s, t);
+	    if (t != 0)
+		expected_result = 0;
+	}
+    }
+
+    if (x.is_all_zeros() != expected_result) {
+	cerr << "test_is_all_zeros(" << type_name<T>() << "," << S << ") failed\n"
+	     << "   argument = " << x << "\n"
+	     << "   result = " << x.is_all_zeros() << "\n"
 	     << "   expected result = " << expected_result << "\n";
 
 	exit(1);
@@ -327,7 +327,7 @@ inline void test_is_all_zeros_masked(std::mt19937 &rng)
 	cerr << "test_is_all_zeros_masked(" << type_name<T>() << "," << S << ") failed\n"
 	     << "   argument = " << x << "\n"
 	     << "   mask = " << mask << "\n"
-	     << "   result = " << x.is_all_zeros() << "\n"
+	     << "   result = " << x.is_all_zeros_masked(mask) << "\n"
 	     << "   expected result = " << expected_result << "\n";
 
 	exit(1);
