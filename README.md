@@ -2,7 +2,10 @@
 
 This is a helper library for writing fast x86 SIMD kernels.
 
-It is currently in an "initial hacking" stage, and will be hard to use until it gets some cleanup and documentation!
+This is version 2.  This version is required for the `fast_clippers` and `fast_transforms`
+branches of rf_pipelines.  For the `fast_detrender` branch, you want version 1.
+
+This library is currently in an "initial hacking" stage, and will be hard to use until it gets more documentation!
 Let me know if this should be a higher priority.
 
 Compilation instructions:

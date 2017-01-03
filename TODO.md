@@ -8,6 +8,8 @@
 
 - Half-float loads/stores.  (Needed soon for bonsai)
 
+- Align operations.  (Needed soon for bonsai)
+
 - Random loose end: scalar-vector ops, e.g. (T * simd_t<T,S>), are not currently unit tested.
 
 - I think more syntactic sugar would be nice.
@@ -16,12 +18,12 @@
 - Upsampling/downsampling kernels for int64_t and double.
 
 - Does it make sense to implement something for integer division?
-  There are no "real" simd instructions for integer division (at least in AVX2).  
-  Maybe the best option is to extract every element of the simd_t, and do a scalar integer division?
-  There is an assembly instruction for scalar integer division, right?
+  There are no "real" simd instructions for integer division (at least in AVX2).  Maybe the 
+  best option is to extract every element of the simd_t, and do a scalar integer division?
+  (There is an assembly instruction for scalar integer division, right?)
 
 - Could write a 'make testx' target which runs the unit tests with multiple combinations of cpu flags
-  (downgraded from -march=native), e.g. to test non-AVX2 kernels on an AVX machine.
+  (downgraded from -march=native), e.g. to test non-AVX2 kernels on an AVX2 machine.
 
 - Generally speaking, the non-AVX2 kernels are not very well-optimized, but I'm not sure how much of a priority this is.
 
