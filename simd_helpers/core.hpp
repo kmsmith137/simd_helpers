@@ -89,10 +89,10 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      // "Boolean reducers": these are only defined for integer types, and return either 0 or 1.
 //      // Note: it would be possible to define floating-point versions which test positivity (sign bits).
 //
-//      int is_all_zeros() const;                            // returns true if all bits are zero
-//      int is_all_ones() const;                             // returns true if all bits are one.
-//      int testzero_bitwise_and(smask_t<T,S> t) const;      // returns true if all bits in (this & t) are zero
-//      int testzero_bitwise_andnot(smask_t<T,S> t) const;   // returns true if all bits in (this & ~t) are zero
+//      int is_all_ones() const;                                 // returns true if all bits are one.
+//      int is_all_zeros() const;                                // returns true if all bits are zero
+//      int is_all_zeros_masked(smask_t<T,S> t) const;           // returns true if all bits in (this & t) are zero
+//      int is_all_zeros_inverse_masked(smask_t<T,S> t) const;   // returns true if all bits in (this & ~t) are zero
 //
 //      // Comparison operators.
 //      // The output of a comparison operator is -1 (0xff..) for 'true' or 0 for 'false'.
