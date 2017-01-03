@@ -80,6 +80,42 @@ inline void test_merging_constructor(std::mt19937 &rng)
 
 
 template<typename T, unsigned int S>
+inline void test_unary_operation(const char *name, std::mt19937 &rng, simd_t<T,S> (*f1)(simd_t<T,S>), T (*f2)(T), T lo, T hi, T e)
+{
+    const T epsilon = e * machine_epsilon<T> ();
+
+    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, lo, hi);
+    simd_t<T,S> y = f1(x);
+
+    vector<T> vx = vectorize(x);
+    vector<T> vy = vectorize(y);
+
+    vector<T> vz(S);
+    for (unsigned int s = 0; s < S; s++)
+	vz[s] = f2(vx[s]);
+
+    if (maxdiff(vy,vz) <= epsilon)
+	return;
+
+    for (unsigned int s = 0; s < S; s++) {
+	cerr << "test_unary_operation(" << name << "," << type_name<T>() << "," << S << ") failed\n"
+	     << "    argument: " << x << endl
+	     << "    output: " << y << endl
+	     << "    expected output: " << vecstr(vz) << endl
+	     << "    difference: [";
+
+	for (unsigned int s = 0; s < S; s++)
+	    cerr << " " << std::abs(vy[s]-vz[s]);
+
+	cerr << "]\n"
+	     << "    epsilon: " << epsilon << endl;
+
+	exit(1);
+    }
+}
+
+
+template<typename T, unsigned int S>
 inline void test_compound_assignment_operator(std::mt19937 &rng, void (*f1)(simd_t<T,S> &, simd_t<T,S>), void (*f2)(T&, T))
 {
     const T epsilon = 100 * machine_epsilon<T>();
@@ -230,9 +266,11 @@ template<typename T> inline T binary_div(T x, T y) { return x / y; }
 
 template<typename T> inline T std_min(T x, T y) { return std::min(x,y); }
 template<typename T> inline T std_max(T x, T y) { return std::max(x,y); }
+template<typename T> inline T std_sqrt(T x)     { return std::sqrt(x); }
 
 template<typename T, unsigned int S> inline simd_t<T,S> simd_min(simd_t<T,S> x, simd_t<T,S> y) { return x.min(y); }
 template<typename T, unsigned int S> inline simd_t<T,S> simd_max(simd_t<T,S> x, simd_t<T,S> y) { return x.max(y); }
+template<typename T, unsigned int S> inline simd_t<T,S> simd_sqrt(simd_t<T,S> x)  { return x.sqrt(); }
 
 template<typename T> inline bool cmp_eq(T x, T y) { return (x == y); }
 template<typename T> inline bool cmp_ne(T x, T y) { return (x != y); }
@@ -252,11 +290,13 @@ template<typename T> inline T bitwise_and(T x, T y)     { return (x & y); }
 template<typename T> inline T bitwise_or(T x, T y)      { return (x | y); }
 template<typename T> inline T bitwise_xor(T x, T y)     { return (x ^ y); }
 template<typename T> inline T bitwise_andnot(T x, T y)  { return (x & ~y); }
+template<typename T> inline T bitwise_not(T x)          { return ~x; }
 
 template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_and(simd_t<T,S> x, simd_t<T,S> y)     { return x.bitwise_and(y); }
 template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_or(simd_t<T,S> x, simd_t<T,S> y)      { return x.bitwise_or(y); }
 template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_xor(simd_t<T,S> x, simd_t<T,S> y)     { return x.bitwise_xor(y); }
 template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_andnot(simd_t<T,S> x, simd_t<T,S> y)  { return x.bitwise_andnot(y); }
+template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_not(simd_t<T,S> x)                    { return x.bitwise_not(); }
 
 
 // Runs unit tests which are defined for every pair (T,S)
@@ -296,6 +336,8 @@ inline void test_floating_point_TS(std::mt19937 &rng)
     test_binary_operator("min", rng, simd_min<T,S>, std_min<T>);
     test_binary_operator("max", rng, simd_max<T,S>, std_max<T>);
 
+    test_unary_operation("sqrt", rng, simd_sqrt<T,S>, std_sqrt<T>, T(10.0), T(1000.0), T(50.0));
+
     test_abs<T,S>(rng);
 }
 
@@ -308,7 +350,8 @@ inline void test_integer_TS(std::mt19937 &rng)
     test_binary_operator("bitwise_and", rng, simd_bitwise_and<T,S>, bitwise_and<T>);
     test_binary_operator("bitwise_or", rng, simd_bitwise_or<T,S>, bitwise_or<T>);
     test_binary_operator("bitwise_xor", rng, simd_bitwise_xor<T,S>, bitwise_xor<T>);
-    test_binary_operator("bitwise_andnot", rng, simd_bitwise_andnot<T,S>, bitwise_andnot<T>);    
+    test_binary_operator("bitwise_andnot", rng, simd_bitwise_andnot<T,S>, bitwise_andnot<T>);
+    test_unary_operation("bitwise_not", rng, simd_bitwise_not<T,S>, bitwise_not<T>, T(-10000), T(10000), T(0));
 }
 
 // Unit tests which are defined for T=int32
