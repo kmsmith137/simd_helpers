@@ -162,9 +162,9 @@ template<> struct simd_t<int64_t,4>
 	return _mm256_xor_si256(_mm256_add_epi64(x,t), t);
 #else
 	__m128i t = _mm_set1_epi16(-1);
-	simd_t<int,4> ret0 = _mm_xor_si128(_mm_add_epi64(_mm256_extractf128_si256(x,0),t), t);
-	simd_t<int,4> ret1 = _mm_xor_si128(_mm_add_epi64(_mm256_extractf128_si256(x,1),t), t);
-	return simd_t<int,8> (ret0, ret1);
+	simd_t<int64_t,2> ret0 = _mm_xor_si128(_mm_add_epi64(_mm256_extractf128_si256(x,0),t), t);
+	simd_t<int64_t,2> ret1 = _mm_xor_si128(_mm_add_epi64(_mm256_extractf128_si256(x,1),t), t);
+	return simd_t<int64_t,4> (ret0, ret1);
 #endif
     }
 
@@ -366,8 +366,24 @@ template<> struct simd_t<int64_t,4>
 
 
 // blendv(mask,a,b) is morally equivalent to (mask ? a : b)
-inline simd_t<int64_t,2> blendv(simd_t<int64_t,2> mask, simd_t<int64_t,2> a, simd_t<int64_t,2> b)  { return _mm_blendv_epi8(b.x, a.x, mask.x); }
-inline simd_t<int64_t,4> blendv(simd_t<int64_t,4> mask, simd_t<int64_t,4> a, simd_t<int64_t,4> b)  { return _mm256_blendv_epi8(b.x, a.x, mask.x); }
+
+inline simd_t<int64_t,2> blendv(simd_t<int64_t,2> mask, simd_t<int64_t,2> a, simd_t<int64_t,2> b)
+{ 
+    __m128d dmask = _mm_castsi128_pd(mask.x);
+    __m128d da = _mm_castsi128_pd(a.x);
+    __m128d db = _mm_castsi128_pd(b.x);
+    __m128d ret = _mm_blendv_pd(db, da, dmask);
+    return _mm_castpd_si128(ret);
+}
+
+inline simd_t<int64_t,4> blendv(simd_t<int64_t,4> mask, simd_t<int64_t,4> a, simd_t<int64_t,4> b)
+{ 
+    __m256d dmask = _mm256_castsi256_pd(mask.x);
+    __m256d da = _mm256_castsi256_pd(a.x);
+    __m256d db = _mm256_castsi256_pd(b.x);
+    __m256d ret = _mm256_blendv_pd(db, da, dmask);
+    return _mm256_castpd_si256(ret);
+}
 
 
 }  // namespace simd_helpers
