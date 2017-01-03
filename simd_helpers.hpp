@@ -15,6 +15,7 @@
 #include "simd_helpers/simd_float64.hpp"     // simd_t<double,S>
 #include "simd_helpers/simd_ntuple.hpp"      // simd_ntuple<T,S,N>
 #include "simd_helpers/simd_trimatrix.hpp"   // simd_trimatrix<T,S,N>
+#include "simd_helpers/convert.hpp"          // convert()
 #include "simd_helpers/udsample.hpp"         // upsample(), downsample()
 
 // #include "simd_helpers/simd_debug.hpp"    // debug stuff not included by default

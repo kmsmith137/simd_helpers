@@ -27,6 +27,7 @@ INCFILES_SUB=simd_helpers/core.hpp \
 	simd_helpers/simd_ntuple.hpp \
 	simd_helpers/simd_trimatrix.hpp \
 	simd_helpers/simd_debug.hpp \
+	simd_helpers/convert.hpp \
 	simd_helpers/udsample.hpp
 
 TESTFILES=test-basics \
