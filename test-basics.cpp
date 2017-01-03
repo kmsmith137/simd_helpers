@@ -21,7 +21,10 @@ template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N=
 inline bool _check_extract(simd_t<T,S> x, const T *v) { return true; }
 
 template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N>0),int>::type = 0>
-inline bool _check_extract(simd_t<T,S> x, const T *v) { return _check_extract<T,S,N-1>(x,v) && (x.template extract<N-1>() == v[N-1]); }
+inline bool _check_extract(simd_t<T,S> x, const T *v) 
+{ 
+    return _check_extract<T,S,N-1>(x,v) && (x.template extract<N-1>() == v[N-1]) && (extract_slow(x,N-1) == v[N-1]);
+}
 
 
 template<typename T, unsigned int S>

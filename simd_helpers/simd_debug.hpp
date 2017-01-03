@@ -44,6 +44,32 @@ inline std::string type_name(const simd_ntuple<T,S,N> &x) { std::stringstream ss
 
 // -------------------------------------------------------------------------------------------------
 //
+// T extract_slow(simd_t<T,S> x, int i): extracts the i-th element of a simd_t.
+//
+// As the name suggests, this is very slow and not intended for production use!
+
+
+template<typename T, unsigned int S, unsigned int Imax, typename std::enable_if<(Imax>0),int>::type = 0>
+inline T _extract_slow(simd_t<T,S> x, int i)
+{
+    return (i == Imax-1) ? x.template extract<(Imax-1)>() : _extract_slow<T,S,(Imax-1)> (x,i);
+}
+
+template<typename T, unsigned int S, unsigned int Imax, typename std::enable_if<(Imax==0),int>::type = 0>
+inline T _extract_slow(simd_t<T,S> x, int i)
+{
+    throw std::runtime_error("simd_debug internal error: index to extract_slow() is out-of-range");
+}
+
+template<typename T, unsigned int S> 
+inline T extract_slow(simd_t<T,S> x, int i)
+{
+    return _extract_slow<T,S,S> (x, i);
+}
+
+
+// -------------------------------------------------------------------------------------------------
+//
 // vectorize(): unpacks a simd type to a std::vector
 // pack_simd_xx(): converts a std::vector back to a simd type
 
