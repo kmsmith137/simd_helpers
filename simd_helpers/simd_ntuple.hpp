@@ -48,12 +48,6 @@ struct simd_ntuple
 	x.storeu(p+(N-1)*S);
     }
 
-    inline void set1_slow(const T *p)
-    {
-	v.set1_slow(p);
-	x = p[N-1];
-    }
-
     template<unsigned int M, typename std::enable_if<(M == N-1),int>::type = 0>
     inline simd_t<T,S> extract() const { return x; }
 
@@ -120,7 +114,6 @@ struct simd_ntuple<T,S,0>
     inline void setzero() { }
     inline void loadu(const T *p) { }
     inline void storeu(T *p) const { }
-    inline void set1_slow(const T *p) { }
 
     inline simd_ntuple<T,S,0> &operator+=(const simd_ntuple<T,S,0> &t) { return *this; }
     inline simd_ntuple<T,S,0> &operator-=(const simd_ntuple<T,S,0> &t) { return *this; }
