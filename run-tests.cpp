@@ -45,7 +45,14 @@ inline void test_basics(std::mt19937 &rng)
 	set_slow(x, s, v[s]);
 
     w = vectorize(x);
-    assert(strictly_equal(v,w));
+
+    if (!strictly_equal(v,w)) {
+	cerr << "test_basics(" << type_name<T>() << "," << S << "): set_slow() didn't work as expected\n"
+	     << "   input: " << vecstr(v) << "\n"
+	     << "   output: " << vecstr(w) << "\n";
+
+	exit(1);
+    }
 }
 
 
