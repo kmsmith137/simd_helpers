@@ -42,18 +42,18 @@ template<> struct simd_t<double,2>
     // Defined below
     template<unsigned int M> inline double extract() const;
 
-    inline simd_t<double,2> operator+(simd_t<double,2> t) const { return _mm_add_pd(x,t.x); }
-    inline simd_t<double,2> operator-(simd_t<double,2> t) const { return _mm_sub_pd(x,t.x); }
-    inline simd_t<double,2> operator*(simd_t<double,2> t) const { return _mm_mul_pd(x,t.x); }
-    inline simd_t<double,2> operator/(simd_t<double,2> t) const { return _mm_div_pd(x,t.x); }
+    inline simd_t<double,2> operator+(simd_t<double,2> t) const { return x + t.x; }
+    inline simd_t<double,2> operator-(simd_t<double,2> t) const { return x - t.x; }
+    inline simd_t<double,2> operator*(simd_t<double,2> t) const { return x * t.x; }
+    inline simd_t<double,2> operator/(simd_t<double,2> t) const { return x / t.x; }
 
     // Unary minus is implemented by flipping the sign bit    
     inline simd_t<double,2> operator-() const  { return _mm_xor_pd(_mm_set1_pd(-0.0), x); }
 
-    inline simd_t<double,2> &operator+=(simd_t<double,2> t) { x = _mm_add_pd(x,t.x); return *this; }
-    inline simd_t<double,2> &operator-=(simd_t<double,2> t) { x = _mm_sub_pd(x,t.x); return *this; }
-    inline simd_t<double,2> &operator*=(simd_t<double,2> t) { x = _mm_mul_pd(x,t.x); return *this; }
-    inline simd_t<double,2> &operator/=(simd_t<double,2> t) { x = _mm_div_pd(x,t.x); return *this; }
+    inline simd_t<double,2> &operator+=(simd_t<double,2> t) { x += t.x; return *this; }
+    inline simd_t<double,2> &operator-=(simd_t<double,2> t) { x -= t.x; return *this; }
+    inline simd_t<double,2> &operator*=(simd_t<double,2> t) { x *= t.x; return *this; }
+    inline simd_t<double,2> &operator/=(simd_t<double,2> t) { x /= t.x; return *this; }
 
     // abs() is implemented by clearing the sign bit
     inline simd_t<double,2> abs() const   { return _mm_andnot_pd(_mm_set1_pd(-0.0), x); }
@@ -116,18 +116,18 @@ template<> struct simd_t<double,4>
 	return _mm256_extractf128_pd(x, M);
     }
 
-    inline simd_t<double,4> operator+(simd_t<double,4> t) const { return _mm256_add_pd(x,t.x); }
-    inline simd_t<double,4> operator-(simd_t<double,4> t) const { return _mm256_sub_pd(x,t.x); }
-    inline simd_t<double,4> operator*(simd_t<double,4> t) const { return _mm256_mul_pd(x,t.x); }
-    inline simd_t<double,4> operator/(simd_t<double,4> t) const { return _mm256_div_pd(x,t.x); }
+    inline simd_t<double,4> operator+(simd_t<double,4> t) const { return x + t.x; }
+    inline simd_t<double,4> operator-(simd_t<double,4> t) const { return x - t.x; }
+    inline simd_t<double,4> operator*(simd_t<double,4> t) const { return x * t.x; }
+    inline simd_t<double,4> operator/(simd_t<double,4> t) const { return x / t.x; }
 
     // Unary minus is implemented by flipping the sign bit    
     inline simd_t<double,4> operator-() const  { return _mm256_xor_pd(_mm256_set1_pd(-0.0), x); }
 
-    inline simd_t<double,4> &operator+=(simd_t<double,4> t) { x = _mm256_add_pd(x,t.x); return *this; }
-    inline simd_t<double,4> &operator-=(simd_t<double,4> t) { x = _mm256_sub_pd(x,t.x); return *this; }
-    inline simd_t<double,4> &operator*=(simd_t<double,4> t) { x = _mm256_mul_pd(x,t.x); return *this; }
-    inline simd_t<double,4> &operator/=(simd_t<double,4> t) { x = _mm256_div_pd(x,t.x); return *this; }
+    inline simd_t<double,4> &operator+=(simd_t<double,4> t) { x += t.x; return *this; }
+    inline simd_t<double,4> &operator-=(simd_t<double,4> t) { x -= t.x; return *this; }
+    inline simd_t<double,4> &operator*=(simd_t<double,4> t) { x *= t.x; return *this; }
+    inline simd_t<double,4> &operator/=(simd_t<double,4> t) { x /= t.x; return *this; }
 
     inline simd_t<double,4> abs() const   { return _mm256_andnot_pd(_mm256_set1_pd(-0.0), x); }
     inline simd_t<double,4> sqrt() const  { return _mm256_sqrt_pd(x); }
