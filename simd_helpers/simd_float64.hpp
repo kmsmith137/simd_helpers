@@ -70,13 +70,13 @@ template<> struct simd_t<double,2>
 
     template<unsigned int M> inline double extract() const;
 
-    inline simd_t<double,2> horizontal_sum() const  { return x + _mm_shuffle_pd(x,x,0x01); }
-    inline double sum() const                       { return _mm_cvtsd_f64(x + _mm_shuffle_pd(x,x,0x01)); }
+    inline simd_t<double,2> horizontal_sum() const  { return x + _mm_permute_pd(x,0x01); }
+    inline double sum() const                       { return _mm_cvtsd_f64(x + _mm_permute_pd(x,0x01)); }
 	
 };
 
 template<> inline double simd_t<double,2>::extract<0>() const { return _mm_cvtsd_f64(x); }
-template<> inline double simd_t<double,2>::extract<1>() const { return _mm_cvtsd_f64(_mm_shuffle_pd(x,x,0x01)); }
+template<> inline double simd_t<double,2>::extract<1>() const { return _mm_cvtsd_f64(_mm_permute_pd(x,0x01)); }
 
 
 // -------------------------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ template<> struct simd_t<double,4>
 
     inline simd_t<double,4> horizontal_sum() const
     { 
-	__m256d y = x + _mm256_shuffle_pd(x, x, 0x05);
+	__m256d y = x + _mm256_permute_pd(x, 0x05);
         return y + _mm256_permute2f128_pd(y, y, 0x01);
     }
 
