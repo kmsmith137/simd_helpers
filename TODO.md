@@ -42,3 +42,6 @@
 - Lots more integer types are possible (int8, uint8, int16, uint16, uint32, uint64)
 
 - In spite of the number of lines of boilerplate here, there is a lot missing when compared to the intel manuals!
+
+- I currently assume the AVX instruction set.  This restriction could be removed, but not sure if it's worth the effort!
+
