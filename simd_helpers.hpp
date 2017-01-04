@@ -5,8 +5,7 @@
 #error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
 #endif
 
-// Note: for a "declaration" of the key class simd_t<T,S>, 
-// see the extended comment in simd_helpers/core.hpp
+// Note: for API reference, the place to start is simd_helpers/core.hpp !
 
 #include "simd_helpers/core.hpp"
 #include "simd_helpers/simd_int32.hpp"       // simd_t<int,S>
@@ -18,6 +17,7 @@
 #include "simd_helpers/convert.hpp"          // convert()
 #include "simd_helpers/udsample.hpp"         // upsample(), downsample()
 
-// #include "simd_helpers/simd_debug.hpp"    // debug stuff not included by default
+// Not included by default, but contains useful debug stuff (e.g. print-routines)
+// #include "simd_helpers/simd_debug.hpp"
 
 #endif

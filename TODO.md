@@ -10,12 +10,16 @@
 
 - Align operations.  (Needed soon for bonsai)
 
+- Horizontal reducing min/max.  (Needed soon for bonsai)
+
 - Random loose end: scalar-vector ops, e.g. (T * simd_t<T,S>), are not currently unit tested.
 
 - I think more syntactic sugar would be nice.
   Random example: min(x,y) can be a synonym for x.min(y)
 
-- Upsampling/downsampling kernels for int64_t and double.
+- Not all upsampling/downsampling kernels have been implemented.  So far we only have
+     - upsampling: float32, int32
+     - downsampling: float32
 
 - For an integer type T, simd_t<T,S>::operator*() wraps the simplest possible multiplication
   intrinsic, but there are other possibilities.  (E.g. _mm_mul_epi32() or _mm_mul_epu32()
@@ -26,6 +30,8 @@
   There are no "real" simd instructions for integer division (at least in AVX2).  Maybe the 
   best option is to extract every element of the simd_t, and do a scalar integer division?
   (There is an assembly instruction for scalar integer division, right?)
+
+- Comparison operators could have boolean template arguments to override the "quiet ordered" default.
 
 - Could write a 'make testx' target which runs the unit tests with multiple combinations of cpu flags
   (downgraded from -march=native), e.g. to test non-AVX2 kernels on an AVX2 machine.

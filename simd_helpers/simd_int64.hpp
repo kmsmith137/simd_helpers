@@ -43,6 +43,7 @@ template<> struct simd_t<int64_t,2>
     inline simd_t<int64_t,2> operator+(simd_t<int64_t,2> t) const { return _mm_add_epi64(x,t.x); }
     inline simd_t<int64_t,2> operator-(simd_t<int64_t,2> t) const { return _mm_sub_epi64(x,t.x); }
 
+    // There's no simd intrinsic for 64-bit integer multiplication, so we emulate it using 32-bit multiplies.
     inline simd_t<int64_t,2> operator*(simd_t<int64_t,2> t) const
     {
 	__m128i y = _mm_mul_epu32(x, t.x);
@@ -151,6 +152,7 @@ template<> struct simd_t<int64_t,4>
 #endif
     }
 
+    // There's no simd intrinsic for 64-bit integer multiplication, so we emulate it using 32-bit multiplies.
     inline simd_t<int64_t,4> operator*(simd_t<int64_t,4> t) const
     {
 #ifdef __AVX2__

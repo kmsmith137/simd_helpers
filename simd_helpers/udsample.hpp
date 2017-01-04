@@ -15,6 +15,10 @@ namespace simd_helpers {
 }  // pacify emacs c-mode
 #endif
 
+// Note: not all upsampling/downsampling kernels have been implemented!  So far we only have
+//   upsampling    float32, int32
+//   downsampling  float32
+
 
 // -------------------------------------------------------------------------------------------------
 //
