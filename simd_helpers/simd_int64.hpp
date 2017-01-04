@@ -364,7 +364,7 @@ template<> struct simd_t<int64_t,4>
 
     inline int64_t sum() const
     {
-	simd_t<int64_t,2> y = _mm_add_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(x,1));
+	simd_t<int64_t,2> y = extract_half<0> () + extract_half<1> ();
 	return y.sum();
     }
 };
