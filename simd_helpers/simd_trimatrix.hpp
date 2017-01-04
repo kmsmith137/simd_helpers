@@ -20,6 +20,7 @@ struct simd_trimatrix {
     simd_ntuple<T,S,N> v;
 
     simd_trimatrix() { }
+    simd_trimatrix(const simd_trimatrix<T,S,N-1> &m_, const simd_ntuple<T,S,N> &v_) : m(m_), v(v_) { }
         
     inline void setzero()
     {

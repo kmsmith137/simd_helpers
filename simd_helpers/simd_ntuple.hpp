@@ -29,6 +29,7 @@ struct simd_ntuple
     simd_t<T,S> x;
 
     simd_ntuple() { }
+    simd_ntuple(const simd_ntuple<T,S,N-1> &v_, simd_t<T,S> x_) : v(v_), x(x_) { }
 
     inline void setzero()
     {
