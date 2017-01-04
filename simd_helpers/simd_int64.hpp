@@ -17,7 +17,7 @@ namespace simd_helpers {
 //
 // simd_t<int64_t,2>
 //
-// Note: for a "declaration" of the key class simd_t<T,S>,
+// The member functions of simd_t<T,S> are mostly pretty intuitive, but for a few comments
 // see the extended comment in simd_helpers/core.hpp
 
 
@@ -73,6 +73,14 @@ template<> struct simd_t<int64_t,2>
     inline simd_t<int64_t,2> min(simd_t<int64_t,2> t) const  { return _mm_blendv_epi8(x, t.x, _mm_cmpgt_epi64(x,t.x)); }
     inline simd_t<int64_t,2> max(simd_t<int64_t,2> t) const  { return _mm_blendv_epi8(t.x, x, _mm_cmpgt_epi64(x,t.x)); }
 
+    inline simd_t<int64_t,2> horizontal_sum() const  { return _mm_add_epi64(x, _mm_shuffle_epi32(x, 0x4e)); }
+    inline int64_t sum() const                       { return _mm_extract_epi64(horizontal_sum().x, 0); }
+
+    inline int is_all_ones() const                                        { return _mm_test_all_ones(x); }
+    inline int is_all_zeros() const                                       { return _mm_testz_si128(x, x); }
+    inline int is_all_zeros_masked(simd_t<int64_t,2> mask) const          { return _mm_testz_si128(x, mask.x); }
+    inline int is_all_zeros_inverse_masked(simd_t<int64_t,2> mask) const  { return _mm_testc_si128(mask.x, x); }
+
     inline simd_t<int64_t,2> compare_eq(simd_t<int64_t,2> t) const  { return _mm_cmpeq_epi64(x, t.x); }
     inline simd_t<int64_t,2> compare_gt(simd_t<int64_t,2> t) const  { return _mm_cmpgt_epi64(x, t.x); }
     inline simd_t<int64_t,2> compare_lt(simd_t<int64_t,2> t) const  { return _mm_cmpgt_epi64(t.x, x); }
@@ -88,14 +96,6 @@ template<> struct simd_t<int64_t,2>
     inline simd_t<int64_t,2> bitwise_xor(simd_t<int64_t,2> t) const     { return _mm_xor_si128(x, t.x); }
     inline simd_t<int64_t,2> bitwise_andnot(simd_t<int64_t,2> t) const  { return _mm_andnot_si128(t.x, x); }
     inline simd_t<int64_t,2> bitwise_not() const                        { return _mm_xor_si128(x, _mm_set1_epi16(-1)); }
-
-    inline int is_all_ones() const                                        { return _mm_test_all_ones(x); }
-    inline int is_all_zeros() const                                       { return _mm_testz_si128(x, x); }
-    inline int is_all_zeros_masked(simd_t<int64_t,2> mask) const          { return _mm_testz_si128(x, mask.x); }
-    inline int is_all_zeros_inverse_masked(simd_t<int64_t,2> mask) const  { return _mm_testc_si128(mask.x, x); }
-
-    inline simd_t<int64_t,2> horizontal_sum() const  { return _mm_add_epi64(x, _mm_shuffle_epi32(x, 0x4e)); }
-    inline int64_t sum() const                       { return _mm_extract_epi64(horizontal_sum().x, 0); }
 };
 
 
@@ -183,7 +183,6 @@ template<> struct simd_t<int64_t,4>
     inline simd_t<int64_t,4> &operator-=(simd_t<int64_t,4> t)  { *this = (*this) - t; return *this; }
     inline simd_t<int64_t,4> &operator*=(simd_t<int64_t,4> t)  { *this = (*this) * t; return *this; }
 
-
     inline simd_t<int64_t,4> abs() const
     {
 #ifdef __AVX2__
@@ -223,6 +222,29 @@ template<> struct simd_t<int64_t,4>
 	return simd_t<int64_t,4> (x0.max(t0), x1.max(t1));
 #endif
     }
+
+    inline simd_t<int64_t,4> horizontal_sum() const
+    { 
+#ifdef __AVX2__
+	__m256i y = _mm256_add_epi64(x, _mm256_permute2f128_si256(x, x, 0x01));
+	return _mm256_add_epi64(y, _mm256_shuffle_epi32(y, 0x4e));
+#else
+	simd_t<int64_t,2> y = extract_half<0> () + extract_half<1> ();
+	y = y.horizontal_sum();
+	return simd_t<int64_t,4> (y, y);
+#endif
+    }
+
+    inline int64_t sum() const
+    {
+	simd_t<int64_t,2> y = extract_half<0> () + extract_half<1> ();
+	return y.sum();
+    }
+
+    inline int is_all_ones() const                                        { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
+    inline int is_all_zeros() const                                       { return _mm256_testz_si256(x, x); }
+    inline int is_all_zeros_masked(simd_t<int64_t,4> mask) const          { return _mm256_testz_si256(x, mask.x); }
+    inline int is_all_zeros_inverse_masked(simd_t<int64_t,4> mask) const  { return _mm256_testc_si256(mask.x, x); }
 
     inline simd_t<int64_t,4> compare_eq(simd_t<int64_t,4> t) const 
     { 
@@ -343,29 +365,6 @@ template<> struct simd_t<int64_t,4>
 	simd_t<int64_t,2> x1 = extract_half<1> ();
 	return simd_t<int64_t,4> (x0.bitwise_not(), x1.bitwise_not());
 #endif
-    }
-
-    inline int is_all_ones() const                                        { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
-    inline int is_all_zeros() const                                       { return _mm256_testz_si256(x, x); }
-    inline int is_all_zeros_masked(simd_t<int64_t,4> mask) const          { return _mm256_testz_si256(x, mask.x); }
-    inline int is_all_zeros_inverse_masked(simd_t<int64_t,4> mask) const  { return _mm256_testc_si256(mask.x, x); }
-
-    inline simd_t<int64_t,4> horizontal_sum() const
-    { 
-#ifdef __AVX2__
-	__m256i y = _mm256_add_epi64(x, _mm256_permute2f128_si256(x, x, 0x01));
-	return _mm256_add_epi64(y, _mm256_shuffle_epi32(y, 0x4e));
-#else
-	simd_t<int64_t,2> y = extract_half<0> () + extract_half<1> ();
-	y = y.horizontal_sum();
-	return simd_t<int64_t,4> (y, y);
-#endif
-    }
-
-    inline int64_t sum() const
-    {
-	simd_t<int64_t,2> y = extract_half<0> () + extract_half<1> ();
-	return y.sum();
     }
 };
 

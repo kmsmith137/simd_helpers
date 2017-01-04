@@ -17,7 +17,7 @@ namespace simd_helpers {
 //
 // simd_t<int,4>
 //
-// Note: for a "declaration" of the key class simd_t<T,S>,
+// The member functions of simd_t<T,S> are mostly pretty intuitive, but for a few comments
 // see the extended comment in simd_helpers/core.hpp
 
 
@@ -38,9 +38,7 @@ template<> struct simd_t<int,4>
     inline void store(int *p) const  { _mm_store_si128((__m128i *)p, x); }
     inline void storeu(int *p) const { _mm_storeu_si128((__m128i *)p, x); }
 
-    inline simd_t<int,4> &operator+=(simd_t<int,4> t) { x = _mm_add_epi32(x,t.x); return *this; }
-    inline simd_t<int,4> &operator-=(simd_t<int,4> t) { x = _mm_sub_epi32(x,t.x); return *this; }
-    inline simd_t<int,4> &operator*=(simd_t<int,4> t) { x = _mm_mullo_epi32(x,t.x); return *this; }
+    template<unsigned int M> inline int extract() const  { return _mm_extract_epi32(x, M); }
 
     inline simd_t<int,4> operator+(simd_t<int,4> t) const { return _mm_add_epi32(x,t.x); }
     inline simd_t<int,4> operator-(simd_t<int,4> t) const { return _mm_sub_epi32(x,t.x); }
@@ -52,9 +50,27 @@ template<> struct simd_t<int,4>
 	return _mm_xor_si128(_mm_add_epi32(x,t), t);
     }
 
-    inline simd_t<int,4> abs() const { return _mm_abs_epi32(x); }
+    inline simd_t<int,4> &operator+=(simd_t<int,4> t) { x = _mm_add_epi32(x,t.x); return *this; }
+    inline simd_t<int,4> &operator-=(simd_t<int,4> t) { x = _mm_sub_epi32(x,t.x); return *this; }
+    inline simd_t<int,4> &operator*=(simd_t<int,4> t) { x = _mm_mullo_epi32(x,t.x); return *this; }
 
-    // The comparison operators return all ones (0xff..) if "true".
+    inline simd_t<int,4> abs() const { return _mm_abs_epi32(x); }
+    inline simd_t<int,4> min(simd_t<int,4> t) const { return _mm_min_epi32(x, t.x); }
+    inline simd_t<int,4> max(simd_t<int,4> t) const { return _mm_max_epi32(x, t.x); }
+
+    inline simd_t<int,4> horizontal_sum() const
+    {
+	__m128i y = _mm_add_epi32(x, _mm_shuffle_epi32(x, 0xb1));  // (2301)_4 = 0xb1
+	return _mm_add_epi32(y, _mm_shuffle_epi32(y, 0x4e));       // (1032)_4 = 0x4e
+    }
+
+    inline int sum() const { return _mm_extract_epi32(horizontal_sum().x, 0); }
+
+    inline int is_all_ones() const                                    { return _mm_test_all_ones(x); }
+    inline int is_all_zeros() const                                   { return _mm_testz_si128(x, x); }
+    inline int is_all_zeros_masked(simd_t<int,4> mask) const          { return _mm_testz_si128(x, mask.x); }
+    inline int is_all_zeros_inverse_masked(simd_t<int,4> mask) const  { return _mm_testc_si128(mask.x, x); }
+
     inline simd_t<int,4> compare_eq(simd_t<int,4> t) const  { return _mm_cmpeq_epi32(x, t.x); }
     inline simd_t<int,4> compare_gt(simd_t<int,4> t) const  { return _mm_cmpgt_epi32(x, t.x); }
     inline simd_t<int,4> compare_lt(simd_t<int,4> t) const  { return _mm_cmplt_epi32(x, t.x); }
@@ -65,31 +81,11 @@ template<> struct simd_t<int,4>
     inline simd_t<int,4> apply_mask(simd_t<int,4> t) const          { return bitwise_and(t); }
     inline simd_t<int,4> apply_inverse_mask(simd_t<int,4> t) const  { return bitwise_andnot(t); }
 
-    inline simd_t<int,4> min(simd_t<int,4> t) const { return _mm_min_epi32(x, t.x); }
-    inline simd_t<int,4> max(simd_t<int,4> t) const { return _mm_max_epi32(x, t.x); }
-
     inline simd_t<int,4> bitwise_and(simd_t<int,4> t) const     { return _mm_and_si128(x, t.x); }
     inline simd_t<int,4> bitwise_or(simd_t<int,4> t) const      { return _mm_or_si128(x, t.x); }
     inline simd_t<int,4> bitwise_xor(simd_t<int,4> t) const     { return _mm_xor_si128(x, t.x); }
     inline simd_t<int,4> bitwise_andnot(simd_t<int,4> t) const  { return _mm_andnot_si128(t.x, x); }
     inline simd_t<int,4> bitwise_not() const                    { return _mm_xor_si128(x, _mm_set1_epi16(-1)); }
-
-    inline int is_all_ones() const                                    { return _mm_test_all_ones(x); }
-    inline int is_all_zeros() const                                   { return _mm_testz_si128(x, x); }
-    inline int is_all_zeros_masked(simd_t<int,4> mask) const          { return _mm_testz_si128(x, mask.x); }
-    inline int is_all_zeros_inverse_masked(simd_t<int,4> mask) const  { return _mm_testc_si128(mask.x, x); }
-
-    inline simd_t<int,4> horizontal_sum() const
-    {
-	__m128i y = _mm_add_epi32(x, _mm_shuffle_epi32(x, 0xb1));  // (2301)_4 = 0xb1
-	return _mm_add_epi32(y, _mm_shuffle_epi32(y, 0x4e));       // (1032)_4 = 0x4e
-    }
-
-    inline int sum() const { return _mm_extract_epi32(horizontal_sum().x, 0); }
-
-    // Note: you might need to call this with the weird-looking syntax
-    //    x.template extract<M> ();
-    template<unsigned int M> inline int extract() const  { return _mm_extract_epi32(x, M); }
 };
 
 
@@ -178,7 +174,56 @@ template<> struct simd_t<int,8>
 #endif
     }
 
-    // The comparison operators return all ones (0xff..) if "true".
+    inline simd_t<int,8> min(simd_t<int,8> t) const
+    {
+#ifdef __AVX2__
+	return _mm256_min_epi32(x, t.x); 
+#else
+	simd_t<int,4> x0 = extract_half<0> ();
+	simd_t<int,4> x1 = extract_half<1> ();
+	simd_t<int,4> t0 = t.extract_half<0> ();
+	simd_t<int,4> t1 = t.extract_half<1> ();
+	return simd_t<int,8> (x0.min(t0), x1.min(t1));
+#endif
+    }
+
+    inline simd_t<int,8> max(simd_t<int,8> t) const
+    {
+#ifdef __AVX2__
+	return _mm256_max_epi32(x, t.x); 
+#else
+	simd_t<int,4> x0 = extract_half<0> ();
+	simd_t<int,4> x1 = extract_half<1> ();
+	simd_t<int,4> t0 = t.extract_half<0> ();
+	simd_t<int,4> t1 = t.extract_half<1> ();
+	return simd_t<int,8> (x0.max(t0), x1.max(t1));
+#endif
+    }
+
+    inline simd_t<int,8> horizontal_sum() const
+    {
+#ifdef __AVX2__
+	__m256i y = _mm256_add_epi32(x, _mm256_shuffle_epi32(x, 0xb1));  // (2301)_4 = 0xb1
+	y = _mm256_add_epi32(y, _mm256_shuffle_epi32(y, 0x4e));          // (1032)_4 = 0x4e
+	return _mm256_add_epi32(y, _mm256_permute2f128_si256(y, y, 0x01));
+#else
+	simd_t<int,4> y = extract_half<0>() + extract_half<1>();
+	y = y.horizontal_sum();
+	return simd_t<int,8> (y, y);
+#endif
+    }
+
+    inline int sum() const 
+    { 
+	simd_t<int,4> y = extract_half<0>() + extract_half<1>();
+	return y.sum();
+    }
+
+    inline int is_all_ones() const                                    { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
+    inline int is_all_zeros() const                                   { return _mm256_testz_si256(x, x); }
+    inline int is_all_zeros_masked(simd_t<int,8> mask) const          { return _mm256_testz_si256(x, mask.x); }
+    inline int is_all_zeros_inverse_masked(simd_t<int,8> mask) const  { return _mm256_testc_si256(mask.x, x); }
+
     inline simd_t<int,8> compare_eq(simd_t<int,8> t) const
     {
 #ifdef __AVX2__
@@ -234,32 +279,8 @@ template<> struct simd_t<int,8>
     inline simd_t<int,8> compare_lt(simd_t<int,8> t) const  { return t.compare_gt(x); }
     inline simd_t<int,8> compare_le(simd_t<int,8> t) const  { return t.compare_ge(x); }
 
-
-    inline simd_t<int,8> min(simd_t<int,8> t) const
-    {
-#ifdef __AVX2__
-	return _mm256_min_epi32(x, t.x); 
-#else
-	simd_t<int,4> x0 = extract_half<0> ();
-	simd_t<int,4> x1 = extract_half<1> ();
-	simd_t<int,4> t0 = t.extract_half<0> ();
-	simd_t<int,4> t1 = t.extract_half<1> ();
-	return simd_t<int,8> (x0.min(t0), x1.min(t1));
-#endif
-    }
-
-    inline simd_t<int,8> max(simd_t<int,8> t) const
-    {
-#ifdef __AVX2__
-	return _mm256_max_epi32(x, t.x); 
-#else
-	simd_t<int,4> x0 = extract_half<0> ();
-	simd_t<int,4> x1 = extract_half<1> ();
-	simd_t<int,4> t0 = t.extract_half<0> ();
-	simd_t<int,4> t1 = t.extract_half<1> ();
-	return simd_t<int,8> (x0.max(t0), x1.max(t1));
-#endif
-    }
+    inline simd_t<int,8> apply_mask(simd_t<int,8> t) const          { return bitwise_and(t); }
+    inline simd_t<int,8> apply_inverse_mask(simd_t<int,8> t) const  { return bitwise_andnot(t); }
 
     inline simd_t<int,8> bitwise_and(simd_t<int,8> t) const
     {
@@ -322,33 +343,6 @@ template<> struct simd_t<int,8>
 	simd_t<int,4> x1 = extract_half<1> ();
 	return simd_t<int,8> (x0.bitwise_not(), x1.bitwise_not());
 #endif
-    }
-
-    inline simd_t<int,8> apply_mask(simd_t<int,8> t) const          { return bitwise_and(t); }
-    inline simd_t<int,8> apply_inverse_mask(simd_t<int,8> t) const  { return bitwise_andnot(t); }
-
-    inline int is_all_ones() const                                    { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }
-    inline int is_all_zeros() const                                   { return _mm256_testz_si256(x, x); }
-    inline int is_all_zeros_masked(simd_t<int,8> mask) const          { return _mm256_testz_si256(x, mask.x); }
-    inline int is_all_zeros_inverse_masked(simd_t<int,8> mask) const  { return _mm256_testc_si256(mask.x, x); }
-
-    inline simd_t<int,8> horizontal_sum() const
-    {
-#ifdef __AVX2__
-	__m256i y = _mm256_add_epi32(x, _mm256_shuffle_epi32(x, 0xb1));  // (2301)_4 = 0xb1
-	y = _mm256_add_epi32(y, _mm256_shuffle_epi32(y, 0x4e));          // (1032)_4 = 0x4e
-	return _mm256_add_epi32(y, _mm256_permute2f128_si256(y, y, 0x01));
-#else
-	simd_t<int,4> y = extract_half<0>() + extract_half<1>();
-	y = y.horizontal_sum();
-	return simd_t<int,8> (y, y);
-#endif
-    }
-
-    inline int sum() const 
-    { 
-	simd_t<int,4> y = extract_half<0>() + extract_half<1>();
-	return y.sum();
     }
 };
 

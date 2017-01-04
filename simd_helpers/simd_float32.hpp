@@ -18,7 +18,7 @@ namespace simd_helpers {
 //
 // simd_t<float,4>
 //
-// Note: for a "declaration" of the key class simd_t<T,S>,
+// The member functions of simd_t<T,S> are mostly pretty intuitive, but for a few comments
 // see the extended comment in simd_helpers/core.hpp
 
 
@@ -39,39 +39,6 @@ template<> struct simd_t<float,4>
     inline void store(float *p) const  { _mm_store_ps(p,x); }
     inline void storeu(float *p) const { _mm_storeu_ps(p,x); }
 
-    inline simd_t<float,4> &operator+=(simd_t<float,4> t) { x = _mm_add_ps(x,t.x); return *this; }
-    inline simd_t<float,4> &operator-=(simd_t<float,4> t) { x = _mm_sub_ps(x,t.x); return *this; }
-    inline simd_t<float,4> &operator*=(simd_t<float,4> t) { x = _mm_mul_ps(x,t.x); return *this; }
-    inline simd_t<float,4> &operator/=(simd_t<float,4> t) { x = _mm_div_ps(x,t.x); return *this; }
-
-    inline simd_t<float,4> operator+(simd_t<float,4> t) const { return _mm_add_ps(x,t.x); }
-    inline simd_t<float,4> operator-(simd_t<float,4> t) const { return _mm_sub_ps(x,t.x); }
-    inline simd_t<float,4> operator*(simd_t<float,4> t) const { return _mm_mul_ps(x,t.x); }
-    inline simd_t<float,4> operator/(simd_t<float,4> t) const { return _mm_div_ps(x,t.x); }
-
-    // Unary minus and abs() are implemented by flipping the sign bit
-    inline simd_t<float,4> operator-() const  { return _mm_xor_ps(_mm_set1_ps(-0.0), x); }    
-    inline simd_t<float,4> abs() const        { return _mm_andnot_ps(_mm_set1_ps(-0.0), x); }
-
-    inline simd_t<float,4> sqrt() const { return _mm_sqrt_ps(x); }
-
-    // Comparison operators.
-    // Note: the output of a comparison is -1 (0xff..) for "true" or 0 for "false".
-    // Note: these are quiet ordered comparisons (e.g. NaN==NaN evaluates to "false")
-
-    inline simd_t<int,4> compare_eq(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmpeq_ps(x, t.x)); }
-    inline simd_t<int,4> compare_ne(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmpneq_ps(x, t.x)); }
-    inline simd_t<int,4> compare_ge(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmpge_ps(x, t.x)); }
-    inline simd_t<int,4> compare_gt(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmpgt_ps(x, t.x)); }
-    inline simd_t<int,4> compare_le(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmple_ps(x, t.x)); }
-    inline simd_t<int,4> compare_lt(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmplt_ps(x, t.x)); }
-
-    inline simd_t<float,4> min(simd_t<float,4> t) const { return _mm_min_ps(x, t.x); }
-    inline simd_t<float,4> max(simd_t<float,4> t) const { return _mm_max_ps(x, t.x); }
-
-    inline simd_t<float,4> apply_mask(simd_t<int,4> t) const          { return _mm_and_ps(_mm_castsi128_ps(t.x), x); }
-    inline simd_t<float,4> apply_inverse_mask(simd_t<int,4> t) const  { return _mm_andnot_ps(_mm_castsi128_ps(t.x), x); }
-
     template<unsigned int M> 
     inline float extract() const
     {
@@ -79,6 +46,19 @@ template<> struct simd_t<float,4>
 	u.i = _mm_extract_ps(x, M);
 	return u.x;
     }
+
+    inline simd_t<float,4> operator+(simd_t<float,4> t) const { return _mm_add_ps(x,t.x); }
+    inline simd_t<float,4> operator-(simd_t<float,4> t) const { return _mm_sub_ps(x,t.x); }
+    inline simd_t<float,4> operator*(simd_t<float,4> t) const { return _mm_mul_ps(x,t.x); }
+    inline simd_t<float,4> operator/(simd_t<float,4> t) const { return _mm_div_ps(x,t.x); }
+    
+    // Unary minus is implemented by flipping the sign bit.
+    inline simd_t<float,4> operator-() const  { return _mm_xor_ps(_mm_set1_ps(-0.0), x); }    
+
+    inline simd_t<float,4> &operator+=(simd_t<float,4> t) { x = _mm_add_ps(x,t.x); return *this; }
+    inline simd_t<float,4> &operator-=(simd_t<float,4> t) { x = _mm_sub_ps(x,t.x); return *this; }
+    inline simd_t<float,4> &operator*=(simd_t<float,4> t) { x = _mm_mul_ps(x,t.x); return *this; }
+    inline simd_t<float,4> &operator/=(simd_t<float,4> t) { x = _mm_div_ps(x,t.x); return *this; }
     
     inline simd_t<float,4> horizontal_sum() const
     {
@@ -91,6 +71,23 @@ template<> struct simd_t<float,4>
 	simd_t<float,4> y = this->horizontal_sum();
 	return y.extract<0> ();
     }
+
+    // abs() is implemented by clearing the sign bit
+    inline simd_t<float,4> abs() const   { return _mm_andnot_ps(_mm_set1_ps(-0.0), x); }
+    inline simd_t<float,4> sqrt() const  { return _mm_sqrt_ps(x); }
+
+    inline simd_t<float,4> min(simd_t<float,4> t) const { return _mm_min_ps(x, t.x); }
+    inline simd_t<float,4> max(simd_t<float,4> t) const { return _mm_max_ps(x, t.x); }
+
+    inline simd_t<int,4> compare_eq(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmpeq_ps(x, t.x)); }
+    inline simd_t<int,4> compare_ne(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmpneq_ps(x, t.x)); }
+    inline simd_t<int,4> compare_ge(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmpge_ps(x, t.x)); }
+    inline simd_t<int,4> compare_gt(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmpgt_ps(x, t.x)); }
+    inline simd_t<int,4> compare_le(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmple_ps(x, t.x)); }
+    inline simd_t<int,4> compare_lt(simd_t<float,4> t) const  { return _mm_castps_si128(_mm_cmplt_ps(x, t.x)); }
+
+    inline simd_t<float,4> apply_mask(simd_t<int,4> t) const          { return _mm_and_ps(_mm_castsi128_ps(t.x), x); }
+    inline simd_t<float,4> apply_inverse_mask(simd_t<int,4> t) const  { return _mm_andnot_ps(_mm_castsi128_ps(t.x), x); }
 };
 
 
@@ -117,39 +114,6 @@ template<> struct simd_t<float,8>
     inline void store(float *p) const  { _mm256_store_ps(p,x); }
     inline void storeu(float *p) const { _mm256_storeu_ps(p,x); }
 
-    inline simd_t<float,8> &operator+=(simd_t<float,8> t) { x = _mm256_add_ps(x,t.x); return *this; }
-    inline simd_t<float,8> &operator-=(simd_t<float,8> t) { x = _mm256_sub_ps(x,t.x); return *this; }
-    inline simd_t<float,8> &operator*=(simd_t<float,8> t) { x = _mm256_mul_ps(x,t.x); return *this; }
-    inline simd_t<float,8> &operator/=(simd_t<float,8> t) { x = _mm256_div_ps(x,t.x); return *this; }
-
-    inline simd_t<float,8> operator+(simd_t<float,8> t) const { return _mm256_add_ps(x,t.x); }
-    inline simd_t<float,8> operator-(simd_t<float,8> t) const { return _mm256_sub_ps(x,t.x); }
-    inline simd_t<float,8> operator*(simd_t<float,8> t) const { return _mm256_mul_ps(x,t.x); }
-    inline simd_t<float,8> operator/(simd_t<float,8> t) const { return _mm256_div_ps(x,t.x); }
-
-    // Unary minus and abs() are implemented by flipping the sign bit
-    inline simd_t<float,8> operator-() const  { return _mm256_xor_ps(_mm256_set1_ps(-0.0), x); }
-    inline simd_t<float,8> abs() const        { return _mm256_andnot_ps(_mm256_set1_ps(-0.0), x); }
-
-    inline simd_t<float,8> sqrt() const { return _mm256_sqrt_ps(x); }
-
-    // Comparison operators.
-    // Note: the output of a comparison is -1 (0xff..) for "true" or 0 for "false".
-    // Note: these are quiet ordered comparisons (e.g. NaN==NaN evaluates to "false")
-
-    inline simd_t<int,8> compare_eq(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_EQ_OQ)); }
-    inline simd_t<int,8> compare_ne(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_NEQ_OQ)); }
-    inline simd_t<int,8> compare_ge(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_GE_OQ)); }
-    inline simd_t<int,8> compare_gt(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_GT_OQ)); }
-    inline simd_t<int,8> compare_le(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_LE_OQ)); }
-    inline simd_t<int,8> compare_lt(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_LT_OQ)); }
-
-    inline simd_t<float,8> min(simd_t<float,8> t) const { return _mm256_min_ps(x, t.x); }
-    inline simd_t<float,8> max(simd_t<float,8> t) const { return _mm256_max_ps(x, t.x); }
-
-    inline simd_t<float,8> apply_mask(simd_t<int,8> t) const          { return _mm256_and_ps(_mm256_castsi256_ps(t.x), x); }
-    inline simd_t<float,8> apply_inverse_mask(simd_t<int,8> t) const  { return _mm256_andnot_ps(_mm256_castsi256_ps(t.x), x); }
-
     template<unsigned int M> 
     inline float extract() const
     {
@@ -161,6 +125,25 @@ template<> struct simd_t<float,8>
     { 
 	return _mm256_extractf128_ps(x,M); 
     }
+
+    inline simd_t<float,8> operator+(simd_t<float,8> t) const { return _mm256_add_ps(x,t.x); }
+    inline simd_t<float,8> operator-(simd_t<float,8> t) const { return _mm256_sub_ps(x,t.x); }
+    inline simd_t<float,8> operator*(simd_t<float,8> t) const { return _mm256_mul_ps(x,t.x); }
+    inline simd_t<float,8> operator/(simd_t<float,8> t) const { return _mm256_div_ps(x,t.x); }
+
+    // Unary minus is implemented by flipping the sign bit
+    inline simd_t<float,8> operator-() const  { return _mm256_xor_ps(_mm256_set1_ps(-0.0), x); }
+
+    inline simd_t<float,8> &operator+=(simd_t<float,8> t) { x = _mm256_add_ps(x,t.x); return *this; }
+    inline simd_t<float,8> &operator-=(simd_t<float,8> t) { x = _mm256_sub_ps(x,t.x); return *this; }
+    inline simd_t<float,8> &operator*=(simd_t<float,8> t) { x = _mm256_mul_ps(x,t.x); return *this; }
+    inline simd_t<float,8> &operator/=(simd_t<float,8> t) { x = _mm256_div_ps(x,t.x); return *this; }
+
+    // abs() is implemented by clearing the sign bit
+    inline simd_t<float,8> abs() const   { return _mm256_andnot_ps(_mm256_set1_ps(-0.0), x); }
+    inline simd_t<float,8> sqrt() const  { return _mm256_sqrt_ps(x); }
+    inline simd_t<float,8> min(simd_t<float,8> t) const  { return _mm256_min_ps(x, t.x); }
+    inline simd_t<float,8> max(simd_t<float,8> t) const  { return _mm256_max_ps(x, t.x); }
 
     inline simd_t<float,8> horizontal_sum() const
     {
@@ -174,6 +157,16 @@ template<> struct simd_t<float,8>
 	simd_t<float,4> y = _mm256_extractf128_ps(x,0) + _mm256_extractf128_ps(x,1);
 	return y.sum();
     }
+
+    inline simd_t<int,8> compare_eq(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_EQ_OQ)); }
+    inline simd_t<int,8> compare_ne(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_NEQ_OQ)); }
+    inline simd_t<int,8> compare_ge(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_GE_OQ)); }
+    inline simd_t<int,8> compare_gt(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_GT_OQ)); }
+    inline simd_t<int,8> compare_le(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_LE_OQ)); }
+    inline simd_t<int,8> compare_lt(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_LT_OQ)); }
+
+    inline simd_t<float,8> apply_mask(simd_t<int,8> t) const          { return _mm256_and_ps(_mm256_castsi256_ps(t.x), x); }
+    inline simd_t<float,8> apply_inverse_mask(simd_t<int,8> t) const  { return _mm256_andnot_ps(_mm256_castsi256_ps(t.x), x); }
 };
 
 

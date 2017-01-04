@@ -56,7 +56,7 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      simd_t();                                   // default constructor does not initialize 
 //      simd_t(__m256 x);                           // construct from low-level simd type (__m256 or similar)
 //      simd_t(T x);                                // construct from scalar (note: for integer-valued types, -1 is faster than +1)
-//      simd_t(simd_t<T,S/2> x, simd_t<T,S/2> y);   // construct 256-bit simd_t from two 128-bit simd_t's
+//      simd_t(simd_t<T,S/2> x, simd_t<T,S/2> y);   // 256-bit simd_t only: construct from two 128-bit simd_t's
 //
 //      static simd_t<T,S> zero();                  // factory function returning all zeros
 //      static simd_t<T,S> range();                 // returns [ 0, 1, ..., S-1 ]
@@ -67,7 +67,7 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      void store(T *p);
 //      void storeu(T *p);
 //
-//      // Reminder: you may need to use a syntax such as
+//      // Reminder: you may need to use the "template" keyword when calling these, e.g.
 //      //   x.template extract<M> ();
 //
 //      template<unsigned int M> inline T extract() const;                       // extracts M-th element of simd vector
@@ -76,18 +76,19 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      // Arithmetic operators
 //      // Note: integer multiplication is pretty slow on some architectures (e.g. Haswell)
 //
-//      simd_t<T,S> &operator+=(simd_t<T,S> x);
-//      simd_t<T,S> &operator-=(simd_t<T,S> x);
-//      simd_t<T,S> &operator*=(simd_t<T,S> x);                   // note: multiplication not defined for integer types
-//      simd_t<T,S> &operator/=(simd_t<T,S> x);                   // note: division not defined for integer types
 //      simd_t<T,S> operator+(simd_t<T,S> x) const;
 //      simd_t<T,S> operator-(simd_t<T,S> x) const;
-//      simd_t<T,S> operator*(simd_t<T,S> x) const;               // note: multiplication not defined for integer types
-//      simd_t<T,S> operator/(simd_t<T,S> x) const;               // note: division not defined for integer types
+//      simd_t<T,S> operator*(simd_t<T,S> x) const;
+//      simd_t<T,S> operator/(simd_t<T,S> x) const;               // note: division only defined for floating-point types T
 //      simd_t<T,S> operator-() const;
 //
+//      simd_t<T,S> &operator+=(simd_t<T,S> x);
+//      simd_t<T,S> &operator-=(simd_t<T,S> x);
+//      simd_t<T,S> &operator*=(simd_t<T,S> x);
+//      simd_t<T,S> &operator/=(simd_t<T,S> x);                   // note: division only defined for floating-point types T
+//
 //      simd_t<T,S> abs() const;
-//      simd_t<T,S> sqrt() const;                // defined for floating-point types T
+//      simd_t<T,S> sqrt() const;                                 // note: sqrt() only defined for floating-point types T
 //      simd_t<T,S> min(simd_t<T,S> x) const;
 //      simd_t<T,S> max(simd_t<T,S> x) const;
 //
