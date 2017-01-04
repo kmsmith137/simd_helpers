@@ -40,9 +40,6 @@ template<> struct simd_t<int64_t,2>
 
     template<unsigned int M> inline int64_t extract() const  { return _mm_extract_epi64(x, M); }
 
-    inline simd_t<int64_t,2> &operator+=(simd_t<int64_t,2> t) { x = _mm_add_epi64(x,t.x); return *this; }
-    inline simd_t<int64_t,2> &operator-=(simd_t<int64_t,2> t) { x = _mm_sub_epi64(x,t.x); return *this; }
-
     inline simd_t<int64_t,2> operator+(simd_t<int64_t,2> t) const { return _mm_add_epi64(x,t.x); }
     inline simd_t<int64_t,2> operator-(simd_t<int64_t,2> t) const { return _mm_sub_epi64(x,t.x); }
 
@@ -60,6 +57,10 @@ template<> struct simd_t<int64_t,2>
 	__m128i t = _mm_set1_epi16(-1);
 	return _mm_xor_si128(_mm_add_epi64(x,t), t);
     }
+
+    inline simd_t<int64_t,2> &operator+=(simd_t<int64_t,2> t) { *this = (*this) + t; return *this; }
+    inline simd_t<int64_t,2> &operator-=(simd_t<int64_t,2> t) { *this = (*this) - t; return *this; }
+    inline simd_t<int64_t,2> &operator*=(simd_t<int64_t,2> t) { *this = (*this) * t; return *this; }
 
     inline simd_t<int64_t,2> abs() const
     {
@@ -180,6 +181,7 @@ template<> struct simd_t<int64_t,4>
     
     inline simd_t<int64_t,4> &operator+=(simd_t<int64_t,4> t)  { *this = (*this) + t; return *this; }
     inline simd_t<int64_t,4> &operator-=(simd_t<int64_t,4> t)  { *this = (*this) - t; return *this; }
+    inline simd_t<int64_t,4> &operator*=(simd_t<int64_t,4> t)  { *this = (*this) * t; return *this; }
 
 
     inline simd_t<int64_t,4> abs() const
