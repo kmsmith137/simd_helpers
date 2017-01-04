@@ -11,6 +11,7 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <stdexcept>
 #include <type_traits>
 
 #include "core.hpp"

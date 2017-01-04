@@ -124,7 +124,7 @@ template<> struct simd_t<int64_t,4>
     template<unsigned int M> inline int extract() const                     { return _mm256_extract_epi64(x,M); }
     template<unsigned int M> inline simd_t<int64_t,2> extract_half() const  { return _mm256_extractf128_si256(x,M); }
     
-    void split(simd_t<int64_t,2> &x0, simd_t<int64_t,2> &x1) { x0 = extract_half<0> (); x1 = extract_half<1> (); }
+    void split(simd_t<int64_t,2> &x0, simd_t<int64_t,2> &x1) const  { x0 = extract_half<0> (); x1 = extract_half<1> (); }
 
     inline simd_t<int64_t,4> &operator+=(simd_t<int64_t,4> t) 
     { 
