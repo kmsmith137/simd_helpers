@@ -374,37 +374,6 @@ inline simd_trimatrix<T,S,N> random_simd_trimatrix(std::mt19937 &rng)
 // Print routines
 
 
-template<class T, unsigned int S, unsigned int M>
-struct _simd_writer 
-{
-    static inline void write(std::ostream &os, simd_t<T,S> x)
-    {
-	_simd_writer<T,S,M-1>::write(os, x);
-	os << ", " << x.template extract<M-1>();
-    }
-};
-
-
-template<class T, unsigned int S>
-struct _simd_writer<T,S,1>
-{
-    static inline void write(std::ostream &os, simd_t<T,S> x) 
-    { 
-	os << x.template extract<0> ();
-    }
-};
-
-
-template<typename T, unsigned int S>
-inline std::ostream &operator<<(std::ostream &os, simd_t<T,S> x)
-{
-    os << "[";
-    _simd_writer<T,S,S>::write(os, x);
-    os << "]";
-    return os;
-}
-
-
 template<typename T>
 inline std::string vecstr(const std::vector<T> &v)
 {
@@ -413,65 +382,50 @@ inline std::string vecstr(const std::vector<T> &v)
     ss << "[";
     for (size_t i = 0; i < v.size(); i++)
 	ss << " " << v[i];
-    ss << "]";
+    ss << " ]";
 
     return ss.str();
 }
 
-
-// -------------------------------------------------------------------------------------------------
-//
-// Print routines, part 2
-
-
-template<typename T, unsigned int S, unsigned int N>
-struct _simd_nwriter
-{
-    static inline void write(std::ostream &os, const simd_ntuple<T,S,N> &v)
-    {
-	_simd_nwriter<T,S,N-1>::write(os, v.v);
-	os << ", " << v.x;
-    }
-
-    static inline void write(std::ostream &os, const simd_trimatrix<T,S,N> &m)
-    {
-	_simd_nwriter<T,S,N-1>::write(os, m.m);
-	os << ",\n " << m.v;
-    }
-};
-
-
 template<typename T, unsigned int S>
-struct _simd_nwriter<T,S,1>
+inline std::ostream &operator<<(std::ostream &os, simd_t<T,S> x)
 {
-    static inline void write(std::ostream &os, const simd_ntuple<T,S,1> &v)
-    {
-	os << v.x;
-    }
-
-    static inline void write(std::ostream &os, const simd_trimatrix<T,S,1> &m)
-    {
-	os << m.v;
-    }
-};
-
+    os << "[";
+    for (unsigned int s = 0; s < S; s++)
+	os << " " << extract_slow(x,s);
+    os << " ]";
+    return os;
+}
 
 template<typename T, unsigned int S, unsigned int N>
 inline std::ostream &operator<<(std::ostream &os, const simd_ntuple<T,S,N> &v)
 {
-    os << "{";
-    _simd_nwriter<T,S,N>::write(os, v);
-    os << "}";
+    os << "{ " << extract_slow(v,0);
+    for (unsigned int n = 1; n < N; n++)
+	os << ", " << extract_slow(v,n);
+    os << " }";
     return os;
 }
 
+template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N==1),int>::type = 0>
+inline void _write_trimatrix(std::ostream &os, const simd_trimatrix<T,S,N> &t)
+{
+    os << "  " << t.v;
+}
+
+template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N>1),int>::type = 0>
+inline void _write_trimatrix(std::ostream &os, const simd_trimatrix<T,S,N> &t)
+{
+    _write_trimatrix(os, t.m);
+    os << ",\n  " << t.v;
+}
 
 template<typename T, unsigned int S, unsigned int N>
-inline std::ostream &operator<<(std::ostream &os, const simd_trimatrix<T,S,N> &m)
+inline std::ostream &operator<<(std::ostream &os, const simd_trimatrix<T,S,N> &t)
 {
-    os << "{";
-    _simd_nwriter<T,S,N>::write(os, m);
-    os << "}";
+    os << "{\n";
+    _write_trimatrix(os, t);
+    os << "\n}";
     return os;
 }
 
