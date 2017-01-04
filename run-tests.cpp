@@ -133,12 +133,12 @@ inline void test_unary_operation(const char *name, std::mt19937 &rng, simd_t<T,S
 
 
 template<typename T, unsigned int S>
-inline void test_compound_assignment_operator(const char *name, std::mt19937 &rng, void (*f1)(simd_t<T,S> &, simd_t<T,S>), void (*f2)(T&, T))
+inline void test_compound_assignment_operator(const char *name, std::mt19937 &rng, void (*f1)(simd_t<T,S> &, simd_t<T,S>), void (*f2)(T&, T), T lo1, T hi1, T lo2, T hi2, T e)
 {
-    const T epsilon = 100 * machine_epsilon<T>();
+    const T epsilon = e * machine_epsilon<T>();
 
-    simd_t<T,S> x_in = uniform_random_simd_t<T,S> (rng, -10, 10);
-    simd_t<T,S> y = uniform_random_simd_t<T,S> (rng, 1, 10);
+    simd_t<T,S> x_in = uniform_random_simd_t<T,S> (rng, lo1, hi1);
+    simd_t<T,S> y = uniform_random_simd_t<T,S> (rng, lo2, hi2);
 
     simd_t<T,S> x_out = x_in;
     f1(x_out, y);
@@ -155,7 +155,9 @@ inline void test_compound_assignment_operator(const char *name, std::mt19937 &rn
 	     << "   arg 1 (input): " << x_in << "\n"
 	     << "   arg 2: " << y << "\n"
 	     << "   arg 1 (actual output): " << x_out << "\n"
-	     << "   arg 2 (expected output): " << x_exp << "\n";
+	     << "   arg 2 (expected output): " << x_exp << "\n"
+	     << "   difference: " << (x_out-x_exp) << "\n"
+	     << "   epsilon: " << epsilon << "\n";
 
 	exit(1);
     }
@@ -163,12 +165,12 @@ inline void test_compound_assignment_operator(const char *name, std::mt19937 &rn
 
 
 template<typename T, unsigned int S>
-inline void test_binary_operator(const char *name, std::mt19937 &rng, simd_t<T,S> (*f1)(simd_t<T,S>, simd_t<T,S>), T (*f2)(T, T))
+inline void test_binary_operator(const char *name, std::mt19937 &rng, simd_t<T,S> (*f1)(simd_t<T,S>, simd_t<T,S>), T (*f2)(T, T), T lo1, T hi1, T lo2, T hi2, T e)
 {
-    const T epsilon = 100 * machine_epsilon<T>();
+    const T epsilon = e * machine_epsilon<T>();
 
-    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -10, 10);
-    simd_t<T,S> y = uniform_random_simd_t<T,S> (rng, 1, 10);
+    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, lo1, hi1);
+    simd_t<T,S> y = uniform_random_simd_t<T,S> (rng, lo2, hi2);
     simd_t<T,S> z = f1(x, y);
 
     simd_t<T,S> z_exp;
@@ -181,7 +183,8 @@ inline void test_binary_operator(const char *name, std::mt19937 &rng, simd_t<T,S
 	     << "   operand 2: " << y << endl
 	     << "   output: " << z << endl
 	     << "   expected output: " << z_exp << endl
-	     << "   difference: " << (z-z_exp) << endl;
+	     << "   difference: " << (z-z_exp) << endl
+	     << "   epsilon: " << epsilon << endl;
 
 	exit(1);
     }
@@ -381,7 +384,7 @@ inline void test_is_all_zeros_inverse_masked(std::mt19937 &rng)
 template<typename T, unsigned int S>
 inline void test_horizontal_sum(std::mt19937 &rng)
 {
-    const T epsilon = 10000. * machine_epsilon<T> ();
+    const T epsilon = S * 2000 * machine_epsilon<T> ();
 
     simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -1000, 1000);
 
@@ -396,8 +399,11 @@ inline void test_horizontal_sum(std::mt19937 &rng)
 	cerr << "test_horizontal_sum(" << type_name<T>() << "," << S << ") failed\n"
 	     << "   operand: " << x << endl
 	     << "   expected sum: " << esum << endl
-	     << "   result of horizontal_sum(): " << hsum << endl
-	     << "   result of sum(): " << ssum << endl;
+	     << "   result of sum(): " << ssum << "\n"
+	     << "   difference=" << (ssum-esum) << "\n"
+	     << "   result of horizontal_sum(): " << hsum << "\n"
+	     << "   difference=" << (hsum-esum) << "]\n"
+	     << "   epsilon: " << epsilon << endl;
 
 	exit(1);
     }
@@ -768,35 +774,43 @@ inline void test_TS(std::mt19937 &rng)
 
     test_compound_assignment_operator<T,S> ("+=", rng, 
 					    [](simd_t<T,S> &x, simd_t<T,S> y) { x += y; }, 
-					    [](T &x, T y) { x += y; });
+					    [](T &x, T y) { x += y; },
+					    -10, 10, -10, 10, 20);
 
     test_compound_assignment_operator<T,S> ("-=", rng, 
 					    [](simd_t<T,S> &x, simd_t<T,S> y) { x -= y; }, 
-					    [](T &x, T y) { x -= y; });
+					    [](T &x, T y) { x -= y; },
+					    -10, 10, -10, 10, 20);
 
     test_compound_assignment_operator<T,S> ("*=", rng, 
 					    [](simd_t<T,S> &x, simd_t<T,S> y) { x *= y; }, 
-					    [](T &x, T y) { x *= y; });
+					    [](T &x, T y) { x *= y; },
+					    -10, 10, -10, 10, 200);
 
     test_binary_operator<T,S> ("+", rng, 
 			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x+y; }, 
-			       [](T x, T y) { return x+y; });
+			       [](T x, T y) { return x+y; },
+			       -10, 10, -10, 10, 20);
 
     test_binary_operator<T,S> ("-", rng, 
 			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x-y; }, 
-			       [](T x, T y) { return x-y; });
+			       [](T x, T y) { return x-y; },
+			       -10, 10, -10, 10, 20);
 
     test_binary_operator<T,S> ("*", rng, 
 			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x*y; }, 
-			       [](T x, T y) { return x*y; });
+			       [](T x, T y) { return x*y; },
+			       -10, 10, -10, 10, 200);
 
     test_binary_operator<T,S> ("min", rng, 
 			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.min(y); }, 
-			       [](T x, T y) { return min(x,y); });
+			       [](T x, T y) { return min(x,y); },
+			       -10, 10, -10, 10, 0);
 
     test_binary_operator<T,S> ("max", rng, 
 			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.max(y); }, 
-			       [](T x, T y) { return max(x,y); });
+			       [](T x, T y) { return max(x,y); },
+			       -10, 10, -10, 10, 0);
 
     test_unary_operation<T,S> ("-", rng, 
 			       [](simd_t<T,S> t) { return -t; },
@@ -854,11 +868,13 @@ inline void test_floating_point_TS(std::mt19937 &rng)
 
     test_compound_assignment_operator<T,S> ("/=", rng, 
 					    [](simd_t<T,S> &x, simd_t<T,S> y) { x /= y; }, 
-					    [](T &x, T y) { x /= y; });
+					    [](T &x, T y) { x /= y; },
+					    -100, 100, 1, 10, 200);
 
     test_binary_operator<T,S> ("/", rng, 
 			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x/y; }, 
-			       [](T x, T y) { return x/y; });
+			       [](T x, T y) { return x/y; },
+			       -100, 100, 1, 10, 200);
 
     test_unary_operation<T,S> ("sqrt", rng, 
 			       [](simd_t<T,S> t) { return t.sqrt(); },
@@ -881,24 +897,28 @@ inline void test_integer_TS(std::mt19937 &rng)
 
     test_binary_operator<T,S> ("bitwise_and", rng, 
 			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_and(y); }, 
-			       [](T x, T y) { return x & y; });
+			       [](T x, T y) { return x & y; },
+			       -100, 100, -100, 100, 0);
 
     test_binary_operator<T,S> ("bitwise_or", rng, 
 			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_or(y); }, 
-			       [](T x, T y) { return x | y; });
+			       [](T x, T y) { return x | y; },
+			       -100, 100, -100, 100, 0);
 
     test_binary_operator<T,S> ("bitwise_xor", rng, 
 			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_xor(y); }, 
-			       [](T x, T y) { return x ^ y; });
+			       [](T x, T y) { return x ^ y; },
+			       -100, 100, -100, 100, 0);
 
     test_binary_operator<T,S> ("bitwise_andnot", rng, 
 			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_andnot(y); }, 
-			       [](T x, T y) { return x & ~y; });
+			       [](T x, T y) { return x & ~y; },
+			       -100, 100, -100, 100, 0);
 
     test_unary_operation<T,S> ("bitwise_not", rng,
 			       [](simd_t<T,S> x) { return x.bitwise_not(); },
 			       [](T t) { return ~t; },
-			       -10000, 10000, 0);
+			       -100, 100, 0);
 }
 
 
