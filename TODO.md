@@ -17,6 +17,11 @@
 
 - Upsampling/downsampling kernels for int64_t and double.
 
+- For an integer type T, simd_t<T,S>::operator*() wraps the simplest possible multiplication
+  intrinsic, but there are other possibilities.  (E.g. _mm_mul_epi32() or _mm_mul_epu32()
+  in addition to _mm_mullo_epi32() which corresponds to operator*())  These should be
+  wrapped somehow as well.
+
 - Does it make sense to implement something for integer division?
   There are no "real" simd instructions for integer division (at least in AVX2).  Maybe the 
   best option is to extract every element of the simd_t, and do a scalar integer division?

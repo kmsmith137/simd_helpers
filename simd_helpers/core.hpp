@@ -16,6 +16,7 @@
 #ifndef __AVX2__
 #define _mm256_shuffle_epi32(a, imm8)   _mm256_castps_si256(_mm256_permute_ps(_mm256_castsi256_ps(a), imm8))
 #define _mm256_blend_epi32(a, b, imm8)  _mm256_castps_si256(_mm256_blend_ps(_mm256_castsi256_ps(a), _mm256_castsi256_ps(b), imm8))
+#define _mm_blend_epi32(a, b, imm8)     _mm256_castps_si256(_mm256_blend_ps(_mm256_castsi256_ps(a), _mm256_castsi256_ps(b), imm8))
 #endif
 
 namespace simd_helpers {
@@ -73,6 +74,7 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      template<unsigned int M> inline simd_t<T,(S/2)> extract_half() const;    // extracts lower or upper half (only for 256-bit types)
 //
 //      // Arithmetic operators
+//      // Note: integer multiplication is pretty slow on some architectures (e.g. Haswell)
 //
 //      simd_t<T,S> &operator+=(simd_t<T,S> x);
 //      simd_t<T,S> &operator-=(simd_t<T,S> x);

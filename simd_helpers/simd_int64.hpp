@@ -46,6 +46,15 @@ template<> struct simd_t<int64_t,2>
     inline simd_t<int64_t,2> operator+(simd_t<int64_t,2> t) const { return _mm_add_epi64(x,t.x); }
     inline simd_t<int64_t,2> operator-(simd_t<int64_t,2> t) const { return _mm_sub_epi64(x,t.x); }
 
+    inline simd_t<int64_t,2> operator*(simd_t<int64_t,2> t) const
+    {
+	__m128i y = _mm_mul_epu32(x, t.x);
+	__m128i z = _mm_mullo_epi32(x, _mm_shuffle_epi32(t.x, 0xb1));  // 0xb1 = (2301)_4
+	z = _mm_add_epi64(z, _mm_shuffle_epi32(z,0xb1));
+	z = _mm_blend_epi32(z, _mm_setzero_si128(), 0x5);   // 0x5 = (0101)_2	
+	return _mm_add_epi64(y, z);
+    }
+
     inline simd_t<int64_t,2> operator-() const
     {
 	__m128i t = _mm_set1_epi16(-1);
@@ -114,6 +123,8 @@ template<> struct simd_t<int64_t,4>
 
     template<unsigned int M> inline int extract() const                     { return _mm256_extract_epi64(x,M); }
     template<unsigned int M> inline simd_t<int64_t,2> extract_half() const  { return _mm256_extractf128_si256(x,M); }
+    
+    void split(simd_t<int64_t,2> &x0, simd_t<int64_t,2> &x1) { x0 = extract_half<0> (); x1 = extract_half<1> (); }
 
     inline simd_t<int64_t,4> &operator+=(simd_t<int64_t,4> t) 
     { 
@@ -160,6 +171,22 @@ template<> struct simd_t<int64_t,4>
 	simd_t<int,4> ret0 = _mm_sub_epi64(_mm256_extractf128_si256(x,0), _mm256_extractf128_si256(t.x,0));
 	simd_t<int,4> ret1 = _mm_sub_epi64(_mm256_extractf128_si256(x,1), _mm256_extractf128_si256(t.x,1));
 	return _mm256_insertf128_si256(_mm256_castsi128_si256(ret0.x), (ret1.x), 1);
+#endif
+    }
+
+    inline simd_t<int64_t,4> operator*(simd_t<int64_t,4> t) const
+    {
+#ifdef __AVX2__
+	__m256i y = _mm256_mul_epu32(x, t.x);
+	__m256i z = _mm256_mullo_epi32(x, _mm256_shuffle_epi32(t.x, 0xb1));  // 0xb1 = (2301)_4
+	z = _mm256_add_epi64(z, _mm256_shuffle_epi32(z,0xb1));
+	z = _mm256_blend_epi32(z, _mm256_setzero_si256(), 0x55);   // 0x55 = (01010101)_2	
+	return _mm256_add_epi64(y, z);
+#else
+	simd_t<int64_t,2> x0, x1, t0, t1;
+	split(x0, x1); 
+	t.split(t0, t1);
+	return simd_t<int64_t,4> (x0*t0, x1*t1);
 #endif
     }
 
