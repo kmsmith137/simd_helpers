@@ -118,8 +118,6 @@ template<> struct simd_t<int,8>
     template<unsigned int M> inline int extract() const                 { return _mm256_extract_epi32(x,M); }
     template<unsigned int M> inline simd_t<int,4> extract_half() const  { return _mm256_extractf128_si256(x,M); }
 
-    void split(simd_t<int,4> &x0, simd_t<int,4> &x1) const  { x0 = extract_half<0> (); x1 = extract_half<1> (); }
-
     inline simd_t<int,8> operator+(simd_t<int,8> t) const 
     { 
 #ifdef __AVX2__
