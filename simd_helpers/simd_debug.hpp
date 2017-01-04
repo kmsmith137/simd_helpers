@@ -194,6 +194,12 @@ inline T compare(const std::vector<T> &v, const std::vector<T> &w)
     return compare(v.size(), &v[0], &w[0]);
 }
 
+template<typename T, unsigned int S>
+inline T compare(simd_t<T,S> v, simd_t<T,S> w)
+{
+    return compare(vectorize(v), vectorize(w));
+}
+
 
 template<typename T, typename S>
 inline T maxdiff(S n, const T *v1, const T *v2)
@@ -216,6 +222,12 @@ inline T maxdiff(const std::vector<T> &v1, const std::vector<T> &v2)
     return maxdiff(v1.size(), &v1[0], &v2[0]);
 }
 
+template<typename T, unsigned int S>
+inline T maxdiff(simd_t<T,S> v, simd_t<T,S> w)
+{
+    return maxdiff(vectorize(v), vectorize(w));
+}
+
 
 template<typename T, typename S>
 inline T maxabs(S n, const T *v)
@@ -236,6 +248,12 @@ inline T maxabs(const std::vector<T> &v)
     return maxabs(v.size(), &v[0]);
 }
 
+template<typename T, unsigned int S>
+inline T maxabs(simd_t<T,S> v)
+{
+    return maxabs(vectorize(v));
+}
+
 
 template<typename T, typename S>
 inline bool strictly_equal(S n, const T *v, const T *w)
@@ -253,6 +271,12 @@ inline bool strictly_equal(const std::vector<T> &v, const std::vector<T> &w)
 {
     assert(v.size() == w.size());
     return strictly_equal(v.size(), &v[0], &w[0]);
+}
+
+template<typename T, unsigned int S>
+inline bool strictly_equal(simd_t<T,S> v, simd_t<T,S> w)
+{
+    return strictly_equal(vectorize(v), vectorize(w));
 }
 
 

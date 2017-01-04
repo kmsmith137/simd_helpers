@@ -112,27 +112,19 @@ inline void test_unary_operation(const char *name, std::mt19937 &rng, simd_t<T,S
     simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, lo, hi);
     simd_t<T,S> y = f1(x);
 
-    vector<T> vx = vectorize(x);
-    vector<T> vy = vectorize(y);
-
-    vector<T> vz(S);
+    simd_t<T,S> y_exp;
     for (unsigned int s = 0; s < S; s++)
-	vz[s] = f2(vx[s]);
+	set_slow(y_exp, s, f2(extract_slow(x,s)));
 
-    if (maxdiff(vy,vz) <= epsilon)
+    if (maxdiff(y,y_exp) <= epsilon)
 	return;
 
     for (unsigned int s = 0; s < S; s++) {
 	cerr << "test_unary_operation(" << name << "," << type_name<T>() << "," << S << ") failed\n"
 	     << "    argument: " << x << endl
 	     << "    output: " << y << endl
-	     << "    expected output: " << vecstr(vz) << endl
-	     << "    difference: [";
-
-	for (unsigned int s = 0; s < S; s++)
-	    cerr << " " << std::abs(vy[s]-vz[s]);
-
-	cerr << "]\n"
+	     << "    expected output: " << y_exp << endl
+	     << "    difference: " << (y - y_exp) << endl
 	     << "    epsilon: " << epsilon << endl;
 
 	exit(1);
@@ -141,23 +133,32 @@ inline void test_unary_operation(const char *name, std::mt19937 &rng, simd_t<T,S
 
 
 template<typename T, unsigned int S>
-inline void test_compound_assignment_operator(std::mt19937 &rng, void (*f1)(simd_t<T,S> &, simd_t<T,S>), void (*f2)(T&, T))
+inline void test_compound_assignment_operator(const char *name, std::mt19937 &rng, void (*f1)(simd_t<T,S> &, simd_t<T,S>), void (*f2)(T&, T))
 {
     const T epsilon = 100 * machine_epsilon<T>();
 
-    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -10, 10);
+    simd_t<T,S> x_in = uniform_random_simd_t<T,S> (rng, -10, 10);
     simd_t<T,S> y = uniform_random_simd_t<T,S> (rng, 1, 10);
 
-    vector<T> vx = vectorize(x);
-    vector<T> vy = vectorize(y);
+    simd_t<T,S> x_out = x_in;
+    f1(x_out, y);
 
-    f1(x, y);
-    vector<T> vz = vectorize(x);
+    simd_t<T,S> x_exp;
+    for (unsigned int s = 0; s < S; s++) {
+	T t = extract_slow(x_in, s);
+	f2(t, extract_slow(y, s));
+	set_slow(x_exp, s, t);
+    }
 
-    for (unsigned int s = 0; s < S; s++)
-	f2(vx[s], vy[s]);
+    if (maxdiff(x_out,x_exp) > epsilon) {
+	cerr << "test_compound_assignment_operator(" << name << "," << type_name<T>() << "," << S << ") failed\n"
+	     << "   arg 1 (input): " << x_in << "\n"
+	     << "   arg 2: " << y << "\n"
+	     << "   arg 1 (actual output): " << x_out << "\n"
+	     << "   arg 2 (expected output): " << x_exp << "\n";
 
-    assert(maxdiff(vx,vz) <= epsilon);
+	exit(1);
+    }
 }
 
 
@@ -168,27 +169,20 @@ inline void test_binary_operator(const char *name, std::mt19937 &rng, simd_t<T,S
 
     simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -10, 10);
     simd_t<T,S> y = uniform_random_simd_t<T,S> (rng, 1, 10);
+    simd_t<T,S> z = f1(x, y);
 
-    vector<T> vx = vectorize(x);
-    vector<T> vy = vectorize(y);
-    vector<T> w1 = vectorize(f1(x,y));
-
-    vector<T> w2(S);
+    simd_t<T,S> z_exp;
     for (unsigned int s = 0; s < S; s++)
-	w2[s] = f2(vx[s], vy[s]);
+	set_slow(z_exp, s, f2(extract_slow(x,s), extract_slow(y,s)));
 
-    if (maxdiff(w1,w2) > epsilon) {
+    if (maxdiff(z,z_exp) > epsilon) {
 	cerr << "test_binary_operator(" << name << "," << type_name<T>() << "," << S << ") failed\n"
 	     << "   operand 1: " << x << endl
 	     << "   operand 2: " << y << endl
-	     << "   output: " << vecstr(w1) << endl
-	     << "   expected output: " << vecstr(w2) << endl
-	     << "   difference: [";
+	     << "   output: " << z << endl
+	     << "   expected output: " << z_exp << endl
+	     << "   difference: " << (z-z_exp) << endl;
 
-	for (unsigned int s = 0; s < S; s++)
-	    cerr << " " << std::abs(w1[s]-w2[s]);
-
-	cerr << "]\n";
 	exit(1);
     }
 }
@@ -198,28 +192,33 @@ template<typename T, unsigned int S>
 inline void test_comparison_operator(const char *name, std::mt19937 &rng, smask_t<T,S> (*f1)(simd_t<T,S>, simd_t<T,S>), bool (*f2)(T, T))
 {
     simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -10, 10);
-    simd_t<T,S> dx = uniform_random_simd_t<T,S> (rng, 1, 10);
-
-    vector<T> vx = vectorize(x);
-    vector<T> vdx = vectorize(dx);
-    vector<T> vy = vx;
+    simd_t<T,S> y;
 
     for (unsigned int s = 0; s < S; s++) {
+	T t = extract_slow(x, s);
 	if (std::uniform_real_distribution<>()(rng) < 0.33)
-	    vy[s] += vdx[s];
+	    t += uniform_rand<T> (rng, 1, 10);
 	else if (std::uniform_real_distribution<>()(rng) < 0.5)
-	    vy[s] -= vdx[s];
+	    t -= uniform_rand<T> (rng, 1, 10);
+	set_slow(y, s, t);
     }
 
-    simd_t<T,S> y = pack_simd_t<T,S> (vy);
-    vector<smask_t<T> > vc = vectorize(f1(x,y));
-    
+    smask_t<T,S> c = f1(x, y);
+    smask_t<T,S> c_exp;
+
     for (unsigned int s = 0; s < S; s++) {
-	smask_t<T> expected_c = f2(vx[s],vy[s]) ? -1 : 0;
-	if (vc[s] == expected_c)
-	    continue;
-	
-	cerr << "test_comparison_operator(" << name << "," << type_name<T>() << "," << S << ") failed\n";
+	bool b = f2(extract_slow(x,s), extract_slow(y,s));
+	smask_t<T> m = b ? -1 : 0;
+	set_slow(c_exp, s, m);
+    }
+
+    if (!strictly_equal(c, c_exp)) {
+	cerr << "test_comparison_operator(" << name << "," << type_name<T>() << "," << S << ") failed\n"
+	     << "    argument 1: " << x << endl
+	     << "    argument 2: " << y << endl
+	     << "    output: " << c << endl
+	     << "    expected: " << c_exp << endl;
+
 	exit(1);
     }
 }
@@ -232,32 +231,30 @@ inline void test_masking_operator(const char *name, std::mt19937 &rng, simd_t<T,
     smask_t<T,S> mask = uniform_random_simd_t<smask_t<T>,S> (rng, -1, 0);
     simd_t<T,S> a = uniform_random_simd_t<T,S> (rng, -10000, 10000);
     simd_t<T,S> b = uniform_random_simd_t<T,S> (rng, -10000, 10000);
-    simd_t<T,S> c1 = f1(mask, a, b);
+    simd_t<T,S> c = f1(mask, a, b);
+    simd_t<T,S> c_exp;
 
-    vector<smask_t<T> > vmask = vectorize(mask);
-    vector<T> va = vectorize(a);
-    vector<T> vb = vectorize(b);
-    vector<T> vc1 = vectorize(c1);
-    
-    vector<T> vc2(S);
     for (unsigned int s = 0; s < S; s++) {
-	if (vmask[s] == 0)
-	    vc2[s] = f2(false, va[s], vb[s]);
-	else if (vmask[s] == smask_t<T>(-1))
-	    vc2[s] = f2(true, va[s], vb[s]);	    
+	T aa = extract_slow(a, s);
+	T bb = extract_slow(b, s);
+
+	if (extract_slow(mask,s) == 0)
+	    set_slow(c_exp, s, f2(false,aa,bb));
+	else if (extract_slow(mask,s) == -1)
+	    set_slow(c_exp, s, f2(true,aa,bb));	    
 	else {
 	    cerr << "internal error in test_masking_operator(" << name << "," << type_name<T>() << "," << S << ")\n";
 	    exit(1);
 	}
     }
 
-    if (!strictly_equal(vc1, vc2)) {
+    if (!strictly_equal(c, c_exp)) {
 	cerr << "test_masking_operator(" << name << "," << type_name<T>() << "," << S << ") failed\n"
 	     << "   mask: " << mask << "\n"
 	     << "   arg 1: " << a << "\n"
 	     << "   arg 2: " << b << "\n"
-	     << "   output: " << c1 << "\n"
-	     << "   expected output: " << vecstr(vc2) << "\n";
+	     << "   output: " << c << "\n"
+	     << "   expected output: " << c_exp << "\n";
 	exit(1);
     }
 }
@@ -387,27 +384,20 @@ inline void test_horizontal_sum(std::mt19937 &rng)
     const T epsilon = 10000. * machine_epsilon<T> ();
 
     simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -1000, 1000);
-    vector<T> vx = vectorize(x);
 
-    T actual_sum = x.sum();
+    simd_t<T,S> hsum = x.horizontal_sum();
+    T ssum = x.sum();
 
-    T expected_sum = 0;
+    T esum = 0;
     for (unsigned int s = 0; s < S; s++)
-	expected_sum += vx[s];
-
-    simd_t<T,S> h = x.horizontal_sum();
-    vector<T> vh = vectorize(h);
-
-    vector<T> dh(S);
-    for (unsigned int s = 0; s < S; s++)
-	dh[s] = vh[s] - expected_sum;
-	    
-    if ((std::abs(actual_sum - expected_sum) > epsilon) || (maxabs(dh) > epsilon)) {
+	esum += extract_slow(x, s);
+    
+    if ((std::abs(ssum-esum) > epsilon) || (maxdiff(hsum, simd_t<T,S>(esum)) > epsilon)) {
 	cerr << "test_horizontal_sum(" << type_name<T>() << "," << S << ") failed\n"
 	     << "   operand: " << x << endl
-	     << "   expected sum: " << expected_sum << endl
-	     << "   result of horizontal_sum(): " << h << ", difference=" << vecstr(dh) << "\n"
-	     << "   result of sum(): " << actual_sum << ", difference=" << (actual_sum-expected_sum) << "\n";
+	     << "   expected sum: " << esum << endl
+	     << "   result of horizontal_sum(): " << hsum << endl
+	     << "   result of sum(): " << ssum << endl;
 
 	exit(1);
     }
@@ -830,8 +820,9 @@ inline void test_TS(std::mt19937 &rng)
     test_basics<T,S>(rng);
     test_constructors<T,S>(rng);
 
-    test_compound_assignment_operator(rng, assign_add< simd_t<T,S> >, assign_add<T>);   // operator+=
-    test_compound_assignment_operator(rng, assign_sub< simd_t<T,S> >, assign_sub<T>);   // operator-=
+    test_compound_assignment_operator("+=", rng, assign_add< simd_t<T,S> >, assign_add<T>);
+    test_compound_assignment_operator("-=", rng, assign_sub< simd_t<T,S> >, assign_sub<T>);
+    test_compound_assignment_operator("*=", rng, assign_mul< simd_t<T,S> >, assign_mul<T>);
 
     test_binary_operator("+", rng, binary_add< simd_t<T,S> >, binary_add<T>);
     test_binary_operator("-", rng, binary_sub< simd_t<T,S> >, binary_sub<T>);
@@ -863,8 +854,7 @@ inline void test_floating_point_TS(std::mt19937 &rng)
 {
     test_TS<T,S> (rng);
 
-    test_compound_assignment_operator(rng, assign_mul< simd_t<T,S> >, assign_mul<T>);   // operator*=
-    test_compound_assignment_operator(rng, assign_div< simd_t<T,S> >, assign_div<T>);   // operator/=
+    test_compound_assignment_operator("/=", rng, assign_div< simd_t<T,S> >, assign_div<T>);
 
     test_binary_operator("/", rng, binary_div< simd_t<T,S> >, binary_div<T>);
 
