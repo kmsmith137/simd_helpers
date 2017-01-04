@@ -757,96 +757,94 @@ void test_linear_algebra_kernels(std::mt19937 &rng)
 // -------------------------------------------------------------------------------------------------
 
 
-template<typename T> inline void assign_add(T &x, T y) { x += y; }
-template<typename T> inline void assign_sub(T &x, T y) { x -= y; }
-template<typename T> inline void assign_mul(T &x, T y) { x *= y; }
-template<typename T> inline void assign_div(T &x, T y) { x /= y; }
-
-template<typename T> inline T binary_add(T x, T y) { return x + y; }
-template<typename T> inline T binary_sub(T x, T y) { return x - y; }
-template<typename T> inline T binary_mul(T x, T y) { return x * y; }
-template<typename T> inline T binary_div(T x, T y) { return x / y; }
-template<typename T> inline T unary_minus(T x) { return -x; }
-
-template<typename T> inline T std_min(T x, T y) { return std::min(x,y); }
-template<typename T> inline T std_max(T x, T y) { return std::max(x,y); }
-template<typename T> inline T std_abs(T x)      { return std::abs(x); }
-template<typename T> inline T std_sqrt(T x)     { return std::sqrt(x); }
-
-template<typename T, unsigned int S> inline simd_t<T,S> simd_min(simd_t<T,S> x, simd_t<T,S> y) { return x.min(y); }
-template<typename T, unsigned int S> inline simd_t<T,S> simd_max(simd_t<T,S> x, simd_t<T,S> y) { return x.max(y); }
-template<typename T, unsigned int S> inline simd_t<T,S> simd_abs(simd_t<T,S> x)   { return x.abs(); }
-template<typename T, unsigned int S> inline simd_t<T,S> simd_sqrt(simd_t<T,S> x)  { return x.sqrt(); }
-
-template<typename T> inline bool cmp_eq(T x, T y) { return (x == y); }
-template<typename T> inline bool cmp_ne(T x, T y) { return (x != y); }
-template<typename T> inline bool cmp_gt(T x, T y) { return (x > y); }
-template<typename T> inline bool cmp_ge(T x, T y) { return (x >= y); }
-template<typename T> inline bool cmp_lt(T x, T y) { return (x < y); }
-template<typename T> inline bool cmp_le(T x, T y) { return (x <= y); }
-
-template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_eq(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_eq(y); }
-template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_ne(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_ne(y); }
-template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_gt(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_gt(y); }
-template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_ge(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_ge(y); }
-template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_lt(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_lt(y); }
-template<typename T, unsigned int S> inline smask_t<T,S> simd_cmp_le(simd_t<T,S> x, simd_t<T,S> y) { return x.compare_le(y); }
-
-template<typename T> inline T bitwise_and(T x, T y)     { return (x & y); }
-template<typename T> inline T bitwise_or(T x, T y)      { return (x | y); }
-template<typename T> inline T bitwise_xor(T x, T y)     { return (x ^ y); }
-template<typename T> inline T bitwise_andnot(T x, T y)  { return (x & ~y); }
-template<typename T> inline T bitwise_not(T x)          { return ~x; }
-
-template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_and(simd_t<T,S> x, simd_t<T,S> y)     { return x.bitwise_and(y); }
-template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_or(simd_t<T,S> x, simd_t<T,S> y)      { return x.bitwise_or(y); }
-template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_xor(simd_t<T,S> x, simd_t<T,S> y)     { return x.bitwise_xor(y); }
-template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_andnot(simd_t<T,S> x, simd_t<T,S> y)  { return x.bitwise_andnot(y); }
-template<typename T, unsigned int S> inline simd_t<T,S> simd_bitwise_not(simd_t<T,S> x)                    { return x.bitwise_not(); }
-
-template<typename T, unsigned int S> inline simd_t<T,S> simd_blendv(smask_t<T,S> mask, simd_t<T,S> a, simd_t<T,S> b)              { return blendv(mask,a,b); }
-template<typename T, unsigned int S> inline simd_t<T,S> simd_apply_mask(smask_t<T,S> mask, simd_t<T,S> a, simd_t<T,S> b)          { return a.apply_mask(mask); }
-template<typename T, unsigned int S> inline simd_t<T,S> simd_apply_inverse_mask(smask_t<T,S> mask, simd_t<T,S> a, simd_t<T,S> b)  { return a.apply_inverse_mask(mask); }
-
-template<typename T> inline T std_blendv(bool mask, T a, T b)              { return mask ? a : b; }
-template<typename T> inline T std_apply_mask(bool mask, T a, T b)          { return mask ? a : T(0); }
-template<typename T> inline T std_apply_inverse_mask(bool mask, T a, T b)  { return mask ? T(0) : a; }
-
-
 // Runs unit tests which are defined for every pair (T,S)
 template<typename T, unsigned int S>
 inline void test_TS(std::mt19937 &rng)
 {
     test_basics<T,S>(rng);
     test_constructors<T,S>(rng);
-
-    test_compound_assignment_operator("+=", rng, assign_add< simd_t<T,S> >, assign_add<T>);
-    test_compound_assignment_operator("-=", rng, assign_sub< simd_t<T,S> >, assign_sub<T>);
-    test_compound_assignment_operator("*=", rng, assign_mul< simd_t<T,S> >, assign_mul<T>);
-
-    test_binary_operator("+", rng, binary_add< simd_t<T,S> >, binary_add<T>);
-    test_binary_operator("-", rng, binary_sub< simd_t<T,S> >, binary_sub<T>);
-    test_binary_operator("*", rng, binary_mul< simd_t<T,S> >, binary_mul<T>);
-
-    test_unary_operation<T> ("-", rng, unary_minus< simd_t<T,S> >, unary_minus<T>, -10000, 10000, 0);
-    test_unary_operation<T> ("abs", rng, simd_abs<T,S>, std_abs<T>, -10000, 10000, 0);
-
-    test_binary_operator("min", rng, simd_min<T,S>, std_min<T>);
-    test_binary_operator("max", rng, simd_max<T,S>, std_max<T>);
-
-    test_comparison_operator("compare_eq", rng, simd_cmp_eq<T,S>, cmp_eq<T>);
-    test_comparison_operator("compare_ne", rng, simd_cmp_ne<T,S>, cmp_ne<T>);
-    test_comparison_operator("compare_gt", rng, simd_cmp_gt<T,S>, cmp_gt<T>);
-    test_comparison_operator("compare_ge", rng, simd_cmp_ge<T,S>, cmp_ge<T>);
-    test_comparison_operator("compare_lt", rng, simd_cmp_lt<T,S>, cmp_lt<T>);
-    test_comparison_operator("compare_le", rng, simd_cmp_le<T,S>, cmp_le<T>);
-
-    test_masking_operator("blendv", rng, simd_blendv<T,S>, std_blendv<T>);
-    test_masking_operator("apply_mask", rng, simd_apply_mask<T,S>, std_apply_mask<T>);
-    test_masking_operator("apply_inverse_mask", rng, simd_apply_inverse_mask<T,S>, std_apply_inverse_mask<T>);
-
     test_horizontal_sum<T,S> (rng);
+
+
+    test_compound_assignment_operator<T,S> ("+=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x += y; }, 
+					    [](T &x, T y) { x += y; });
+
+    test_compound_assignment_operator<T,S> ("-=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x -= y; }, 
+					    [](T &x, T y) { x -= y; });
+
+    test_compound_assignment_operator<T,S> ("*=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x *= y; }, 
+					    [](T &x, T y) { x *= y; });
+
+    test_binary_operator<T,S> ("+", rng, 
+			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x+y; }, 
+			       [](T x, T y) { return x+y; });
+
+    test_binary_operator<T,S> ("-", rng, 
+			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x-y; }, 
+			       [](T x, T y) { return x-y; });
+
+    test_binary_operator<T,S> ("*", rng, 
+			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x*y; }, 
+			       [](T x, T y) { return x*y; });
+
+    test_binary_operator<T,S> ("min", rng, 
+			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.min(y); }, 
+			       [](T x, T y) { return min(x,y); });
+
+    test_binary_operator<T,S> ("max", rng, 
+			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.max(y); }, 
+			       [](T x, T y) { return max(x,y); });
+
+    test_unary_operation<T,S> ("-", rng, 
+			       [](simd_t<T,S> t) { return -t; },
+			       [](T t) { return -t; }, 
+			       -10000, 10000, 0);
+
+    test_unary_operation<T,S> ("abs", rng, 
+			       [](simd_t<T,S> t) { return t.abs(); },
+			       [](T t) { return std::abs(t); },
+			       -10000, 10000, 0);
+
+    test_comparison_operator<T,S> ("compare_eq", rng, 
+				   [](simd_t<T,S> x, simd_t<T,S> y) { return x.compare_eq(y); }, 
+				   [](T x, T y) { return x == y; });
+
+    test_comparison_operator<T,S> ("compare_ne", rng, 
+				   [](simd_t<T,S> x, simd_t<T,S> y) { return x.compare_ne(y); }, 
+				   [](T x, T y) { return x != y; });
+
+    test_comparison_operator<T,S> ("compare_gt", rng, 
+				   [](simd_t<T,S> x, simd_t<T,S> y) { return x.compare_gt(y); }, 
+				   [](T x, T y) { return x > y; });
+
+    test_comparison_operator<T,S> ("compare_ge", rng, 
+				   [](simd_t<T,S> x, simd_t<T,S> y) { return x.compare_ge(y); }, 
+				   [](T x, T y) { return x >= y; });
+
+    test_comparison_operator<T,S> ("compare_lt", rng, 
+				   [](simd_t<T,S> x, simd_t<T,S> y) { return x.compare_lt(y); }, 
+				   [](T x, T y) { return x < y; });
+
+    test_comparison_operator<T,S> ("compare_le", rng, 
+				   [](simd_t<T,S> x, simd_t<T,S> y) { return x.compare_le(y); }, 
+				   [](T x, T y) { return x <= y; });
+
+    test_masking_operator<T,S> ("blendv", rng, 
+				[](smask_t<T,S> m, simd_t<T,S> x, simd_t<T,S> y) { return blendv(m,x,y); },
+				[](bool m, T x, T y) { return m ? x : y; });
+
+    test_masking_operator<T,S> ("apply_mask", rng, 
+				[](smask_t<T,S> m, simd_t<T,S> x, simd_t<T,S> y) { return x.apply_mask(m); },
+				[](bool m, T x, T y) { return m ? x : 0; });
+
+    test_masking_operator<T,S> ("apply_inverse_mask", rng, 
+				[](smask_t<T,S> m, simd_t<T,S> x, simd_t<T,S> y) { return x.apply_inverse_mask(m); },
+				[](bool m, T x, T y) { return m ? 0 : x; });
 }
+
 
 // Unit tests which are defined for a floating-point pair (T,S)
 template<typename T, unsigned int S>
@@ -854,12 +852,20 @@ inline void test_floating_point_TS(std::mt19937 &rng)
 {
     test_TS<T,S> (rng);
 
-    test_compound_assignment_operator("/=", rng, assign_div< simd_t<T,S> >, assign_div<T>);
+    test_compound_assignment_operator<T,S> ("/=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x /= y; }, 
+					    [](T &x, T y) { x /= y; });
 
-    test_binary_operator("/", rng, binary_div< simd_t<T,S> >, binary_div<T>);
+    test_binary_operator<T,S> ("/", rng, 
+			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x/y; }, 
+			       [](T x, T y) { return x/y; });
 
-    test_unary_operation<T> ("sqrt", rng, simd_sqrt<T,S>, std_sqrt<T>, 10.0, 1000.0, 50.0);
+    test_unary_operation<T,S> ("sqrt", rng, 
+			       [](simd_t<T,S> t) { return t.sqrt(); },
+			       [](T t) { return std::sqrt(t); },
+			       10.0, 1000.0, 50.0);
 }
+
 
 // Unit tests which are defined for an integer pair (T,S)
 template<typename T, unsigned int S>
@@ -867,17 +873,34 @@ inline void test_integer_TS(std::mt19937 &rng)
 {
     test_TS<T,S> (rng);
 
-    test_binary_operator("bitwise_and", rng, simd_bitwise_and<T,S>, bitwise_and<T>);
-    test_binary_operator("bitwise_or", rng, simd_bitwise_or<T,S>, bitwise_or<T>);
-    test_binary_operator("bitwise_xor", rng, simd_bitwise_xor<T,S>, bitwise_xor<T>);
-    test_binary_operator("bitwise_andnot", rng, simd_bitwise_andnot<T,S>, bitwise_andnot<T>);
-    test_unary_operation<T> ("bitwise_not", rng, simd_bitwise_not<T,S>, bitwise_not<T>, -10000, 10000, 0);
-
     test_is_all_ones<T,S> (rng);
     test_is_all_zeros<T,S> (rng);
     test_is_all_zeros_masked<T,S> (rng);
     test_is_all_zeros_inverse_masked<T,S> (rng);
+
+
+    test_binary_operator<T,S> ("bitwise_and", rng, 
+			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_and(y); }, 
+			       [](T x, T y) { return x & y; });
+
+    test_binary_operator<T,S> ("bitwise_or", rng, 
+			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_or(y); }, 
+			       [](T x, T y) { return x | y; });
+
+    test_binary_operator<T,S> ("bitwise_xor", rng, 
+			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_xor(y); }, 
+			       [](T x, T y) { return x ^ y; });
+
+    test_binary_operator<T,S> ("bitwise_andnot", rng, 
+			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_andnot(y); }, 
+			       [](T x, T y) { return x & ~y; });
+
+    test_unary_operation<T,S> ("bitwise_not", rng,
+			       [](simd_t<T,S> x) { return x.bitwise_not(); },
+			       [](T t) { return ~t; },
+			       -10000, 10000, 0);
 }
+
 
 template<typename T>
 inline void test_floating_point_T(std::mt19937 &rng)
