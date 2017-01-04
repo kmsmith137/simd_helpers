@@ -33,23 +33,24 @@ inline void test_basics(std::mt19937 &rng)
     vector<T> v = uniform_randvec<T> (rng, S, -1000, 1000);
     simd_t<T,S> x = simd_t<T,S>::loadu(&v[0]);
 
-    bool extract_ok = _check_extract<T,S,S>(x, &v[0]);
-    assert(extract_ok);
+    // note that if extract<>() doesn't work, there's no point printing an error message, 
+    // since the print routines use extract<>(), so their output would be unreliable
+    bool extract_works = _check_extract<T,S,S>(x, &v[0]);
+    assert(extract_works);
 
     // tests simd_t<T,S>::storeu()
     vector<T> w = vectorize(x);
     assert(strictly_equal(v,w));
 
+    // generate a new random (x,v) pair using set_slow()
     v = uniform_randvec<T> (rng, S, -1000, 1000);
     for (unsigned int s = 0; s < S; s++)
 	set_slow(x, s, v[s]);
 
-    w = vectorize(x);
-
-    if (!strictly_equal(v,w)) {
+    if (!_check_extract<T,S,S>(x, &v[0])) {
 	cerr << "test_basics(" << type_name<T>() << "," << S << "): set_slow() didn't work as expected\n"
 	     << "   input: " << vecstr(v) << "\n"
-	     << "   output: " << vecstr(w) << "\n";
+	     << "   output: " << x << "\n";
 
 	exit(1);
     }
@@ -59,44 +60,39 @@ inline void test_basics(std::mt19937 &rng)
 template<typename T, unsigned int S>
 inline void test_constructors(std::mt19937 &rng)
 {
-    T t = uniform_randvec<T> (rng, 1, -1000, 1000)[0];
+    T t0 = uniform_rand<T> (rng, -1000, 1000);
 
-    vector<T> vt = vectorize(simd_t<T,S> (t));
-    vector<T> v0 = vectorize(simd_t<T,S>::zero());
-    vector<T> vr = vectorize(simd_t<T,S>::range());
+    simd_t<T,S> t = simd_t<T,S>(t0);
+    simd_t<T,S> z = simd_t<T,S>::zero();
+    simd_t<T,S> r = simd_t<T,S>::range();
 
     for (unsigned int s = 0; s < S; s++) {
-	assert(vt[s] == t);
-	assert(v0[s] == 0);
-	assert(vr[s] == s);
+	assert(extract_slow(t,s) == t0);
+	assert(extract_slow(z,s) == 0);
+	assert(extract_slow(r,s) == s);
     }
 }
 
 
-// Tests constructor (simd_t<T,S>, simd_t<T,S>) -> simd_t<T,2*S>
-// Also tests simd_t<T,2*S>::extract_half().
+// Tests "merging" constructor (simd_t<T,S>, simd_t<T,S>) -> simd_t<T,2*S>
+// Also tests simd_t<T,2*S>::extract_half(), which inverts the merge.
 template<typename T, unsigned int S>
 inline void test_merging_constructor(std::mt19937 &rng) 
 {
     simd_t<T,S> a = uniform_random_simd_t<T,S> (rng, -1000, 1000);
     simd_t<T,S> b = uniform_random_simd_t<T,S> (rng, -1000, 1000);
+
     simd_t<T,2*S> c(a, b);
-
-    vector<T> va = vectorize(a);
-    vector<T> vb = vectorize(b);
-    vector<T> vc = vectorize(c);
-
-    for (int i = 0; i < S; i++) {
-	assert(va[i] == vc[i]);
-	assert(vb[i] == vc[i+S]);
-    }
-
     simd_t<T,S> c0 = c.template extract_half<0> ();
     simd_t<T,S> c1 = c.template extract_half<1> ();
 
-    assert(strictly_equal(va, vectorize(c0)));
-    assert(strictly_equal(vb, vectorize(c1)));
-};
+    for (unsigned int s = 0; s < S; s++) {
+	assert(extract_slow(c,s) == extract_slow(a,s));
+	assert(extract_slow(c,s+S) == extract_slow(b,s));
+	assert(extract_slow(c0,s) == extract_slow(a,s));
+	assert(extract_slow(c1,s) == extract_slow(b,s));
+    }
+}
 
 
 // -------------------------------------------------------------------------------------------------
