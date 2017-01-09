@@ -10,6 +10,7 @@
 #include "simd_int64.hpp"
 #include "simd_float32.hpp"
 #include "simd_float64.hpp"
+#include "simd_ntuple.hpp"
 
 // FIXME: this file is incomplete!  It only contains float <-> double conversions, but many more are possible.
 
