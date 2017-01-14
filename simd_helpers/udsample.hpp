@@ -358,6 +358,15 @@ inline void upsample(simd_ntuple<int,8,8> &out, simd_t<int,8> t)
 }
 
 
+// Trivial downsampling/upsampling
+
+template<typename T, unsigned int S> 
+inline void upsample(simd_ntuple<T,S,1> &dst, simd_t<T,S> src) { dst.x = src; }
+
+template<typename T, unsigned int S>
+inline simd_t<T,S> downsample(const simd_ntuple<T,S,1> &src) { return src.x; }
+
+
 }  // namespace simd_helpers
 
 #endif  // _SIMD_HELPERS_UDSAMPLE_HPP
