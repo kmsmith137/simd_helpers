@@ -181,9 +181,13 @@ struct simd_trimatrix {
 	simd_t<T,S> u = v.v._vertical_dotn(v.v, v.x);
 	simd_t<T,S> u0 = epsilon * v.x;
 
-	v.x = u.max(u0).sqrt();
 	flags = flags.bitwise_and(u.compare_gt(u0));
 
+	// This ensures that even when the Cholesky factorization is poorly conditioned, the
+	// Cholesky factor can still be passed to solve_*_in_place() without generating NaN's
+	u = blendv(flags, u, simd_t<T,S> (1.0));
+
+	v.x = u.sqrt();
 	return flags;
     }
 
