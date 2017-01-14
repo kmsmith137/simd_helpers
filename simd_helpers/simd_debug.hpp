@@ -375,16 +375,22 @@ inline simd_trimatrix<T,S,N> random_simd_trimatrix(std::mt19937 &rng)
 
 
 template<typename T>
-inline std::string vecstr(const std::vector<T> &v)
+inline std::string vecstr(ssize_t n, const T *v)
 {
     std::stringstream ss;
 
     ss << "[";
-    for (size_t i = 0; i < v.size(); i++)
+    for (size_t i = 0; i < n; i++)
 	ss << " " << v[i];
     ss << " ]";
 
     return ss.str();
+}
+
+template<typename T>
+inline std::string vecstr(const std::vector<T> &v)
+{
+    return vecstr(v.size(), &v[0]);
 }
 
 template<typename T, unsigned int S>
