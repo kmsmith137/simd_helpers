@@ -330,10 +330,15 @@ template<typename T, typename std::enable_if<std::is_floating_point<T>::value,in
 inline std::vector<T> gaussian_randvec(std::mt19937 &rng, unsigned int n)
 {
     std::normal_distribution<T> dist;
-
     std::vector<T> ret(n);
-    for (unsigned int i = 0; i < n; i++)
+
+    for (unsigned int i = 0; i < n; i++) {
+	// Suppress spurious gcc compiler warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 	ret[i] = dist(rng);
+#pragma GCC diagnostic pop
+    }
 
     return ret;
 }
