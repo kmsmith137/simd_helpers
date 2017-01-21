@@ -17,6 +17,8 @@
 - I think more syntactic sugar would be nice.
   Random example: min(x,y) can be a synonym for x.min(y)
 
+- The _vertical_dot() type routines are confusing and could be improved.
+
 - Not all upsampling/downsampling kernels have been implemented.  So far we only have
      - upsampling: float32, int32
      - downsampling: float32
