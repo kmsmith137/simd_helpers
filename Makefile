@@ -45,8 +45,8 @@ install:
 	cp -f $(INCFILES_SUB) $(INCDIR)/simd_helpers
 
 uninstall:
-	rm $(INCDIR)/simd_helpers/*.hpp
-	rmdir $(INCDIR)/simd_helpers
+	rm -f $(INCDIR)/simd_helpers.hpp $(INCDIR)/simd_helpers/*.hpp
+	if [ -e $(INCDIR)/simd_helpers ]; then rmdir $(INCDIR)/simd_helpers; fi
 
 test-basics: test-basics.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<
