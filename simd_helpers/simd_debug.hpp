@@ -333,11 +333,19 @@ inline std::vector<T> gaussian_randvec(std::mt19937 &rng, unsigned int n)
     std::vector<T> ret(n);
 
     for (unsigned int i = 0; i < n; i++) {
-	// Suppress spurious gcc compiler warning
+
+// Suppress spurious gcc compiler warning
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 	ret[i] = dist(rng);
+
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
+
     }
 
     return ret;
