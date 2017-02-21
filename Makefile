@@ -50,7 +50,7 @@ install:
 
 uninstall:
 	rm -f $(INCDIR)/simd_helpers.hpp $(INCDIR)/simd_helpers/*.hpp
-	rmdir $(INCDIR)/simd_helpers
+	if [ -e $(INCDIR)/simd_helpers ]; then rmdir $(INCDIR)/simd_helpers; fi
 
 run-tests: run-tests.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<
