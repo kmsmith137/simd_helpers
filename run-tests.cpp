@@ -579,9 +579,10 @@ template<typename T, unsigned int S, unsigned int N>
 static void test_downsample_max(std::mt19937 &rng)
 {
     simd_ntuple<T,S,N> x = gaussian_random_simd_ntuple<T,S,N> (rng);
+    vector<T> yref = reference_downsample_max(vectorize(x), N);
     simd_t<T,S> y = downsample_max(x);
 
-    assert(strictly_equal(vectorize(y), reference_downsample_max(vectorize(x),N)));
+    assert(strictly_equal(yref, vectorize(y)));
 }
 
 

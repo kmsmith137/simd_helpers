@@ -57,8 +57,8 @@ inline __m256 _kernel256_downsample2_max(__m256 a, __m256 b)
 
 inline __m256 _kernel256_downsample4_max(__m256 a, __m256 b, __m256 c, __m256 d)
 {
-    __m256 ac = _mm256_shuffle_ps(a, c, 0x88) + _mm256_shuffle_ps(a, c, 0xdd);
-    __m256 bd = _mm256_shuffle_ps(b, d, 0x88) + _mm256_shuffle_ps(b, d, 0xdd);
+    __m256 ac = _mm256_max_ps(_mm256_shuffle_ps(a, c, 0x88), _mm256_shuffle_ps(a, c, 0xdd));
+    __m256 bd = _mm256_max_ps(_mm256_shuffle_ps(b, d, 0x88), _mm256_shuffle_ps(b, d, 0xdd));
 
     __m256 u = _mm256_shuffle_ps(ac, bd, 0x22);
     __m256 v = _mm256_shuffle_ps(ac, bd, 0x77);
@@ -85,7 +85,7 @@ inline __m256 _kernel256_downsample8_max(__m256 a, __m256 b, __m256 c, __m256 d,
 
     __m256 u = _mm256_blend_ps(abcd, efgh, 0xf0);
     __m256 v = _mm256_permute2f128_ps(abcd, efgh, 0x21);
-    return u + v;
+    return _mm256_max_ps(u, v);
 }
 
 
