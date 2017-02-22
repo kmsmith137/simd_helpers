@@ -23,6 +23,7 @@
 #include "simd_trimatrix.hpp"
 #include "convert.hpp"
 #include "udsample.hpp"
+#include "downsample_max.hpp"
 
 namespace simd_helpers {
 #if 0

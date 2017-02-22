@@ -493,7 +493,6 @@ inline void test_downconvert(std::mt19937 &rng)
 // Upsample/downsample
 
 
-
 template<typename T>
 static vector<T> reference_downsample(const vector<T> &v, int N)
 {
@@ -550,6 +549,39 @@ static void test_upsample(std::mt19937 &rng)
     upsample(y, x);
 
     assert(strictly_equal(vectorize(y), reference_upsample(vectorize(x),N)));
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
+
+template<typename T>
+static vector<T> reference_downsample_max(const vector<T> &v, int N)
+{
+    assert(N > 0);
+    assert(v.size() > 0);
+    assert(v.size() % N == 0);
+
+    int m = v.size() / N;
+    vector<T> ret(m, 0);
+
+    for (int i = 0; i < m; i++) {
+	ret[i] = v[i*N];
+	for (int j = 1; j < N; j++)
+	    ret[i] = max(ret[i], v[i*N+j]);
+    }
+
+    return ret;
+}
+
+
+template<typename T, unsigned int S, unsigned int N>
+static void test_downsample_max(std::mt19937 &rng)
+{
+    simd_ntuple<T,S,N> x = gaussian_random_simd_ntuple<T,S,N> (rng);
+    simd_t<T,S> y = downsample_max(x);
+
+    assert(strictly_equal(vectorize(y), reference_downsample_max(vectorize(x),N)));
 }
 
 
@@ -967,6 +999,12 @@ inline void test_all(std::mt19937 &rng)
     test_upsample<int,8,2> (rng);
     test_upsample<int,8,4> (rng);
     test_upsample<int,8,8> (rng);
+
+    test_downsample_max<float,4,2> (rng);
+    test_downsample_max<float,4,4> (rng);
+    test_downsample_max<float,8,2> (rng);
+    test_downsample_max<float,8,4> (rng);
+    test_downsample_max<float,8,8> (rng);
 
     test_linear_algebra_kernels<float,4> (rng);
     test_linear_algebra_kernels<float,8> (rng);
