@@ -93,6 +93,10 @@ struct simd_ntuple
     inline simd_t<T,S> _vertical_sum(simd_t<T,S> u) const  { return v._vertical_sum(u+x); }
     inline simd_t<T,S> vertical_sum() const  { return v._vertical_sum(x); }
 
+    // vertical_max(): returns elementwise sum of all N simd_t's
+    inline simd_t<T,S> _vertical_max(simd_t<T,S> u) const  { return v._vertical_max(u.max(x)); }
+    inline simd_t<T,S> vertical_max() const  { return v._vertical_max(x); }
+
     // vertical_dot(): returns elementwise length-N dot product of simd_t's
     inline simd_t<T,S> _vertical_dot(const simd_ntuple<T,S,N> &t, simd_t<T,S> u) const  { return v._vertical_dot(t.v, u + x*t.x); }
     inline simd_t<T,S> _vertical_dotn(const simd_ntuple<T,S,N> &t, simd_t<T,S> u) const { return v._vertical_dotn(t.v, u - x*t.x); }
@@ -102,6 +106,12 @@ struct simd_ntuple
     {
 	v.horizontal_sum_in_place();
 	x = x.horizontal_sum();
+    }
+
+    inline void max_in_place(const simd_ntuple<T,S,N> &t)
+    {
+	v.max_in_place(t.v);
+	x = x.max(t.x);
     }
 
     // sum(): returns sum of all scalars in the simd_ntuple
@@ -143,10 +153,12 @@ struct simd_ntuple<T,S,0>
     inline simd_ntuple<T,S,0> _rdiv(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
 
     inline simd_t<T,S> _vertical_sum(simd_t<T,S> u) const { return u; }
+    inline simd_t<T,S> _vertical_max(simd_t<T,S> u) const { return u; }
     inline simd_t<T,S> _vertical_dot(const simd_ntuple<T,S,0> &t, simd_t<T,S> u) const { return u; }
     inline simd_t<T,S> _vertical_dotn(const simd_ntuple<T,S,0> &t, simd_t<T,S> u) const { return u; }
 
     inline void horizontal_sum_in_place() { }
+    inline void max_in_place(const simd_ntuple<T,S,0> &t) { }
 };
 
 
