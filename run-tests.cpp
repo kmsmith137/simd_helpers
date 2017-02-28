@@ -376,29 +376,29 @@ inline void test_is_all_zeros_inverse_masked(std::mt19937 &rng)
 // -------------------------------------------------------------------------------------------------
 
 
-// Tests both horizontal_sum() and sum().
+// For horizontal_sum(), horizontal_max(), etc.
 template<typename T, unsigned int S>
-inline void test_horizontal_sum(std::mt19937 &rng)
+inline void test_horizontal_reducer(const char *name, std::mt19937 &rng, simd_t<T,S> (*f1)(simd_t<T,S>), T (*f2)(simd_t<T,S>), T (*f3)(T,T))
 {
     const T epsilon = S * 2000 * machine_epsilon<T> ();
 
     simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -1000, 1000);
+    simd_t<T,S> hval = f1(x);
+    T sval = f2(x);
 
-    simd_t<T,S> hsum = x.horizontal_sum();
-    T ssum = x.sum();
-
-    T esum = 0;
-    for (unsigned int s = 0; s < S; s++)
-	esum += extract_slow(x, s);
+    T cval = extract_slow(x, 0);
+    for (unsigned int s = 1; s < S; s++)
+	cval = f3(cval, extract_slow(x,s));
     
-    if ((std::abs(ssum-esum) > epsilon) || (maxdiff(hsum, simd_t<T,S>(esum)) > epsilon)) {
-	cerr << "test_horizontal_sum(" << type_name<T>() << "," << S << ") failed\n"
+    if ((std::abs(sval-cval) > epsilon) || (maxdiff(hval, simd_t<T,S>(cval)) > epsilon)) {
+	cerr << "test_horizontal_reducer(" 
+	     << name << "," << type_name<T>() << "," << S << ") failed\n"
 	     << "   operand: " << x << endl
-	     << "   expected sum: " << esum << endl
-	     << "   result of sum(): " << ssum << "\n"
-	     << "   difference=" << (ssum-esum) << "\n"
-	     << "   result of horizontal_sum(): " << hsum << "\n"
-	     << "   difference=" << (hsum-esum) << "]\n"
+	     << "   expected result: " << cval << endl
+	     << "   result of vector->scalar reducer: " << sval << "\n"
+	     << "   difference=" << (sval-cval) << "\n"
+	     << "   result of vector->vector reducer: " << hval << "\n"
+	     << "   difference=" << (hval-cval) << "]\n"
 	     << "   epsilon: " << epsilon << endl;
 
 	exit(1);
@@ -798,8 +798,6 @@ inline void test_TS(std::mt19937 &rng)
 {
     test_basics<T,S>(rng);
     test_constructors<T,S>(rng);
-    test_horizontal_sum<T,S> (rng);
-
 
     test_compound_assignment_operator<T,S> ("+=", rng, 
 					    [](simd_t<T,S> &x, simd_t<T,S> y) { x += y; }, 
@@ -886,6 +884,16 @@ inline void test_TS(std::mt19937 &rng)
     test_masking_operator<T,S> ("apply_inverse_mask", rng, 
 				[](smask_t<T,S> m, simd_t<T,S> x, simd_t<T,S> y) { return x.apply_inverse_mask(m); },
 				[](bool m, T x, T y) { return m ? 0 : x; });
+
+    test_horizontal_reducer<T,S> ("sum", rng,
+				  [](simd_t<T,S> x) { return x.horizontal_sum(); },
+				  [](simd_t<T,S> x) { return x.sum(); },
+				  [](T x, T y) { return x+y; });
+
+    test_horizontal_reducer<T,S> ("max", rng,
+				  [](simd_t<T,S> x) { return x.horizontal_max(); },
+				  [](simd_t<T,S> x) { return x.max(); },
+				  [](T x, T y) { return std::max(x,y); });
 }
 
 
