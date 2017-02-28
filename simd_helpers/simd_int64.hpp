@@ -71,11 +71,20 @@ template<> struct simd_t<int64_t,2>
 	return _mm_blendv_epi8(nx, x, pos);
     }
 
+    // There's no simd intrinsic for 64-bit integer min/max, so we emulate it using comparison operators and blendv().
     inline simd_t<int64_t,2> min(simd_t<int64_t,2> t) const  { return _mm_blendv_epi8(x, t.x, _mm_cmpgt_epi64(x,t.x)); }
     inline simd_t<int64_t,2> max(simd_t<int64_t,2> t) const  { return _mm_blendv_epi8(t.x, x, _mm_cmpgt_epi64(x,t.x)); }
 
     inline simd_t<int64_t,2> horizontal_sum() const  { return _mm_add_epi64(x, _mm_shuffle_epi32(x, 0x4e)); }
-    inline int64_t sum() const                       { return _mm_extract_epi64(horizontal_sum().x, 0); }
+
+    inline simd_t<int64_t,2> horizontal_max() const
+    {
+	simd_t<int64_t,2> y = _mm_shuffle_epi32(x, 0x4e);
+	return this->max(y);
+    }
+
+    inline int64_t sum() const { return horizontal_sum().extract<0> (); }
+    inline int64_t max() const { return horizontal_max().extract<0> (); }
 
     inline int is_all_ones() const                                        { return _mm_test_all_ones(x); }
     inline int is_all_zeros() const                                       { return _mm_testz_si128(x, x); }
@@ -199,6 +208,7 @@ template<> struct simd_t<int64_t,4>
 #endif
     }
 
+    // There's no simd intrinsic for 64-bit integer min/max, so we emulate it using comparison operators and blendv().
     inline simd_t<int64_t,4> min(simd_t<int64_t,4> t) const
     {
 #ifdef __AVX2__
@@ -237,10 +247,32 @@ template<> struct simd_t<int64_t,4>
 #endif
     }
 
+    inline simd_t<int64_t,4> horizontal_max() const
+    {
+#ifdef __AVX2__
+	__m256i y = _mm256_permute2f128_si256(x, x, 0x01);
+	y = _mm256_blendv_epi8(y, x, _mm256_cmpgt_epi64(x,y));
+	__m256i z = _mm256_shuffle_epi32(y, 0x4e);
+	return  _mm256_blendv_epi8(z, y, _mm256_cmpgt_epi64(y,z));
+#else
+	simd_t<int64_t,2> x0 = extract_half<0>();
+	simd_t<int64_t,2> x1 = extract_half<1>();
+	simd_t<int64_t,2> y = x0.max(x1).horizontal_max();
+	return simd_t<int64_t,4> (y,y);
+#endif
+    }
+
     inline int64_t sum() const
     {
 	simd_t<int64_t,2> y = extract_half<0> () + extract_half<1> ();
 	return y.sum();
+    }
+
+    inline int64_t max() const
+    {
+	simd_t<int64_t,2> x0 = extract_half<0>();
+	simd_t<int64_t,2> x1 = extract_half<1>();
+	return x0.max(x1).max();
     }
 
     inline int is_all_ones() const                                        { return _mm256_testc_si256(x, _mm256_set1_epi32(-1)); }

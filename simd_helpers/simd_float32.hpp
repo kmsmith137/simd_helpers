@@ -66,11 +66,14 @@ template<> struct simd_t<float,4>
 	return y + _mm_permute_ps(y, 0x4e);       // (1032)_4 = 0x4e
     }
 
-    inline float sum() const
+    inline simd_t<float,4> horizontal_max() const
     {
-	simd_t<float,4> y = this->horizontal_sum();
-	return y.extract<0> ();
+	__m128 y = _mm_max_ps(x, _mm_permute_ps(x, 0xb1));   // (2301)_4 = 0xb1
+	return _mm_max_ps(y, _mm_permute_ps(y, 0x4e));       // (1032)_4 = 0x4e
     }
+
+    inline float sum() const { return horizontal_sum().extract<0>(); }
+    inline float max() const { return horizontal_max().extract<0>(); }
 
     // abs() is implemented by clearing the sign bit
     inline simd_t<float,4> abs() const   { return _mm_andnot_ps(_mm_set1_ps(-0.0), x); }
@@ -152,11 +155,15 @@ template<> struct simd_t<float,8>
 	return y + _mm256_permute2f128_ps(y, y, 0x01);
     }
 
-    inline float sum() const
+    inline simd_t<float,8> horizontal_max() const
     {
-	simd_t<float,4> y = _mm256_extractf128_ps(x,0) + _mm256_extractf128_ps(x,1);
-	return y.sum();
+	__m256 y = _mm256_max_ps(x, _mm256_permute_ps(x, 0xb1));   // (2301)_4 = 0xb1
+	y = _mm256_max_ps(y, _mm256_permute_ps(y, 0x4e));          // (1032)_4 = 0x4e
+	return _mm256_max_ps(y, _mm256_permute2f128_ps(y, y, 0x01));
     }
+
+    inline float sum() const { return horizontal_sum().extract<0> (); }
+    inline float max() const { return horizontal_max().extract<0> (); }
 
     inline simd_t<int,8> compare_eq(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_EQ_OQ)); }
     inline simd_t<int,8> compare_ne(simd_t<float,8> t) const  { return _mm256_castps_si256(_mm256_cmp_ps(x, t.x, _CMP_NEQ_OQ)); }

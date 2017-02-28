@@ -64,6 +64,9 @@ template<> struct simd_t<double,2>
 
     inline simd_t<double,2> horizontal_sum() const  { return x + _mm_permute_pd(x,0x01); }
     inline double sum() const                       { return _mm_cvtsd_f64(x + _mm_permute_pd(x,0x01)); }
+
+    inline simd_t<double,2> horizontal_max() const  { return _mm_max_pd(x, _mm_permute_pd(x,0x01)); }
+    inline double max() const                       { return _mm_cvtsd_f64(_mm_max_pd(x, _mm_permute_pd(x,0x01))); }
 	
     inline simd_t<int64_t,2> compare_eq(simd_t<double,2> t) const  { return _mm_castpd_si128(_mm_cmpeq_pd(x, t.x)); }
     inline simd_t<int64_t,2> compare_ne(simd_t<double,2> t) const  { return _mm_castpd_si128(_mm_cmpneq_pd(x, t.x)); }
@@ -141,11 +144,14 @@ template<> struct simd_t<double,4>
         return y + _mm256_permute2f128_pd(y, y, 0x01);
     }
 
-    inline double sum() const
+    inline simd_t<double,4> horizontal_max() const
     { 
-	simd_t<double,2> y = _mm256_extractf128_pd(x,0) + _mm256_extractf128_pd(x,1);
-	return y.sum();
+	__m256d y = _mm256_max_pd(x, _mm256_permute_pd(x, 0x05));
+        return _mm256_max_pd(y, _mm256_permute2f128_pd(y, y, 0x01));
     }
+
+    inline double sum() const { return horizontal_sum().extract<0>(); }
+    inline double max() const { return horizontal_max().extract<0>(); }
 
     inline simd_t<int64_t,4> compare_eq(simd_t<double,4> t) const  { return _mm256_castpd_si256(_mm256_cmp_pd(x, t.x, _CMP_EQ_OQ)); }
     inline simd_t<int64_t,4> compare_ne(simd_t<double,4> t) const  { return _mm256_castpd_si256(_mm256_cmp_pd(x, t.x, _CMP_NEQ_OQ)); }
