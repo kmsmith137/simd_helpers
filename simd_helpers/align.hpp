@@ -70,20 +70,20 @@ inline __m256i _align256b(__m256i x, __m256i y) { return y; }
 template<unsigned int Abytes, typename std::enable_if<((Abytes > 0) && (Abytes < 16)),int>::type = 0>
 inline __m256i _align256b(__m256i x, __m256i y) 
 { 
-    __m256i t = _mm256_permute2f128_ps(x, y, 0x21);
+    __m256i t = _mm256_permute2f128_si256(x, y, 0x21);
     return _mm256_alignr_epi8(t, x, Abytes);
 }
 
 template<unsigned int Abytes, typename std::enable_if<(Abytes==16),int>::type = 0>
 inline __m256i _align256b(__m256i x, __m256i y) 
 { 
-    return _mm256_permute2f128_ps(x, y, 0x21);
+    return _mm256_permute2f128_si256(x, y, 0x21);
 }
 
 template<unsigned int Abytes, typename std::enable_if<((Abytes > 16) && (Abytes < 32)),int>::type = 0>
 inline __m256i _align256b(__m256i x, __m256i y) 
 { 
-    __m256i t = _mm256_permute2f128_ps(x, y, 0x21);
+    __m256i t = _mm256_permute2f128_si256(x, y, 0x21);
     return _mm256_alignr_epi8(y, t, Abytes-16);
 }
 
@@ -91,12 +91,13 @@ inline __m256i _align256b(__m256i x, __m256i y)
 // -------------------------------------------------------------------------------------------------
 
 
+
 template<unsigned int A, typename T, unsigned int S, typename std::enable_if<((A <= S) && (S*sizeof(T)==16)),int>::type = 0>
 inline simd_t<T,S> align(simd_t<T,S> x, simd_t<T,S> y)
 {
     constexpr unsigned int Abytes = A * sizeof(T);
     __m128i ret = _align128b<Abytes> ((__m128i) x.x, (__m128i) y.x);
-    return static_cast<decltype(x.x)> (ret);
+    return reinterpret_cast<decltype(x.x)> (ret);
 }
 
 template<unsigned int A, typename T, unsigned int S, typename std::enable_if<((A <= S) && (S*sizeof(T)==32)),int>::type = 0>
@@ -104,7 +105,7 @@ inline simd_t<T,S> align(simd_t<T,S> x, simd_t<T,S> y)
 {
     constexpr unsigned int Abytes = A * sizeof(T);
     __m256i ret = _align256b<Abytes> ((__m256i) x.x, (__m256i) y.x);
-    return static_cast<decltype(x.x)> (ret);
+    return reinterpret_cast<decltype(x.x)> (ret);
 }
 
 
