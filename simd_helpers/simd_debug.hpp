@@ -21,6 +21,7 @@
 #include "simd_float64.hpp"
 #include "simd_ntuple.hpp"
 #include "simd_trimatrix.hpp"
+#include "align.hpp"
 #include "convert.hpp"
 #include "udsample.hpp"
 #include "downsample_max.hpp"

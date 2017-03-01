@@ -407,6 +407,98 @@ inline void test_horizontal_reducer(const char *name, std::mt19937 &rng, simd_t<
 
 
 // -------------------------------------------------------------------------------------------------
+//
+// void test_align<T,S>(rng)
+//    Tests all align() operations for a given (T,S)
+//
+// simd_t<T,S> align_slow(int A, simd_t<T,S> x, simd_t<T,S> y);
+//    Slow version of align() in which A is a function argument, not a template parameter.
+//
+// void align_slow(int A, simd_ntuple<T,S,N> &dst, const simd_ntuple<T,S,N> &x, const simd_ntuple<T,S,N> &src)
+//    Slow version of align() in which A is a function argument, not a template parameter.
+
+
+template<typename T, unsigned int S, unsigned int A1=S+1, typename std::enable_if<(A1==0),int>::type = 0>
+static simd_t<T,S> align_slow(int A, simd_t<T,S> x, simd_t<T,S> y)
+{
+    throw runtime_error("align_slow internal error");
+}
+
+template<typename T, unsigned int S, unsigned int A1=S+1, typename std::enable_if<(A1>0),int>::type = 0>
+static simd_t<T,S> align_slow(int A, simd_t<T,S> x, simd_t<T,S> y)
+{
+    return (A == A1-1) ? (align<A1-1>(x,y)) : align_slow<T,S,A1-1>(A,x,y);
+}
+
+
+template<typename T, unsigned int S, unsigned int N, unsigned int A1=S+1, typename std::enable_if<(A1==0),int>::type = 0>
+static void align_slow(int A, simd_ntuple<T,S,N> &dst, const simd_ntuple<T,S,N> &x, const simd_ntuple<T,S,N> &y)
+{
+    throw runtime_error("align_slow internal error");
+}
+
+template<typename T, unsigned int S, unsigned int N, unsigned int A1=S+1, typename std::enable_if<(A1>0),int>::type = 0>
+static void align_slow(int A, simd_ntuple<T,S,N> &dst, const simd_ntuple<T,S,N> &x, const simd_ntuple<T,S,N> &y)
+{
+    if (A == A1-1)
+	align<A1-1> (dst, x, y);
+    else
+	align_slow<T,S,N,A1-1> (A, dst, x, y);
+}
+
+
+template<typename T, unsigned int S, unsigned int N>
+static void test_align_ntuple(std::mt19937 &rng)
+{
+    for (unsigned int A = 0; A <= S; A++) {
+	simd_ntuple<T,S,N> x = uniform_random_simd_ntuple<T,S,N> (rng, 0, 100);
+	simd_ntuple<T,S,N> y = uniform_random_simd_ntuple<T,S,N> (rng, 0, 100);
+
+	simd_ntuple<T,S,N> t;
+	align_slow(A, t, x, y);
+
+	vector<T> vx = vectorize(x);
+	vector<T> vy = vectorize(y);
+	vector<T> vt = vectorize(t);
+
+	for (unsigned int i = 0; i < N; i++) {
+	    for (unsigned int s = 0; s < S; s++) {
+		T u = vt[i*S+s];
+		T v = (s+A < S) ? vx[i*S+(s+A)] : vy[i*S+(s+A-S)];
+		assert(u == v);
+	    }
+	}
+    }
+}
+
+
+template<typename T, unsigned int S>
+static void test_align(std::mt19937 &rng)
+{
+    for (unsigned int A = 0; A <= S; A++) {
+	simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, 0, 100);
+	simd_t<T,S> y = uniform_random_simd_t<T,S> (rng, 0, 100);
+	simd_t<T,S> t = align_slow(A, x, y);
+
+	vector<T> vx = vectorize(x);
+	vector<T> vy = vectorize(y);
+	vector<T> vt = vectorize(t);
+
+	for (unsigned int s = 0; s < S; s++) {
+	    T u = vt[s];
+	    T v = (s+A < S) ? vx[s+A] : vy[s+A-S];
+	    assert(u == v);
+	}
+    }
+
+    test_align_ntuple<T,S,1> (rng);
+    test_align_ntuple<T,S,2> (rng);
+    test_align_ntuple<T,S,3> (rng);
+    test_align_ntuple<T,S,4> (rng);
+}
+
+
+// -------------------------------------------------------------------------------------------------
 
 
 // convert(simd_t<T,S> &dst, simd_t<T2,S> src)
@@ -798,6 +890,7 @@ inline void test_TS(std::mt19937 &rng)
 {
     test_basics<T,S>(rng);
     test_constructors<T,S>(rng);
+    test_align<T,S>(rng);
 
     test_compound_assignment_operator<T,S> ("+=", rng, 
 					    [](simd_t<T,S> &x, simd_t<T,S> y) { x += y; }, 

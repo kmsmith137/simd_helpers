@@ -33,7 +33,6 @@ inline __m128 _kernel128_downsample2(__m128 a, __m128 b)
     __m128 u = _mm_shuffle_ps(a, b, 0x88);   // [a0 a2 b0 b2],  0x88 = (2020)_4
     __m128 v = _mm_shuffle_ps(a, b, 0xdd);   // [a1 a3 b1 b3],  0xdd = (3131)_4
     return u + v;
-
 }
 
 inline __m128 _kernel128_downsample4(__m128 a, __m128 b, __m128 c, __m128 d)
