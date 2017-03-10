@@ -49,6 +49,8 @@ template<typename T, unsigned int S> inline void convert(simd_t<T,S> &dst, simd_
 // Float <-> double conversions
 
 
+#ifdef __AVX__
+
 template<> inline void convert(simd_t<double,4> &dst, simd_t<float,4> src)         
 { 
     dst = _mm256_cvtps_pd(src.x); 
@@ -72,6 +74,8 @@ template<> inline void convert(simd_t<float,8> &dst, simd_ntuple<double,4,2> src
     convert(dst1, src.x);
     dst = simd_t<float,8> (dst0, dst1);
 }
+
+#endif  // __AVX__
 
 
 }  // namespace simd_helpers

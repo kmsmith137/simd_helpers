@@ -5,8 +5,8 @@
 #error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
 #endif
 
-#ifndef __AVX__
-#error "Fatal: either you're compiling on a machine which doesn't have the AVX instruction set, or you forgot the -march=native compiler flag"
+#ifndef __SSE4_2__
+#error "Either you're compiling on an old machine, or you forgot the -march=native compiler flag.  If this is really an old machine, see README.md"
 #endif
 
 #define SIMD_HELPERS_VERSION 2
@@ -18,6 +18,12 @@
 #define _mm256_blend_epi32(a, b, imm8)  _mm256_castps_si256(_mm256_blend_ps(_mm256_castsi256_ps(a), _mm256_castsi256_ps(b), imm8))
 #define _mm_blend_epi32(a, b, imm8)     _mm_castps_si128(_mm_blend_ps(_mm_castsi128_ps(a), _mm_castsi128_ps(b), imm8))
 #endif
+
+#ifndef __AVX__
+#define _mm_permute_ps(x, imm8)  _mm_shuffle_ps(x, x, imm8)
+#define _mm_permute_pd(x, imm8)  _mm_shuffle_pd(x, x, imm8)
+#endif
+
 
 namespace simd_helpers {
 #if 0

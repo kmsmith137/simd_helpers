@@ -94,10 +94,16 @@ template<> struct simd_t<float,4>
 };
 
 
+// blendv(mask,a,b) is morally equivalent to (mask ? a : b)
+inline simd_t<float,4> blendv(simd_t<int,4> mask, simd_t<float,4> a, simd_t<float,4> b)  { return _mm_blendv_ps(b.x, a.x, _mm_castsi128_ps(mask.x)); }
+
+
 // -------------------------------------------------------------------------------------------------
 //
 // simd_t<float,8>
 
+
+#ifdef __AVX__
 
 template<> struct simd_t<float,8>
 {
@@ -177,12 +183,11 @@ template<> struct simd_t<float,8>
 };
 
 
-// -------------------------------------------------------------------------------------------------
-
-
 // blendv(mask,a,b) is morally equivalent to (mask ? a : b)
-inline simd_t<float,4> blendv(simd_t<int,4> mask, simd_t<float,4> a, simd_t<float,4> b)  { return _mm_blendv_ps(b.x, a.x, _mm_castsi128_ps(mask.x)); }
 inline simd_t<float,8> blendv(simd_t<int,8> mask, simd_t<float,8> a, simd_t<float,8> b)  { return _mm256_blendv_ps(b.x, a.x, _mm256_castsi256_ps(mask.x)); }
+
+
+#endif  // __AVX__
 
 
 }  // namespace simd_helpers

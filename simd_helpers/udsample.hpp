@@ -15,17 +15,32 @@ namespace simd_helpers {
 }  // pacify emacs c-mode
 #endif
 
+
+// This file defines:
+//
+//   template<typename T, unsigned int S, unsigned int N>
+//   inline simd_t<T,S> downsample(const simd_ntuple<T,S,N> &v)
+//
+// 
+// Note: the downsampling kernel does not divide the result by N !!
+//
 // Note: not all upsampling/downsampling kernels have been implemented!  So far we only have
 //   upsampling    float32, int32
 //   downsampling  float32
 
 
+// Trivial downsampling/upsampling
+
+template<typename T, unsigned int S> 
+inline void upsample(simd_ntuple<T,S,1> &dst, simd_t<T,S> src) { dst.x = src; }
+
+template<typename T, unsigned int S>
+inline simd_t<T,S> downsample(const simd_ntuple<T,S,1> &src) { return src.x; }
+
+
 // -------------------------------------------------------------------------------------------------
 //
-// template<typename T, unsigned int S, unsigned int N>
-// inline simd_t<T,S> downsample(const simd_ntuple<T,S,N> &v)
-//
-// Note: the downsampling kernel does not divide the result by N !!
+// 128-bit
 
 
 inline __m128 _kernel128_downsample2(__m128 a, __m128 b)
@@ -42,6 +57,92 @@ inline __m128 _kernel128_downsample4(__m128 a, __m128 b, __m128 c, __m128 d)
     __m128 v = _kernel128_downsample2(c, d);
     return _kernel128_downsample2(u, v);
 }
+
+inline void _kernel128_upsample2(__m128 &a, __m128 &b, __m128 t)
+{
+    a = _mm_permute_ps(t, 0x50);  // (1100)_4
+    b = _mm_permute_ps(t, 0xfa);  // (3322)_4
+}
+
+inline void _kernel128_upsample4(__m128 &a, __m128 &b, __m128 &c, __m128 &d, __m128 t)
+{
+    a = _mm_permute_ps(t, 0x00);  // (0000)_4
+    b = _mm_permute_ps(t, 0x55);  // (1111)_4
+    c = _mm_permute_ps(t, 0xaa);  // (2222)_4
+    d = _mm_permute_ps(t, 0xff);  // (3333)_4
+}
+
+inline void _kernel128i_upsample2(__m128i &a, __m128i &b, __m128i t)
+{
+    a = _mm_shuffle_epi32(t, 0x50);  // (1100)_4
+    b = _mm_shuffle_epi32(t, 0xfa);  // (3322)_4
+}
+
+inline void _kernel128i_upsample4(__m128i &a, __m128i &b, __m128i &c, __m128i &d, __m128i t)
+{
+    a = _mm_shuffle_epi32(t, 0x00);  // (0000)_4
+    b = _mm_shuffle_epi32(t, 0x55);  // (1111)_4
+    c = _mm_shuffle_epi32(t, 0xaa);  // (2222)_4
+    d = _mm_shuffle_epi32(t, 0xff);  // (3333)_4
+}
+
+
+inline simd_t<float,4> downsample(const simd_ntuple<float,4,2> &t)
+{
+    return _kernel128_downsample2(t.extract<0>().x, 
+				  t.extract<1>().x);
+}
+
+
+inline simd_t<float,4> downsample(const simd_ntuple<float,4,4> &t)
+{
+    return _kernel128_downsample4(t.extract<0>().x, 
+				  t.extract<1>().x, 
+				  t.extract<2>().x, 
+				  t.extract<3>().x);
+}
+
+
+inline void upsample(simd_ntuple<float,4,2> &out, simd_t<float,4> t)
+{
+    _kernel128_upsample2(out.extract<0>().x, 
+			 out.extract<1>().x, 
+			 t.x);
+}
+
+
+inline void upsample(simd_ntuple<float,4,4> &out, simd_t<float,4> t)
+{
+    _kernel128_upsample4(out.extract<0>().x, 
+			 out.extract<1>().x, 
+			 out.extract<2>().x, 
+			 out.extract<3>().x, t.x);
+}
+
+inline void upsample(simd_ntuple<int,4,2> &out, simd_t<int,4> t)
+{
+    _kernel128i_upsample2(out.extract<0>().x, 
+			  out.extract<1>().x, 
+			  t.x);
+}
+
+
+inline void upsample(simd_ntuple<int,4,4> &out, simd_t<int,4> t)
+{
+    _kernel128i_upsample4(out.extract<0>().x, 
+			  out.extract<1>().x, 
+			  out.extract<2>().x, 
+			  out.extract<3>().x, t.x);
+}
+
+
+// -------------------------------------------------------------------------------------------------
+//
+// 256-bit
+
+
+#ifdef __AVX__
+
 
 inline __m256 _kernel256_downsample2(__m256 a, __m256 b)
 {
@@ -107,20 +208,6 @@ inline __m256 _kernel256_downsample8(__m256 a, __m256 b, __m256 c, __m256 d, __m
 }
 
 
-inline void _kernel128_upsample2(__m128 &a, __m128 &b, __m128 t)
-{
-    a = _mm_permute_ps(t, 0x50);  // (1100)_4
-    b = _mm_permute_ps(t, 0xfa);  // (3322)_4
-}
-
-inline void _kernel128_upsample4(__m128 &a, __m128 &b, __m128 &c, __m128 &d, __m128 t)
-{
-    a = _mm_permute_ps(t, 0x00);  // (0000)_4
-    b = _mm_permute_ps(t, 0x55);  // (1111)_4
-    c = _mm_permute_ps(t, 0xaa);  // (2222)_4
-    d = _mm_permute_ps(t, 0xff);  // (3333)_4
-}
-
 inline void _kernel256_upsample2(__m256 &a, __m256 &b, __m256 t)
 {
     // Is this fastest?
@@ -157,120 +244,6 @@ inline void _kernel256_upsample8(__m256 &a, __m256 &b, __m256 &c, __m256 &d, __m
     f = _mm256_permute_ps(v, 0x55);
     g = _mm256_permute_ps(v, 0xaa);
     h = _mm256_permute_ps(v, 0xff);
-}
-
-
-// -------------------------------------------------------------------------------------------------
-
-
-inline simd_t<float,4> downsample(const simd_ntuple<float,4,2> &t)
-{
-    return _kernel128_downsample2(t.extract<0>().x, 
-				  t.extract<1>().x);
-}
-
-
-inline simd_t<float,4> downsample(const simd_ntuple<float,4,4> &t)
-{
-    return _kernel128_downsample4(t.extract<0>().x, 
-				  t.extract<1>().x, 
-				  t.extract<2>().x, 
-				  t.extract<3>().x);
-}
-
-
-inline simd_t<float,8> downsample(const simd_ntuple<float,8,2> &t)
-{
-    return _kernel256_downsample2(t.extract<0>().x, 
-				  t.extract<1>().x);
-}
-
-
-inline simd_t<float,8> downsample(const simd_ntuple<float,8,4> &t)
-{
-    return _kernel256_downsample4(t.extract<0>().x, 
-				  t.extract<1>().x, 
-				  t.extract<2>().x, 
-				  t.extract<3>().x);
-}
-
-
-inline simd_t<float,8> downsample(const simd_ntuple<float,8,8> &t)
-{
-    return _kernel256_downsample8(t.extract<0>().x, 
-				  t.extract<1>().x, 
-				  t.extract<2>().x, 
-				  t.extract<3>().x,
-				  t.extract<4>().x, 
-				  t.extract<5>().x, 
-				  t.extract<6>().x, 
-				  t.extract<7>().x);
-}
-
-
-inline void upsample(simd_ntuple<float,4,2> &out, simd_t<float,4> t)
-{
-    _kernel128_upsample2(out.extract<0>().x, 
-			 out.extract<1>().x, 
-			 t.x);
-}
-
-
-inline void upsample(simd_ntuple<float,4,4> &out, simd_t<float,4> t)
-{
-    _kernel128_upsample4(out.extract<0>().x, 
-			 out.extract<1>().x, 
-			 out.extract<2>().x, 
-			 out.extract<3>().x, t.x);
-}
-
-
-inline void upsample(simd_ntuple<float,8,2> &out, simd_t<float,8> t)
-{
-    _kernel256_upsample2(out.extract<0>().x, 
-			 out.extract<1>().x, t.x);
-}
-
-
-inline void upsample(simd_ntuple<float,8,4> &out, simd_t<float,8> t)
-{
-    _kernel256_upsample4(out.extract<0>().x, 
-			 out.extract<1>().x, 
-			 out.extract<2>().x, 
-			 out.extract<3>().x, t.x);
-}
-
-
-inline void upsample(simd_ntuple<float,8,8> &out, simd_t<float,8> t)
-{
-    _kernel256_upsample8(out.extract<0>().x, 
-			 out.extract<1>().x, 
-			 out.extract<2>().x, 
-			 out.extract<3>().x,
-			 out.extract<4>().x, 
-			 out.extract<5>().x, 
-			 out.extract<6>().x, 
-			 out.extract<7>().x, t.x);
-}
-
-
-// -------------------------------------------------------------------------------------------------
-//
-// Integer versions of the upsample-type routines.
-
-
-inline void _kernel128i_upsample2(__m128i &a, __m128i &b, __m128i t)
-{
-    a = _mm_shuffle_epi32(t, 0x50);  // (1100)_4
-    b = _mm_shuffle_epi32(t, 0xfa);  // (3322)_4
-}
-
-inline void _kernel128i_upsample4(__m128i &a, __m128i &b, __m128i &c, __m128i &d, __m128i t)
-{
-    a = _mm_shuffle_epi32(t, 0x00);  // (0000)_4
-    b = _mm_shuffle_epi32(t, 0x55);  // (1111)_4
-    c = _mm_shuffle_epi32(t, 0xaa);  // (2222)_4
-    d = _mm_shuffle_epi32(t, 0xff);  // (3333)_4
 }
 
 inline void _kernel256i_upsample2(__m256i &a, __m256i &b, __m256i t)
@@ -311,20 +284,61 @@ inline void _kernel256i_upsample8(__m256i &a, __m256i &b, __m256i &c, __m256i &d
 }
 
 
-inline void upsample(simd_ntuple<int,4,2> &out, simd_t<int,4> t)
+inline simd_t<float,8> downsample(const simd_ntuple<float,8,2> &t)
 {
-    _kernel128i_upsample2(out.extract<0>().x, 
-			  out.extract<1>().x, 
-			  t.x);
+    return _kernel256_downsample2(t.extract<0>().x, 
+				  t.extract<1>().x);
 }
 
 
-inline void upsample(simd_ntuple<int,4,4> &out, simd_t<int,4> t)
+inline simd_t<float,8> downsample(const simd_ntuple<float,8,4> &t)
 {
-    _kernel128i_upsample4(out.extract<0>().x, 
-			  out.extract<1>().x, 
-			  out.extract<2>().x, 
-			  out.extract<3>().x, t.x);
+    return _kernel256_downsample4(t.extract<0>().x, 
+				  t.extract<1>().x, 
+				  t.extract<2>().x, 
+				  t.extract<3>().x);
+}
+
+
+inline simd_t<float,8> downsample(const simd_ntuple<float,8,8> &t)
+{
+    return _kernel256_downsample8(t.extract<0>().x, 
+				  t.extract<1>().x, 
+				  t.extract<2>().x, 
+				  t.extract<3>().x,
+				  t.extract<4>().x, 
+				  t.extract<5>().x, 
+				  t.extract<6>().x, 
+				  t.extract<7>().x);
+}
+
+
+inline void upsample(simd_ntuple<float,8,2> &out, simd_t<float,8> t)
+{
+    _kernel256_upsample2(out.extract<0>().x, 
+			 out.extract<1>().x, t.x);
+}
+
+
+inline void upsample(simd_ntuple<float,8,4> &out, simd_t<float,8> t)
+{
+    _kernel256_upsample4(out.extract<0>().x, 
+			 out.extract<1>().x, 
+			 out.extract<2>().x, 
+			 out.extract<3>().x, t.x);
+}
+
+
+inline void upsample(simd_ntuple<float,8,8> &out, simd_t<float,8> t)
+{
+    _kernel256_upsample8(out.extract<0>().x, 
+			 out.extract<1>().x, 
+			 out.extract<2>().x, 
+			 out.extract<3>().x,
+			 out.extract<4>().x, 
+			 out.extract<5>().x, 
+			 out.extract<6>().x, 
+			 out.extract<7>().x, t.x);
 }
 
 
@@ -357,13 +371,7 @@ inline void upsample(simd_ntuple<int,8,8> &out, simd_t<int,8> t)
 }
 
 
-// Trivial downsampling/upsampling
-
-template<typename T, unsigned int S> 
-inline void upsample(simd_ntuple<T,S,1> &dst, simd_t<T,S> src) { dst.x = src; }
-
-template<typename T, unsigned int S>
-inline simd_t<T,S> downsample(const simd_ntuple<T,S,1> &src) { return src.x; }
+#endif  // __AVX__
 
 
 }  // namespace simd_helpers
