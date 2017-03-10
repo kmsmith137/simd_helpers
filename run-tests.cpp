@@ -1131,12 +1131,36 @@ inline void test_all(std::mt19937 &rng)
 
 int main(int argc, char **argv)
 {
+    string avx2 = "no";
+    string f16c = "no";
+    string avx = "no";
+    string sse4_2 = "no";
+
+#ifdef __AVX2__
+    avx2 = "yes";
+#endif
+
+#ifdef __F16C__
+    f16c = "yes";
+#endif
+
+#ifdef __AVX__
+    avx = "yes";
+#endif
+
+#ifdef __SSE4_2__
+    sse4_2 = "yes";
+#endif
+
+    string arch = "avx2=" + avx2 + ", f16c=" + f16c + ", avx=" + avx + ", sse4_2=" + sse4_2;
+    cout << "simd_helpers: starting tests (" << arch << ")\n";
+
     std::random_device rd;
     std::mt19937 rng(rd());
 
     for (int iter = 0; iter < 1000; iter++)
 	simd_helpers::test_all(rng);
-
+    
     cout << "simd_helpers: all tests passed\n";
     return 0;
 }
