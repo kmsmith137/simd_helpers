@@ -9,7 +9,7 @@
 #error "Fatal: either you're compiling on a machine which doesn't have the AVX instruction set, or you forgot the -march=native compiler flag"
 #endif
 
-#define SIMD_HELPERS_VERSION 2
+#define SIMD_HELPERS_VERSION 3
 
 #include "immintrin.h"
 
