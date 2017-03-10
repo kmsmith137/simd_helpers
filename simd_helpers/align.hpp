@@ -40,12 +40,7 @@ namespace simd_helpers {
 
 // -------------------------------------------------------------------------------------------------
 //
-// "Thin" wrappers around _mm_alignr_epi8() or __m256_alignr_epi8().
-//
-//    __m128i _align128b<Abytes> (__m128i, __m128i)
-//    __m256i _align256b<Abytes> (__m256i, __m256i)
-//
-// The template parameter Abytes is the align count in bytes.
+// 128-bit
 
 
 template<unsigned int Abytes, typename std::enable_if<(Abytes==0),int>::type = 0>
@@ -59,6 +54,22 @@ inline __m128i _align128b(__m128i x, __m128i y)
 { 
     return _mm_alignr_epi8(y, x, Abytes);
 }
+
+template<unsigned int A, typename T, unsigned int S, typename std::enable_if<((A <= S) && (S*sizeof(T)==16)),int>::type = 0>
+inline simd_t<T,S> align(simd_t<T,S> x, simd_t<T,S> y)
+{
+    constexpr unsigned int Abytes = A * sizeof(T);
+    __m128i ret = _align128b<Abytes> ((__m128i) x.x, (__m128i) y.x);
+    return reinterpret_cast<decltype(x.x)> (ret);
+}
+
+
+// -------------------------------------------------------------------------------------------------
+//
+// 256-bit
+
+
+#ifdef __AVX__
 
 
 template<unsigned int Abytes, typename std::enable_if<(Abytes==0),int>::type = 0>
@@ -106,18 +117,6 @@ inline __m256i _align256b(__m256i x, __m256i y)
 }
 
 
-// -------------------------------------------------------------------------------------------------
-
-
-
-template<unsigned int A, typename T, unsigned int S, typename std::enable_if<((A <= S) && (S*sizeof(T)==16)),int>::type = 0>
-inline simd_t<T,S> align(simd_t<T,S> x, simd_t<T,S> y)
-{
-    constexpr unsigned int Abytes = A * sizeof(T);
-    __m128i ret = _align128b<Abytes> ((__m128i) x.x, (__m128i) y.x);
-    return reinterpret_cast<decltype(x.x)> (ret);
-}
-
 template<unsigned int A, typename T, unsigned int S, typename std::enable_if<((A <= S) && (S*sizeof(T)==32)),int>::type = 0>
 inline simd_t<T,S> align(simd_t<T,S> x, simd_t<T,S> y)
 {
@@ -125,6 +124,9 @@ inline simd_t<T,S> align(simd_t<T,S> x, simd_t<T,S> y)
     __m256i ret = _align256b<Abytes> ((__m256i) x.x, (__m256i) y.x);
     return reinterpret_cast<decltype(x.x)> (ret);
 }
+
+
+#endif  // __AVX__
 
 
 // -------------------------------------------------------------------------------------------------

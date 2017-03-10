@@ -1058,8 +1058,10 @@ inline void test_floating_point_T(std::mt19937 &rng)
     constexpr unsigned int S = 16 / sizeof(T);
 
     test_floating_point_TS<T,S> (rng);
+#ifdef __AVX__
     test_floating_point_TS<T,2*S> (rng);
     test_merging_constructor<T,S> (rng);
+#endif
 }
 
 template<typename T>
@@ -1068,8 +1070,10 @@ inline void test_integer_T(std::mt19937 &rng)
     constexpr unsigned int S = 16 / sizeof(T);
 
     test_integer_TS<T,S> (rng);
+#ifdef __AVX__
     test_integer_TS<T,2*S> (rng);
     test_merging_constructor<T,S> (rng);
+#endif
 }
 
 inline void test_all(std::mt19937 &rng)
@@ -1079,39 +1083,46 @@ inline void test_all(std::mt19937 &rng)
     test_floating_point_T<float> (rng);
     test_floating_point_T<double> (rng);
 
+    test_downsample<float,4,2> (rng);
+    test_downsample<float,4,4> (rng);
+    
+    test_downsample_max<float,4,2> (rng);
+    test_downsample_max<float,4,4> (rng);
+
+    test_upsample<float,4,2> (rng);
+    test_upsample<float,4,4> (rng);
+    
+    test_upsample<int,4,2> (rng);
+    test_upsample<int,4,4> (rng);
+
+    test_linear_algebra_kernels<float,4> (rng);
+    test_linear_algebra_kernels<double,2> (rng);
+
+#ifdef __AVX__
     test_convert<float,double,4> (rng);
     test_convert<double,float,4> (rng);
     test_upconvert<double,float,4,2> (rng);
     test_downconvert<float,double,4,2> (rng);
 
-    test_downsample<float,4,2> (rng);
-    test_downsample<float,4,4> (rng);
     test_downsample<float,8,2> (rng);
     test_downsample<float,8,4> (rng);
     test_downsample<float,8,8> (rng);
-    
-    test_upsample<float,4,2> (rng);
-    test_upsample<float,4,4> (rng);
-    test_upsample<float,8,2> (rng);
-    test_upsample<float,8,4> (rng);
-    test_upsample<float,8,8> (rng);
-    
-    test_upsample<int,4,2> (rng);
-    test_upsample<int,4,4> (rng);
-    test_upsample<int,8,2> (rng);
-    test_upsample<int,8,4> (rng);
-    test_upsample<int,8,8> (rng);
 
-    test_downsample_max<float,4,2> (rng);
-    test_downsample_max<float,4,4> (rng);
     test_downsample_max<float,8,2> (rng);
     test_downsample_max<float,8,4> (rng);
     test_downsample_max<float,8,8> (rng);
 
-    test_linear_algebra_kernels<float,4> (rng);
+    test_upsample<float,8,2> (rng);
+    test_upsample<float,8,4> (rng);
+    test_upsample<float,8,8> (rng);
+
+    test_upsample<int,8,2> (rng);
+    test_upsample<int,8,4> (rng);
+    test_upsample<int,8,8> (rng);
+
     test_linear_algebra_kernels<float,8> (rng);
-    test_linear_algebra_kernels<double,2> (rng);
     test_linear_algebra_kernels<double,4> (rng);
+#endif
 }
 
 

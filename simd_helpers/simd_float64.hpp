@@ -82,11 +82,16 @@ template<> struct simd_t<double,2>
 template<> inline double simd_t<double,2>::extract<0>() const { return _mm_cvtsd_f64(x); }
 template<> inline double simd_t<double,2>::extract<1>() const { return _mm_cvtsd_f64(_mm_permute_pd(x,0x01)); }
 
+// blendv(mask,a,b) is morally equivalent to (mask ? a : b)
+inline simd_t<double,2> blendv(simd_t<int64_t,2> mask, simd_t<double,2> a, simd_t<double,2> b)  { return _mm_blendv_pd(b.x, a.x, _mm_castsi128_pd(mask.x)); }
+
 
 // -------------------------------------------------------------------------------------------------
 //
 // simd_t<double,4>
 
+
+#ifdef __AVX__
 
 template<> struct simd_t<double,4>
 {
@@ -165,12 +170,11 @@ template<> struct simd_t<double,4>
 };
 
 
-// -------------------------------------------------------------------------------------------------
-
-
 // blendv(mask,a,b) is morally equivalent to (mask ? a : b)
-inline simd_t<double,2> blendv(simd_t<int64_t,2> mask, simd_t<double,2> a, simd_t<double,2> b)  { return _mm_blendv_pd(b.x, a.x, _mm_castsi128_pd(mask.x)); }
 inline simd_t<double,4> blendv(simd_t<int64_t,4> mask, simd_t<double,4> a, simd_t<double,4> b)  { return _mm256_blendv_pd(b.x, a.x, _mm256_castsi256_pd(mask.x)); }
+
+
+#endif
 
 
 }  // namespace simd_helpers
