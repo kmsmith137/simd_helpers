@@ -70,8 +70,17 @@ inline __m256i _align256b(__m256i x, __m256i y) { return y; }
 template<unsigned int Abytes, typename std::enable_if<((Abytes > 0) && (Abytes < 16)),int>::type = 0>
 inline __m256i _align256b(__m256i x, __m256i y) 
 { 
+#ifdef __AVX2__
     __m256i t = _mm256_permute2f128_si256(x, y, 0x21);
     return _mm256_alignr_epi8(t, x, Abytes);
+#else
+    __m128i x0 = _mm256_extractf128_si256(x, 0);
+    __m128i x1 = _mm256_extractf128_si256(x, 1);
+    __m128i y0 = _mm256_extractf128_si256(y, 0);
+    __m128i z0 = _mm_alignr_epi8(x1, x0, Abytes);
+    __m128i z1 = _mm_alignr_epi8(y0, x1, Abytes);
+    return _mm256_insertf128_si256(_mm256_castsi128_si256(z0), z1, 1);
+#endif
 }
 
 template<unsigned int Abytes, typename std::enable_if<(Abytes==16),int>::type = 0>
@@ -83,8 +92,17 @@ inline __m256i _align256b(__m256i x, __m256i y)
 template<unsigned int Abytes, typename std::enable_if<((Abytes > 16) && (Abytes < 32)),int>::type = 0>
 inline __m256i _align256b(__m256i x, __m256i y) 
 { 
+#ifdef __AVX2__
     __m256i t = _mm256_permute2f128_si256(x, y, 0x21);
     return _mm256_alignr_epi8(y, t, Abytes-16);
+#else
+    __m128i x1 = _mm256_extractf128_si256(x, 1);
+    __m128i y0 = _mm256_extractf128_si256(y, 0);
+    __m128i y1 = _mm256_extractf128_si256(y, 1);
+    __m128i z0 = _mm_alignr_epi8(y0, x1, Abytes-16);
+    __m128i z1 = _mm_alignr_epi8(y1, y0, Abytes-16);
+    return _mm256_insertf128_si256(_mm256_castsi128_si256(z0), z1, 1);
+#endif
 }
 
 
