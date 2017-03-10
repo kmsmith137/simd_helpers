@@ -31,7 +31,7 @@ template<typename T, unsigned int S>
 inline void test_basics(std::mt19937 &rng)
 {
     vector<T> v = uniform_randvec<T> (rng, S, -1000, 1000);
-    simd_t<T,S> x = simd_t<T,S>::loadu(&v[0]);
+    simd_t<T,S> x = simd_load<T,S>(&v[0]);
 
     // note that if extract<>() doesn't work, there's no point printing an error message, 
     // since the print routines use extract<>(), so their output would be unreliable

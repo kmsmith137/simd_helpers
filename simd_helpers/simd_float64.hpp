@@ -33,8 +33,8 @@ template<> struct simd_t<double,2>
     static inline simd_t<double,2> zero()  { return _mm_setzero_pd(); }
     static inline simd_t<double,2> range() { return _mm_set_pd(1.0, 0.0); }
 
-    static inline simd_t<double,2> load(const double *p)  { return _mm_load_pd(p); }
-    static inline simd_t<double,2> loadu(const double *p) { return _mm_loadu_pd(p); }
+    inline void load(const double *p)  { x = _mm_load_pd(p); }
+    inline void loadu(const double *p) { x = _mm_loadu_pd(p); }
 
     inline void store(double *p) const  { _mm_store_pd(p,x); }
     inline void storeu(double *p) const { _mm_storeu_pd(p,x); }
@@ -100,8 +100,8 @@ template<> struct simd_t<double,4>
     static simd_t<double,4> zero()  { return _mm256_setzero_pd(); }
     static simd_t<double,4> range() { return _mm256_set_pd(3.0, 2.0, 1.0, 0.0); }
 
-    static inline simd_t<double,4> load(const double *p)  { return _mm256_load_pd(p); }
-    static inline simd_t<double,4> loadu(const double *p) { return _mm256_loadu_pd(p); }
+    inline void load(const double *p)  { x = _mm256_load_pd(p); }
+    inline void loadu(const double *p) { x = _mm256_loadu_pd(p); }
 
     inline void store(double *p) const  { _mm256_store_pd(p,x); }
     inline void storeu(double *p) const { _mm256_storeu_pd(p,x); }

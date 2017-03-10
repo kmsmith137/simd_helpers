@@ -35,6 +35,26 @@ namespace simd_helpers {
 // See extended comment below for more info.
 template<typename T, unsigned int S> struct simd_t;
 
+
+// simd_load(): alternate load() syntax which uses a boolean template argument to select between aligned/unaligned
+template<typename T, unsigned int S, bool Aligned=false, typename std::enable_if<Aligned,int>::type = 0>
+inline simd_t<T,S> simd_load(const T *p)
+{
+    simd_t<T,S> ret;
+    ret.load(p);
+    return ret;
+}
+
+template<typename T, unsigned int S, bool Aligned=false, typename std::enable_if<(!Aligned),int>::type = 0>
+inline simd_t<T,S> simd_load(const T *p)
+{
+    simd_t<T,S> ret;
+    ret.loadu(p);
+    return ret;
+}
+
+
+
 template<typename T, unsigned int S, unsigned int N> struct simd_ntuple;     // "small" N-tuple of simd_t's (simd_ntuple.hpp)
 template<typename T, unsigned int S, unsigned int N> struct simd_trimatrix;  // "small" (N,N) triangular matrix (simd_trimatrix.hpp)
 

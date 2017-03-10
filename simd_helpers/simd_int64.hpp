@@ -32,8 +32,8 @@ template<> struct simd_t<int64_t,2>
     static inline simd_t<int64_t,2> zero()  { return _mm_setzero_si128(); }
     static inline simd_t<int64_t,2> range() { return _mm_set_epi64x(1, 0); }
 
-    static inline simd_t<int64_t,2> load(const int64_t *p)  { return _mm_load_si128((const __m128i *) p); }
-    static inline simd_t<int64_t,2> loadu(const int64_t *p) { return _mm_loadu_si128((const __m128i *) p); }
+    inline void load(const int64_t *p)  { x = _mm_load_si128((const __m128i *) p); }
+    inline void loadu(const int64_t *p) { x = _mm_loadu_si128((const __m128i *) p); }
 
     inline void store(int64_t *p) const  { _mm_store_si128((__m128i *)p, x); }
     inline void storeu(int64_t *p) const { _mm_storeu_si128((__m128i *)p, x); }
@@ -126,8 +126,8 @@ template<> struct simd_t<int64_t,4>
     static inline simd_t<int64_t,4> zero()  { return _mm256_setzero_si256(); }
     static inline simd_t<int64_t,4> range() { return _mm256_set_epi64x(3, 2, 1, 0); }
 
-    static inline simd_t<int64_t,4> load(const int64_t *p)  { return _mm256_load_si256((const __m256i *) p); }
-    static inline simd_t<int64_t,4> loadu(const int64_t *p) { return _mm256_loadu_si256((const __m256i *) p); }
+    inline void load(const int64_t *p)  { x = _mm256_load_si256((const __m256i *) p); }
+    inline void loadu(const int64_t *p) { x = _mm256_loadu_si256((const __m256i *) p); }
 
     inline void store(int64_t *p) const  { _mm256_store_si256((__m256i *)p, x); }
     inline void storeu(int64_t *p) const { _mm256_storeu_si256((__m256i *)p, x); }

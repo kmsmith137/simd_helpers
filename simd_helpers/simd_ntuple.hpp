@@ -40,7 +40,7 @@ struct simd_ntuple
     inline void loadu(const T *p)
     {
 	v.loadu(p);
-	x = simd_t<T,S>::loadu(p+(N-1)*S);
+	x.loadu(p+(N-1)*S);
     }
 
     inline void storeu(T *p) const

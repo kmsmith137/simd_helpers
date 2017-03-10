@@ -139,7 +139,7 @@ template<typename T, unsigned int S>
 inline simd_t<T,S> pack_simd_t(const std::vector<T> &v)
 {
     assert(v.size() == S);
-    return simd_t<T,S>::loadu(&v[0]);
+    return simd_load<T,S> (&v[0]);
 }
 
 
