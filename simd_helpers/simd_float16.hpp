@@ -15,12 +15,16 @@ namespace simd_helpers {
 }  // pacify emacs c-mode
 #endif
 
+// Note: float16 is a storage type only, so the only inlines implemented are load/store
+// type operations.  We let the pointer type be an arbitrary type (T *), so that the caller
+// can use whatever is convenient.
 
-template<typename T, bool Aligned=false>
+
+template<bool Aligned=false, typename T>
 inline void simd_load_float16(simd_ntuple<float,8,2> &dst, const T *p)
 {
 #if defined(__F16C__) && defined(__AVX__)
-    simd_t<int,8> x = simd_load<int,8,Aligned> (p);
+    simd_t<int,8> x = simd_load<int,8,Aligned> ((int *)p);
     simd_t<int,4> x0 = x.template extract_half<0>();
     simd_t<int,4> x1 = x.template extract_half<1>();
     
@@ -32,7 +36,7 @@ inline void simd_load_float16(simd_ntuple<float,8,2> &dst, const T *p)
 }
 
 
-template<typename T, bool Aligned=false, bool Streaming=false>
+template<bool Aligned=false, bool Streaming=false, typename T>
 inline void simd_store_float16(T *p, const simd_ntuple<float,8,2> &src)
 {
 #if defined(__F16C__) && defined(__AVX__)

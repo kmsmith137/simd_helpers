@@ -61,19 +61,19 @@ inline simd_t<T,S> simd_load(const T *p)
     return ret;
 }
 
-template<typename T, unsigned int S, bool Aligned=false, bool Streaming=false, typename std::enable_if<(Aligned && Streaming),int>::type = 0>
+template<bool Aligned=false, bool Streaming=false, typename T, unsigned int S, typename std::enable_if<(Aligned && Streaming),int>::type = 0>
 inline void simd_store(T *p, simd_t<T,S> x)
 {
     x.stores(p);
 }
 
-template<typename T, unsigned int S, bool Aligned=false, bool Streaming=false, typename std::enable_if<(Aligned && !Streaming),int>::type = 0>
+template<bool Aligned=false, bool Streaming=false, typename T, unsigned int S, typename std::enable_if<(Aligned && !Streaming),int>::type = 0>
 inline void simd_store(T *p, simd_t<T,S> x)
 {
     x.store(p);
 }
 
-template<typename T, unsigned int S, bool Aligned=false, bool Streaming=false, typename std::enable_if<(!Aligned),int>::type = 0>
+template<bool Aligned=false, bool Streaming=false, typename T, unsigned int S, typename std::enable_if<(!Aligned),int>::type = 0>
 inline void simd_store(T *p, simd_t<T,S> x)
 {
     x.storeu(p);
