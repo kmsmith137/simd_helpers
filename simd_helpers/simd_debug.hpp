@@ -231,6 +231,11 @@ inline T maxdiff(simd_t<T,S> v, simd_t<T,S> w)
     return maxdiff(vectorize(v), vectorize(w));
 }
 
+template<typename T, unsigned int S, unsigned int N>
+inline T maxdiff(simd_ntuple<T,S,N> &v, simd_ntuple<T,S,N> &w)
+{
+    return maxdiff(vectorize(v), vectorize(w));
+}
 
 template<typename T, typename S>
 inline T maxabs(S n, const T *v)
