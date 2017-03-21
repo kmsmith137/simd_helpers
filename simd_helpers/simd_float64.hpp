@@ -38,6 +38,7 @@ template<> struct simd_t<double,2>
 
     inline void store(double *p) const  { _mm_store_pd(p,x); }
     inline void storeu(double *p) const { _mm_storeu_pd(p,x); }
+    inline void stores(double *p) const { _mm_stream_pd(p,x); }
 
     // Defined below
     template<unsigned int M> inline double extract() const;
@@ -110,6 +111,7 @@ template<> struct simd_t<double,4>
 
     inline void store(double *p) const  { _mm256_store_pd(p,x); }
     inline void storeu(double *p) const { _mm256_storeu_pd(p,x); }
+    inline void stores(double *p) const { _mm256_stream_pd(p,x); }
 
     template<unsigned int M> 
     inline double extract() const

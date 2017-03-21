@@ -38,6 +38,7 @@ template<> struct simd_t<float,4>
 
     inline void store(float *p) const  { _mm_store_ps(p,x); }
     inline void storeu(float *p) const { _mm_storeu_ps(p,x); }
+    inline void stores(float *p) const { _mm_stream_ps(p,x); }
 
     template<unsigned int M> 
     inline float extract() const
@@ -122,6 +123,7 @@ template<> struct simd_t<float,8>
 
     inline void store(float *p) const  { _mm256_store_ps(p,x); }
     inline void storeu(float *p) const { _mm256_storeu_ps(p,x); }
+    inline void stores(float *p) const { _mm256_stream_ps(p,x); }
 
     template<unsigned int M> 
     inline float extract() const

@@ -37,6 +37,7 @@ template<> struct simd_t<int,4>
 
     inline void store(int *p) const  { _mm_store_si128((__m128i *)p, x); }
     inline void storeu(int *p) const { _mm_storeu_si128((__m128i *)p, x); }
+    inline void stores(int *p) const { _mm_stream_si128((__m128i *)p, x); }
 
     template<unsigned int M> inline int extract() const  { return _mm_extract_epi32(x, M); }
 
@@ -131,6 +132,7 @@ template<> struct simd_t<int,8>
 
     inline void store(int *p) const  { _mm256_store_si256((__m256i *)p, x); }
     inline void storeu(int *p) const { _mm256_storeu_si256((__m256i *)p, x); }
+    inline void stores(int *p) const { _mm256_stream_si256((__m256i *)p, x); }
 
     template<unsigned int M> inline int extract() const                 { return _mm256_extract_epi32(x,M); }
     template<unsigned int M> inline simd_t<int,4> extract_half() const  { return _mm256_extractf128_si256(x,M); }

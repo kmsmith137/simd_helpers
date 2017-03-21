@@ -43,6 +43,8 @@ template<typename T, unsigned int S> struct simd_t;
 
 
 // simd_load(): alternate load() syntax which uses a boolean template argument to select between aligned/unaligned
+// simd_store(): alternate store() syntax which uses a boolean template argument to select between aligned/unaligned
+
 template<typename T, unsigned int S, bool Aligned=false, typename std::enable_if<Aligned,int>::type = 0>
 inline simd_t<T,S> simd_load(const T *p)
 {
@@ -59,10 +61,31 @@ inline simd_t<T,S> simd_load(const T *p)
     return ret;
 }
 
+template<typename T, unsigned int S, bool Aligned=false, bool Streaming=false, typename std::enable_if<(Aligned && Streaming),int>::type = 0>
+inline void simd_store(T *p, simd_t<T,S> x)
+{
+    x.stores(p);
+}
+
+template<typename T, unsigned int S, bool Aligned=false, bool Streaming=false, typename std::enable_if<(Aligned && !Streaming),int>::type = 0>
+inline void simd_store(T *p, simd_t<T,S> x)
+{
+    x.store(p);
+}
+
+template<typename T, unsigned int S, bool Aligned=false, bool Streaming=false, typename std::enable_if<(!Aligned),int>::type = 0>
+inline void simd_store(T *p, simd_t<T,S> x)
+{
+    x.storeu(p);
+}
 
 
-template<typename T, unsigned int S, unsigned int N> struct simd_ntuple;     // "small" N-tuple of simd_t's (simd_ntuple.hpp)
-template<typename T, unsigned int S, unsigned int N> struct simd_trimatrix;  // "small" (N,N) triangular matrix (simd_trimatrix.hpp)
+// "Small" N-tuple of simd_t's (simd_ntuple.hpp)
+template<typename T, unsigned int S, unsigned int N> struct simd_ntuple; 
+
+// "Small" (N,N) triangular matrix (simd_trimatrix.hpp)
+template<typename T, unsigned int S, unsigned int N> struct simd_trimatrix;  
+
 
 // These two blocks define mask types, which are returned by comparison operators.
 //    smask_t<T> = scalar mask type (signed integer type with same size as T)
