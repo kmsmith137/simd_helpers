@@ -11,6 +11,7 @@
 
 #define SIMD_HELPERS_VERSION 3
 
+#include <type_traits>
 #include "immintrin.h"
 
 #ifndef __AVX2__
