@@ -10,6 +10,7 @@
 #include "simd_helpers/core.hpp"
 #include "simd_helpers/simd_int32.hpp"       // simd_t<int,S>
 #include "simd_helpers/simd_int64.hpp"       // simd_t<int64_t,S>
+#include "simd_helpers/simd_float16.hpp"     // 16-bit floating-point (storage type only)
 #include "simd_helpers/simd_float32.hpp"     // simd_t<float,S>
 #include "simd_helpers/simd_float64.hpp"     // simd_t<double,S>
 #include "simd_helpers/simd_ntuple.hpp"      // simd_ntuple<T,S,N>
