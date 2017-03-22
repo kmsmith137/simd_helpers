@@ -885,7 +885,7 @@ void test_linear_algebra_kernels(std::mt19937 &rng)
 
 
 template<unsigned int S>
-static void test_float16_kernels(std::mt19937 &rng)
+inline void test_float16_kernels(std::mt19937 &rng)
 {
     vector<float> v(2*S, -1.0);
 
