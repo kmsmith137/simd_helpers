@@ -1,2 +1,2 @@
-INCDIR=$(HOME)/include
-CPP=g++ -std=c++11 -Wall -O3 -march=native
+INCDIR ?= $(HOME)/include
+CPP ?= $(CXX) -std=c++11 -Wall -O3 -march=native
