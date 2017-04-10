@@ -884,6 +884,25 @@ void test_linear_algebra_kernels(std::mt19937 &rng)
 // -------------------------------------------------------------------------------------------------
 
 
+template<unsigned int S>
+inline void test_float16_kernels(std::mt19937 &rng)
+{
+    vector<float> v(2*S, -1.0);
+
+    simd_ntuple<float,S,2> x = uniform_random_simd_ntuple<float,S,2> (rng, 0.0, 1.0);
+    simd_store_float16(&v[0], x);
+    
+    simd_ntuple<float,S,2> y;
+    simd_load_float16(y, &v[0]);
+
+    float epsilon = maxdiff(x,y);
+    assert(epsilon < 1.0e-3);
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
+
 // Runs unit tests which are defined for every pair (T,S)
 template<typename T, unsigned int S>
 inline void test_TS(std::mt19937 &rng)
@@ -1122,6 +1141,10 @@ inline void test_all(std::mt19937 &rng)
 
     test_linear_algebra_kernels<float,8> (rng);
     test_linear_algebra_kernels<double,4> (rng);
+#endif
+
+#if defined(__AVX__) && defined(__F16C__)
+    test_float16_kernels<8> (rng);
 #endif
 }
 

@@ -22,6 +22,7 @@ INCFILES_TOP=simd_helpers.hpp
 INCFILES_SUB=simd_helpers/core.hpp \
 	simd_helpers/simd_int32.hpp \
 	simd_helpers/simd_int64.hpp \
+	simd_helpers/simd_float16.hpp \
 	simd_helpers/simd_float32.hpp \
 	simd_helpers/simd_float64.hpp \
 	simd_helpers/simd_ntuple.hpp \
