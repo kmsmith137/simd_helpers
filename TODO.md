@@ -23,6 +23,10 @@
      - upsampling: float32, int32
      - downsampling: float32
 
+- Currently there are many downsampling-type kernels which are nearly cut-and-paste equivalent.
+  E.g., downsample(), downsample_max(), downsample_bitwise_or().
+  Should clean up by using template magic to eliminate redundancy!
+
 - For an integer type T, simd_t<T,S>::operator*() wraps the simplest possible multiplication
   intrinsic, but there are other possibilities.  (E.g. _mm_mul_epi32() or _mm_mul_epu32()
   in addition to _mm_mullo_epi32() which corresponds to operator*())  These should be

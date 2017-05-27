@@ -1,8 +1,9 @@
 // This header file implements versions of the downsample() routines in which the
 // downsampling is done by "taking maximums" instead of "taking sums".
 //
-// I needed this for the peak-finding in bonsai.  Not sure if it will be useful elsewhere
-// but I thought I may as well put it somewhere general!
+// TODO: Currently there are many downsampling-type kernels which are nearly cut-and-paste 
+// equivalent.  E.g., downsample(), downsample_max(), downsample_bitwise_or().
+// Should clean up by using template magic to eliminate redundancy!
 
 
 #ifndef _SIMD_HELPERS_DOWNSAMPLE_MAX_HPP

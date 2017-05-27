@@ -25,6 +25,12 @@
 #define _mm_permute_pd(x, imm8)  _mm_shuffle_pd(x, x, imm8)
 #endif
 
+// "xshuffle": defines binary shuffle for integer simd types.
+// Reminder: for integer types Intel defines a unary "shuffle", and for floating-point there is a unary "permute" and a binary "shuffle".
+#define _mm_xshuffle_epi32(a,b,imm8)  _mm_castps_si128(_mm_shuffle_ps(_mm_castsi128_ps(a), _mm_castsi128_ps(b), imm8))
+#ifdef __AVX__
+#define _mm256_xshuffle_epi32(a,b,imm8)  _mm256_castps_si256(_mm256_shuffle_ps(_mm256_castsi256_ps(a), _mm256_castsi256_ps(b), imm8))
+#endif
 
 namespace simd_helpers {
 #if 0
