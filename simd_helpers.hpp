@@ -19,7 +19,7 @@
 #include "simd_helpers/convert.hpp"                 // convert()
 #include "simd_helpers/udsample.hpp"                // upsample(), downsample()
 #include "simd_helpers/downsample_max.hpp"          // downsample_max()
-#include "simd_helpers/downsample_bitwsie_or.hpp"   // downsample_bitwise_or()
+#include "simd_helpers/downsample_bitwise_or.hpp"   // downsample_bitwise_or()
 
 // Not included by default, but contains useful debug stuff (e.g. print-routines)
 // #include "simd_helpers/simd_debug.hpp"
