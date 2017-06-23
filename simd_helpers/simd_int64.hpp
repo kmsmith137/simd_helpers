@@ -352,68 +352,11 @@ template<> struct simd_t<int64_t,4>
     inline simd_t<int64_t,4> apply_mask(simd_t<int64_t,4> t) const          { return bitwise_and(t); }
     inline simd_t<int64_t,4> apply_inverse_mask(simd_t<int64_t,4> t) const  { return bitwise_andnot(t); }
 
-    inline simd_t<int64_t,4> bitwise_and(simd_t<int64_t,4> t) const
-    {
-#ifdef __AVX2__
-	return _mm256_and_si256(x, t.x); 
-#else
-	simd_t<int64_t,2> x0 = extract_half<0> ();
-	simd_t<int64_t,2> x1 = extract_half<1> ();
-	simd_t<int64_t,2> t0 = t.extract_half<0> ();
-	simd_t<int64_t,2> t1 = t.extract_half<1> ();
-	return simd_t<int64_t,4> (x0.bitwise_and(t0), x1.bitwise_and(t1));
-#endif
-    }
-
-    inline simd_t<int64_t,4> bitwise_or(simd_t<int64_t,4> t) const
-    {
-#ifdef __AVX2__
-	return _mm256_or_si256(x, t.x); 
-#else
-	simd_t<int64_t,2> x0 = extract_half<0> ();
-	simd_t<int64_t,2> x1 = extract_half<1> ();
-	simd_t<int64_t,2> t0 = t.extract_half<0> ();
-	simd_t<int64_t,2> t1 = t.extract_half<1> ();
-	return simd_t<int64_t,4> (x0.bitwise_or(t0), x1.bitwise_or(t1));
-#endif
-    }
-
-    inline simd_t<int64_t,4> bitwise_xor(simd_t<int64_t,4> t) const
-    {
-#ifdef __AVX2__
-	return _mm256_xor_si256(x, t.x); 
-#else
-	simd_t<int64_t,2> x0 = extract_half<0> ();
-	simd_t<int64_t,2> x1 = extract_half<1> ();
-	simd_t<int64_t,2> t0 = t.extract_half<0> ();
-	simd_t<int64_t,2> t1 = t.extract_half<1> ();
-	return simd_t<int64_t,4> (x0.bitwise_xor(t0), x1.bitwise_xor(t1));
-#endif
-    }
-
-    inline simd_t<int64_t,4> bitwise_andnot(simd_t<int64_t,4> t) const
-    {
-#ifdef __AVX2__
-	return _mm256_andnot_si256(t.x, x); 
-#else
-	simd_t<int64_t,2> x0 = extract_half<0> ();
-	simd_t<int64_t,2> x1 = extract_half<1> ();
-	simd_t<int64_t,2> t0 = t.extract_half<0> ();
-	simd_t<int64_t,2> t1 = t.extract_half<1> ();
-	return simd_t<int64_t,4> (x0.bitwise_andnot(t0), x1.bitwise_andnot(t1));
-#endif
-    }
-
-    inline simd_t<int64_t,4> bitwise_not() const
-    {
-#ifdef __AVX2__
-	return _mm256_xor_si256(x, _mm256_set1_epi16(-1));
-#else
-	simd_t<int64_t,2> x0 = extract_half<0> ();
-	simd_t<int64_t,2> x1 = extract_half<1> ();
-	return simd_t<int64_t,4> (x0.bitwise_not(), x1.bitwise_not());
-#endif
-    }
+    inline simd_t<int64_t,4> bitwise_and(simd_t<int64_t,4> t) const     { return _mm256_and_si256(x, t.x); }
+    inline simd_t<int64_t,4> bitwise_or(simd_t<int64_t,4> t) const      { return _mm256_or_si256(x, t.x);  }
+    inline simd_t<int64_t,4> bitwise_xor(simd_t<int64_t,4> t) const     { return _mm256_xor_si256(x, t.x); }
+    inline simd_t<int64_t,4> bitwise_andnot(simd_t<int64_t,4> t) const  { return _mm256_andnot_si256(t.x, x); }
+    inline simd_t<int64_t,4> bitwise_not() const                        { return _mm256_xor_si256(x, _mm256_set1_epi16(-1)); }
 };
 
 

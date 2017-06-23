@@ -681,6 +681,40 @@ static void test_downsample_max(std::mt19937 &rng)
 // -------------------------------------------------------------------------------------------------
 
 
+template<typename T>
+static vector<T> reference_downsample_bitwise_or(const vector<T> &v, int N)
+{
+    assert(N > 0);
+    assert(v.size() > 0);
+    assert(v.size() % N == 0);
+
+    int m = v.size() / N;
+    vector<T> ret(m, 0);
+
+    for (int i = 0; i < m; i++) {
+	ret[i] = v[i*N];
+	for (int j = 1; j < N; j++)
+	    ret[i] |= v[i*N+j];
+    }
+
+    return ret;
+}
+
+
+template<typename T, unsigned int S, unsigned int N>
+static void test_downsample_bitwise_or(std::mt19937 &rng)
+{
+    simd_ntuple<T,S,N> x = random_simd_bitmask_ntuple<T,S,N> (rng, 1.0/(N+2));
+    vector<T> yref = reference_downsample_bitwise_or(vectorize(x), N);
+    simd_t<T,S> y = downsample_bitwise_or(x);
+
+    assert(strictly_equal(yref, vectorize(y)));
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
+
 
 template<typename T>
 static vector<T> reference_multiply_lower(const vector<T> &mat, const vector<T> &v, int S, int N)
@@ -1107,6 +1141,9 @@ inline void test_all(std::mt19937 &rng)
     
     test_downsample_max<float,4,2> (rng);
     test_downsample_max<float,4,4> (rng);
+    
+    test_downsample_bitwise_or<int,4,2> (rng);
+    test_downsample_bitwise_or<int,4,4> (rng);
 
     test_upsample<float,4,2> (rng);
     test_upsample<float,4,4> (rng);
@@ -1130,6 +1167,10 @@ inline void test_all(std::mt19937 &rng)
     test_downsample_max<float,8,2> (rng);
     test_downsample_max<float,8,4> (rng);
     test_downsample_max<float,8,8> (rng);
+
+    test_downsample_bitwise_or<int,8,2> (rng);
+    test_downsample_bitwise_or<int,8,4> (rng);
+    test_downsample_bitwise_or<int,8,8> (rng);
 
     test_upsample<float,8,2> (rng);
     test_upsample<float,8,4> (rng);

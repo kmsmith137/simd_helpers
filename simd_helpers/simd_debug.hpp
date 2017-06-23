@@ -26,6 +26,7 @@
 #include "convert.hpp"
 #include "udsample.hpp"
 #include "downsample_max.hpp"
+#include "downsample_bitwise_or.hpp"
 
 namespace simd_helpers {
 #if 0
@@ -320,6 +321,19 @@ inline std::vector<T> uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T
     return ret;
 }
 
+template<typename T>
+inline std::vector<T> random_bitvec(std::mt19937 &rng, unsigned int n, double bit_prob)
+{
+    std::vector<T> ret(n, 0);
+
+    for (unsigned int i = 0; i < n; i++)
+	for (unsigned int j = 0; j < 8*sizeof(T); j++)
+	    if (std::uniform_real_distribution<double>(0.,1.)(rng) < bit_prob)
+		ret[i] |= (1 << j);
+
+    return ret;
+}
+
 template<typename T, unsigned int S>
 inline simd_t<T,S> uniform_random_simd_t(std::mt19937 &rng, T lo, T hi)
 {
@@ -330,6 +344,18 @@ template<typename T, unsigned int S, unsigned int N>
 inline simd_ntuple<T,S,N> uniform_random_simd_ntuple(std::mt19937 &rng, T lo, T hi)
 {
     return pack_simd_ntuple<T,S,N> (uniform_randvec<T> (rng, N*S, lo, hi));
+}
+
+template<typename T, unsigned int S>
+inline simd_t<T,S> random_simd_bitmask(std::mt19937 &rng, double bit_prob)
+{
+    return pack_simd_t<T,S> (random_bitvec<T> (rng, S, bit_prob));
+}
+
+template<typename T, unsigned int S, unsigned int N>
+inline simd_ntuple<T,S,N> random_simd_bitmask_ntuple(std::mt19937 &rng, double bit_prob)
+{
+    return pack_simd_ntuple<T,S,N> (random_bitvec<T> (rng, N*S, bit_prob));
 }
 
 
