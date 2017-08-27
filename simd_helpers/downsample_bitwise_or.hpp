@@ -25,7 +25,7 @@ namespace simd_helpers {
 
 // This file defines:
 //
-//   template<typename T, unsigned int S, unsigned int N>
+//   template<typename T, int S, int N>
 //   inline simd_t<T,S> downsample_bitwise_or(const simd_ntuple<T,S,N> &v)
 //
 // We omit comments from these kernels since they're cut-and-paste versions
@@ -34,7 +34,7 @@ namespace simd_helpers {
 
 // Trivial downsampling
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline simd_t<T,S> downsample_bitwise_or(const simd_ntuple<T,S,1> &src) { return src.x; }
 
 

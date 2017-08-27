@@ -15,14 +15,14 @@ namespace simd_helpers {
 
 
 // N-tuple of simd-vectors
-template<typename T, unsigned int S, unsigned int N> struct simd_ntuple;
+template<typename T, int S, int N> struct simd_ntuple;
 
 // N-tuple of mask vectors
-template<typename T, unsigned int S, unsigned int N> 
+template<typename T, int S, int N> 
 using smask_ntuple = simd_ntuple<smask_t<T>,S,N>;
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 struct simd_ntuple
 {
     simd_ntuple<T,S,N-1> v;
@@ -49,18 +49,18 @@ struct simd_ntuple
 	x.storeu(p+(N-1)*S);
     }
 
-    template<unsigned int M, typename std::enable_if<(M == N-1),int>::type = 0>
+    template<int M, typename std::enable_if<(M == N-1),int>::type = 0>
     inline simd_t<T,S> extract() const { return x; }
 
-    template<unsigned int M, typename std::enable_if<(M < N-1),int>::type = 0>
+    template<int M, typename std::enable_if<(M < N-1),int>::type = 0>
     inline simd_t<T,S> extract() const { return v.template extract<M>(); }
 
     // Non-const version of extract<>()
-    template<unsigned int M, typename std::enable_if<(M == N-1),int>::type = 0>
+    template<int M, typename std::enable_if<(M == N-1),int>::type = 0>
     inline simd_t<T,S> &extract() { return x; }
 
     // Non-const version of extract<>()
-    template<unsigned int M, typename std::enable_if<(M < N-1),int>::type = 0>
+    template<int M, typename std::enable_if<(M < N-1),int>::type = 0>
     inline simd_t<T,S> &extract() { return v.template extract<M>(); }
 
     inline simd_ntuple<T,S,N> &operator+=(const simd_ntuple<T,S,N> &t)  { v += t.v; x += t.x; return *this; }
@@ -119,7 +119,7 @@ struct simd_ntuple
 };
 
 
-template<typename T, unsigned int S> 
+template<typename T, int S> 
 struct simd_ntuple<T,S,0> 
 { 
     inline void setzero() { }
@@ -167,16 +167,16 @@ struct simd_ntuple<T,S,0>
 // Arithmetic operators
 
 
-template<typename T, unsigned int S, unsigned int N> 
+template<typename T, int S, int N> 
 inline simd_ntuple<T,S,N> operator+(const simd_t<T,S> &x, const simd_ntuple<T,S,N> &y) { return y+x; }
 
-template<typename T, unsigned int S, unsigned int N> 
+template<typename T, int S, int N> 
 inline simd_ntuple<T,S,N> operator-(const simd_t<T,S> &x, const simd_ntuple<T,S,N> &y) { return y._rsub(x); }
 
-template<typename T, unsigned int S, unsigned int N> 
+template<typename T, int S, int N> 
 inline simd_ntuple<T,S,N> operator*(const simd_t<T,S> &x, const simd_ntuple<T,S,N> &y) { return y*x; }
 
-template<typename T, unsigned int S, unsigned int N> 
+template<typename T, int S, int N> 
 inline simd_ntuple<T,S,N> operator/(const simd_t<T,S> &x, const simd_ntuple<T,S,N> &y) { return y._rdiv(x); }
 
 

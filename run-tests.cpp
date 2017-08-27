@@ -17,17 +17,17 @@ template<> inline constexpr int64_t machine_epsilon()  { return 0; }
 // "Basics": load / store / extract / constructors
 
 
-template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N==0),int>::type = 0>
+template<typename T, int S, int N, typename std::enable_if<(N==0),int>::type = 0>
 inline bool _check_extract(simd_t<T,S> x, const T *v) { return true; }
 
-template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N>0),int>::type = 0>
+template<typename T, int S, int N, typename std::enable_if<(N>0),int>::type = 0>
 inline bool _check_extract(simd_t<T,S> x, const T *v) 
 { 
     return _check_extract<T,S,N-1>(x,v) && (x.template extract<N-1>() == v[N-1]) && (extract_slow(x,N-1) == v[N-1]);
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_basics(std::mt19937 &rng)
 {
     vector<T> v = uniform_randvec<T> (rng, S, -1000, 1000);
@@ -44,7 +44,7 @@ inline void test_basics(std::mt19937 &rng)
 
     // generate a new random (x,v) pair using set_slow()
     v = uniform_randvec<T> (rng, S, -1000, 1000);
-    for (unsigned int s = 0; s < S; s++)
+    for (int s = 0; s < S; s++)
 	set_slow(x, s, v[s]);
 
     if (!_check_extract<T,S,S>(x, &v[0])) {
@@ -57,7 +57,7 @@ inline void test_basics(std::mt19937 &rng)
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_constructors(std::mt19937 &rng)
 {
     T t0 = uniform_rand<T> (rng, -1000, 1000);
@@ -66,7 +66,7 @@ inline void test_constructors(std::mt19937 &rng)
     simd_t<T,S> z = simd_t<T,S>::zero();
     simd_t<T,S> r = simd_t<T,S>::range();
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	assert(extract_slow(t,s) == t0);
 	assert(extract_slow(z,s) == 0);
 	assert(extract_slow(r,s) == s);
@@ -76,7 +76,7 @@ inline void test_constructors(std::mt19937 &rng)
 
 // Tests "merging" constructor (simd_t<T,S>, simd_t<T,S>) -> simd_t<T,2*S>
 // Also tests simd_t<T,2*S>::extract_half(), which inverts the merge.
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_merging_constructor(std::mt19937 &rng) 
 {
     simd_t<T,S> a = uniform_random_simd_t<T,S> (rng, -1000, 1000);
@@ -86,7 +86,7 @@ inline void test_merging_constructor(std::mt19937 &rng)
     simd_t<T,S> c0 = c.template extract_half<0> ();
     simd_t<T,S> c1 = c.template extract_half<1> ();
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	assert(extract_slow(c,s) == extract_slow(a,s));
 	assert(extract_slow(c,s+S) == extract_slow(b,s));
 	assert(extract_slow(c0,s) == extract_slow(a,s));
@@ -100,7 +100,7 @@ inline void test_merging_constructor(std::mt19937 &rng)
 // Arithmetic ops
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_unary_operation(const char *name, std::mt19937 &rng, simd_t<T,S> (*f1)(simd_t<T,S>), T (*f2)(T), T lo, T hi, T e)
 {
     const T epsilon = e * machine_epsilon<T> ();
@@ -109,13 +109,13 @@ inline void test_unary_operation(const char *name, std::mt19937 &rng, simd_t<T,S
     simd_t<T,S> y = f1(x);
 
     simd_t<T,S> y_exp;
-    for (unsigned int s = 0; s < S; s++)
+    for (int s = 0; s < S; s++)
 	set_slow(y_exp, s, f2(extract_slow(x,s)));
 
     if (maxdiff(y,y_exp) <= epsilon)
 	return;
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	cerr << "test_unary_operation(" << name << "," << type_name<T>() << "," << S << ") failed\n"
 	     << "    argument: " << x << endl
 	     << "    output: " << y << endl
@@ -128,7 +128,7 @@ inline void test_unary_operation(const char *name, std::mt19937 &rng, simd_t<T,S
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_compound_assignment_operator(const char *name, std::mt19937 &rng, void (*f1)(simd_t<T,S> &, simd_t<T,S>), void (*f2)(T&, T), T lo1, T hi1, T lo2, T hi2, T e)
 {
     const T epsilon = e * machine_epsilon<T>();
@@ -140,7 +140,7 @@ inline void test_compound_assignment_operator(const char *name, std::mt19937 &rn
     f1(x_out, y);
 
     simd_t<T,S> x_exp;
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	T t = extract_slow(x_in, s);
 	f2(t, extract_slow(y, s));
 	set_slow(x_exp, s, t);
@@ -160,7 +160,7 @@ inline void test_compound_assignment_operator(const char *name, std::mt19937 &rn
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_binary_operator(const char *name, std::mt19937 &rng, simd_t<T,S> (*f1)(simd_t<T,S>, simd_t<T,S>), T (*f2)(T, T), T lo1, T hi1, T lo2, T hi2, T e)
 {
     const T epsilon = e * machine_epsilon<T>();
@@ -170,7 +170,7 @@ inline void test_binary_operator(const char *name, std::mt19937 &rng, simd_t<T,S
     simd_t<T,S> z = f1(x, y);
 
     simd_t<T,S> z_exp;
-    for (unsigned int s = 0; s < S; s++)
+    for (int s = 0; s < S; s++)
 	set_slow(z_exp, s, f2(extract_slow(x,s), extract_slow(y,s)));
 
     if (maxdiff(z,z_exp) > epsilon) {
@@ -187,13 +187,13 @@ inline void test_binary_operator(const char *name, std::mt19937 &rng, simd_t<T,S
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_comparison_operator(const char *name, std::mt19937 &rng, smask_t<T,S> (*f1)(simd_t<T,S>, simd_t<T,S>), bool (*f2)(T, T))
 {
     simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, -10, 10);
     simd_t<T,S> y;
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	T t = extract_slow(x, s);
 	if (std::uniform_real_distribution<>()(rng) < 0.33)
 	    t += uniform_rand<T> (rng, 1, 10);
@@ -205,7 +205,7 @@ inline void test_comparison_operator(const char *name, std::mt19937 &rng, smask_
     smask_t<T,S> c = f1(x, y);
     smask_t<T,S> c_exp;
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	bool b = f2(extract_slow(x,s), extract_slow(y,s));
 	smask_t<T> m = b ? -1 : 0;
 	set_slow(c_exp, s, m);
@@ -224,7 +224,7 @@ inline void test_comparison_operator(const char *name, std::mt19937 &rng, smask_
 
 
 // Used to test apply_mask(), apply_inverse_mask(), and blendv().
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_masking_operator(const char *name, std::mt19937 &rng, simd_t<T,S> (*f1)(smask_t<T,S>, simd_t<T,S>, simd_t<T,S>), T (*f2)(bool,T,T))
 {
     smask_t<T,S> mask = uniform_random_simd_t<smask_t<T>,S> (rng, -1, 0);
@@ -233,7 +233,7 @@ inline void test_masking_operator(const char *name, std::mt19937 &rng, simd_t<T,
     simd_t<T,S> c = f1(mask, a, b);
     simd_t<T,S> c_exp;
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	T aa = extract_slow(a, s);
 	T bb = extract_slow(b, s);
 
@@ -265,13 +265,13 @@ inline void test_masking_operator(const char *name, std::mt19937 &rng, simd_t<T,
 // "Boolean reducers": these are different enough that I decided not to make a generic test routine
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_is_all_ones(std::mt19937 &rng)
 {
     simd_t<T,S> x = simd_t<T,S>(-1);
     int expected_result = 1;
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	if (std::uniform_real_distribution<>()(rng) < 1/(1.5*S)) {
 	    T t = uniform_rand<T>(rng, -10, 10);
 	    set_slow(x, s, t);
@@ -291,13 +291,13 @@ inline void test_is_all_ones(std::mt19937 &rng)
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_is_all_zeros(std::mt19937 &rng)
 {
     simd_t<T,S> x = simd_t<T,S>::zero();
     int expected_result = 1;
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	if (std::uniform_real_distribution<>()(rng) < 1/(1.5*S)) {
 	    T t = uniform_rand<T>(rng, -10, 10);
 	    set_slow(x, s, t);
@@ -317,14 +317,14 @@ inline void test_is_all_zeros(std::mt19937 &rng)
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_is_all_zeros_masked(std::mt19937 &rng)
 {
     simd_t<T,S> x = simd_t<T,S>::zero();
     smask_t<T,S> mask = uniform_random_simd_t<smask_t<T>,S> (rng, -1, 0);
     int expected_result = 1;
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	if (std::uniform_real_distribution<>()(rng) < 1.5/S) {
 	    T t = uniform_rand<T>(rng, -10, 10);
 	    set_slow(x, s, t);
@@ -345,14 +345,14 @@ inline void test_is_all_zeros_masked(std::mt19937 &rng)
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_is_all_zeros_inverse_masked(std::mt19937 &rng)
 {
     simd_t<T,S> x = simd_t<T,S>::zero();
     smask_t<T,S> mask = uniform_random_simd_t<smask_t<T>,S> (rng, -1, 0);
     int expected_result = 1;
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	if (std::uniform_real_distribution<>()(rng) < 1.5/S) {
 	    T t = uniform_rand<T>(rng, -10, 10);
 	    set_slow(x, s, t);
@@ -377,7 +377,7 @@ inline void test_is_all_zeros_inverse_masked(std::mt19937 &rng)
 
 
 // For horizontal_sum(), horizontal_max(), etc.
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_horizontal_reducer(const char *name, std::mt19937 &rng, simd_t<T,S> (*f1)(simd_t<T,S>), T (*f2)(simd_t<T,S>), T (*f3)(T,T))
 {
     const T epsilon = S * 2000 * machine_epsilon<T> ();
@@ -387,7 +387,7 @@ inline void test_horizontal_reducer(const char *name, std::mt19937 &rng, simd_t<
     T sval = f2(x);
 
     T cval = extract_slow(x, 0);
-    for (unsigned int s = 1; s < S; s++)
+    for (int s = 1; s < S; s++)
 	cval = f3(cval, extract_slow(x,s));
     
     if ((std::abs(sval-cval) > epsilon) || (maxdiff(hval, simd_t<T,S>(cval)) > epsilon)) {
@@ -418,26 +418,26 @@ inline void test_horizontal_reducer(const char *name, std::mt19937 &rng, simd_t<
 //    Slow version of align() in which A is a function argument, not a template parameter.
 
 
-template<typename T, unsigned int S, unsigned int A1=S+1, typename std::enable_if<(A1==0),int>::type = 0>
+template<typename T, int S, int A1=S+1, typename std::enable_if<(A1==0),int>::type = 0>
 static simd_t<T,S> align_slow(int A, simd_t<T,S> x, simd_t<T,S> y)
 {
     throw runtime_error("align_slow internal error");
 }
 
-template<typename T, unsigned int S, unsigned int A1=S+1, typename std::enable_if<(A1>0),int>::type = 0>
+template<typename T, int S, int A1=S+1, typename std::enable_if<(A1>0),int>::type = 0>
 static simd_t<T,S> align_slow(int A, simd_t<T,S> x, simd_t<T,S> y)
 {
     return (A == A1-1) ? (align<A1-1>(x,y)) : align_slow<T,S,A1-1>(A,x,y);
 }
 
 
-template<typename T, unsigned int S, unsigned int N, unsigned int A1=S+1, typename std::enable_if<(A1==0),int>::type = 0>
+template<typename T, int S, int N, int A1=S+1, typename std::enable_if<(A1==0),int>::type = 0>
 static void align_slow(int A, simd_ntuple<T,S,N> &dst, const simd_ntuple<T,S,N> &x, const simd_ntuple<T,S,N> &y)
 {
     throw runtime_error("align_slow internal error");
 }
 
-template<typename T, unsigned int S, unsigned int N, unsigned int A1=S+1, typename std::enable_if<(A1>0),int>::type = 0>
+template<typename T, int S, int N, int A1=S+1, typename std::enable_if<(A1>0),int>::type = 0>
 static void align_slow(int A, simd_ntuple<T,S,N> &dst, const simd_ntuple<T,S,N> &x, const simd_ntuple<T,S,N> &y)
 {
     if (A == A1-1)
@@ -447,10 +447,10 @@ static void align_slow(int A, simd_ntuple<T,S,N> &dst, const simd_ntuple<T,S,N> 
 }
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 static void test_align_ntuple(std::mt19937 &rng)
 {
-    for (unsigned int A = 0; A <= S; A++) {
+    for (int A = 0; A <= S; A++) {
 	simd_ntuple<T,S,N> x = uniform_random_simd_ntuple<T,S,N> (rng, 0, 100);
 	simd_ntuple<T,S,N> y = uniform_random_simd_ntuple<T,S,N> (rng, 0, 100);
 
@@ -461,8 +461,8 @@ static void test_align_ntuple(std::mt19937 &rng)
 	vector<T> vy = vectorize(y);
 	vector<T> vt = vectorize(t);
 
-	for (unsigned int i = 0; i < N; i++) {
-	    for (unsigned int s = 0; s < S; s++) {
+	for (int i = 0; i < N; i++) {
+	    for (int s = 0; s < S; s++) {
 		T u = vt[i*S+s];
 		T v = (s+A < S) ? vx[i*S+(s+A)] : vy[i*S+(s+A-S)];
 		assert(u == v);
@@ -472,10 +472,10 @@ static void test_align_ntuple(std::mt19937 &rng)
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 static void test_align(std::mt19937 &rng)
 {
-    for (unsigned int A = 0; A <= S; A++) {
+    for (int A = 0; A <= S; A++) {
 	simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, 0, 100);
 	simd_t<T,S> y = uniform_random_simd_t<T,S> (rng, 0, 100);
 	simd_t<T,S> t = align_slow(A, x, y);
@@ -484,7 +484,7 @@ static void test_align(std::mt19937 &rng)
 	vector<T> vy = vectorize(y);
 	vector<T> vt = vectorize(t);
 
-	for (unsigned int s = 0; s < S; s++) {
+	for (int s = 0; s < S; s++) {
 	    T u = vt[s];
 	    T v = (s+A < S) ? vx[s+A] : vy[s+A-S];
 	    assert(u == v);
@@ -502,7 +502,7 @@ static void test_align(std::mt19937 &rng)
 
 
 // convert(simd_t<T,S> &dst, simd_t<T2,S> src)
-template<typename T, typename T2, unsigned int S>
+template<typename T, typename T2, int S>
 static void test_convert(std::mt19937 &rng)
 {
     const double epsilon = 2000. * max<double> (machine_epsilon<T>(), machine_epsilon<T2>());
@@ -512,7 +512,7 @@ static void test_convert(std::mt19937 &rng)
 
     convert(dst, src);
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	if (std::abs(extract_slow(dst,s) - extract_slow(src,s)) <= epsilon)
 	    continue;
 
@@ -527,7 +527,7 @@ static void test_convert(std::mt19937 &rng)
 
 
 // convert(simd_ntuple<T,S,N> &dst, simd_t<T2,S*N> src)
-template<typename T, typename T2, unsigned int S, unsigned int N>
+template<typename T, typename T2, int S, int N>
 inline void test_upconvert(std::mt19937 &rng)
 {
     const double epsilon = 2000. * max<double> (machine_epsilon<T>(), machine_epsilon<T2>());
@@ -537,8 +537,8 @@ inline void test_upconvert(std::mt19937 &rng)
 
     convert(dst, src);
 
-    for (unsigned int n = 0; n < N; n++) {
-	for (unsigned int s = 0; s < S; s++) {
+    for (int n = 0; n < N; n++) {
+	for (int s = 0; s < S; s++) {
 	    if (std::abs(extract_slow(dst,n,s) - extract_slow(src,n*S+s)) <= epsilon)
 		continue;
 
@@ -554,7 +554,7 @@ inline void test_upconvert(std::mt19937 &rng)
 
 
 // convert(simd_t<T,S*N> &dst, simd_ntuple<T2,S,N> src)
-template<typename T, typename T2, unsigned int S, unsigned int N>
+template<typename T, typename T2, int S, int N>
 inline void test_downconvert(std::mt19937 &rng)
 {
     const double epsilon = 2000. * max<double> (machine_epsilon<T>(), machine_epsilon<T2>());
@@ -564,8 +564,8 @@ inline void test_downconvert(std::mt19937 &rng)
 
     convert(dst, src);
 
-    for (unsigned int n = 0; n < N; n++) {
-	for (unsigned int s = 0; s < S; s++) {
+    for (int n = 0; n < N; n++) {
+	for (int s = 0; s < S; s++) {
 	    if (std::abs(extract_slow(dst,n*S+s) - extract_slow(src,n,s)) <= epsilon)
 		continue;
 
@@ -618,7 +618,7 @@ static vector<T> reference_upsample(const vector<T> &v, int N)
 }
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 static void test_downsample(std::mt19937 &rng)
 {
     // a placeholder, since we currently have single-precision downsamplers but not double-precision
@@ -632,7 +632,7 @@ static void test_downsample(std::mt19937 &rng)
 }
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 static void test_upsample(std::mt19937 &rng)
 {
     simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, 0, 100);
@@ -667,7 +667,7 @@ static vector<T> reference_downsample_max(const vector<T> &v, int N)
 }
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 static void test_downsample_max(std::mt19937 &rng)
 {
     simd_ntuple<T,S,N> x = gaussian_random_simd_ntuple<T,S,N> (rng);
@@ -701,7 +701,7 @@ static vector<T> reference_downsample_bitwise_or(const vector<T> &v, int N)
 }
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 static void test_downsample_bitwise_or(std::mt19937 &rng)
 {
     simd_ntuple<T,S,N> x = random_simd_bitmask_ntuple<T,S,N> (rng, 1.0/(N+2));
@@ -720,8 +720,8 @@ template<typename T>
 static vector<T> reference_multiply_lower(const vector<T> &mat, const vector<T> &v, int S, int N)
 {
     int NN = (N*(N+1))/2;
-    assert(mat.size() == NN*S);
-    assert(v.size() == N*S);
+    assert((int)mat.size() == NN*S);
+    assert((int)v.size() == N*S);
 
     vector<T> ret(N*S, 0.0);
     
@@ -741,8 +741,8 @@ template<typename T>
 static vector<T> reference_multiply_upper(const vector<T> &mat, const vector<T> &v, int S, int N)
 {
     int NN = (N*(N+1))/2;
-    assert(mat.size() == NN*S);
-    assert(v.size() == N*S);
+    assert((int)mat.size() == NN*S);
+    assert((int)v.size() == N*S);
 
     vector<T> ret(N*S, 0.0);
     
@@ -762,8 +762,8 @@ template<typename T>
 static vector<T> reference_multiply_symmetric(const vector<T> &mat, const vector<T> &v, int S, int N)
 {
     int NN = (N*(N+1))/2;
-    assert(mat.size() == NN*S);
-    assert(v.size() == N*S);
+    assert((int)mat.size() == NN*S);
+    assert((int)v.size() == N*S);
 
     vector<T> ret(N*S, 0.0);
     
@@ -789,7 +789,7 @@ static vector<T> reference_multiply_symmetric(const vector<T> &mat, const vector
 // -------------------------------------------------------------------------------------------------
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 void test_linear_algebra_kernels_N(std::mt19937 &rng)
 {
     double epsilon0 = 10. * machine_epsilon<T> ();
@@ -855,7 +855,7 @@ void test_linear_algebra_kernels_N(std::mt19937 &rng)
     vector<smask_t<T> > v_f = vectorize(target_flags);
     vector<T> v_p = vectorize(p);
 
-    for (unsigned int s = 0; s < S; s++) {
+    for (int s = 0; s < S; s++) {
 	if (v_f[s])
 	    continue;
 	
@@ -901,7 +901,7 @@ void test_linear_algebra_kernels_N(std::mt19937 &rng)
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 void test_linear_algebra_kernels(std::mt19937 &rng)
 {
     test_linear_algebra_kernels_N<T,S,1> (rng);
@@ -918,7 +918,7 @@ void test_linear_algebra_kernels(std::mt19937 &rng)
 // -------------------------------------------------------------------------------------------------
 
 
-template<unsigned int S>
+template<int S>
 inline void test_float16_kernels(std::mt19937 &rng)
 {
     vector<float> v(2*S, -1.0);
@@ -938,7 +938,7 @@ inline void test_float16_kernels(std::mt19937 &rng)
 
 
 // Runs unit tests which are defined for every pair (T,S)
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_TS(std::mt19937 &rng)
 {
     test_basics<T,S>(rng);
@@ -1044,7 +1044,7 @@ inline void test_TS(std::mt19937 &rng)
 
 
 // Unit tests which are defined for a floating-point pair (T,S)
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_floating_point_TS(std::mt19937 &rng)
 {
     test_TS<T,S> (rng);
@@ -1067,7 +1067,7 @@ inline void test_floating_point_TS(std::mt19937 &rng)
 
 
 // Unit tests which are defined for an integer pair (T,S)
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void test_integer_TS(std::mt19937 &rng)
 {
     test_TS<T,S> (rng);
@@ -1108,7 +1108,7 @@ inline void test_integer_TS(std::mt19937 &rng)
 template<typename T>
 inline void test_floating_point_T(std::mt19937 &rng)
 {
-    constexpr unsigned int S = 16 / sizeof(T);
+    constexpr int S = 16 / sizeof(T);
 
     test_floating_point_TS<T,S> (rng);
 #ifdef __AVX__
@@ -1120,7 +1120,7 @@ inline void test_floating_point_T(std::mt19937 &rng)
 template<typename T>
 inline void test_integer_T(std::mt19937 &rng)
 {
-    constexpr unsigned int S = 16 / sizeof(T);
+    constexpr int S = 16 / sizeof(T);
 
     test_integer_TS<T,S> (rng);
 #ifdef __AVX__

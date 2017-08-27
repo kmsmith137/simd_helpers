@@ -43,22 +43,22 @@ namespace simd_helpers {
 // 128-bit
 
 
-template<unsigned int Abytes, typename std::enable_if<(Abytes==0),int>::type = 0>
+template<int Abytes, typename std::enable_if<(Abytes==0),int>::type = 0>
 inline __m128i _align128b(__m128i x, __m128i y) { return x; }
 
-template<unsigned int Abytes, typename std::enable_if<(Abytes==16),int>::type = 0>
+template<int Abytes, typename std::enable_if<(Abytes==16),int>::type = 0>
 inline __m128i _align128b(__m128i x, __m128i y) { return y; }
 
-template<unsigned int Abytes, typename std::enable_if<((Abytes > 0) && (Abytes < 16)),int>::type = 0>
+template<int Abytes, typename std::enable_if<((Abytes > 0) && (Abytes < 16)),int>::type = 0>
 inline __m128i _align128b(__m128i x, __m128i y) 
 { 
     return _mm_alignr_epi8(y, x, Abytes);
 }
 
-template<unsigned int A, typename T, unsigned int S, typename std::enable_if<((A <= S) && (S*sizeof(T)==16)),int>::type = 0>
+template<int A, typename T, int S, typename std::enable_if<((A <= S) && (S*sizeof(T)==16)),int>::type = 0>
 inline simd_t<T,S> align(simd_t<T,S> x, simd_t<T,S> y)
 {
-    constexpr unsigned int Abytes = A * sizeof(T);
+    constexpr int Abytes = A * sizeof(T);
     __m128i ret = _align128b<Abytes> ((__m128i) x.x, (__m128i) y.x);
     return reinterpret_cast<decltype(x.x)> (ret);
 }
@@ -72,13 +72,13 @@ inline simd_t<T,S> align(simd_t<T,S> x, simd_t<T,S> y)
 #ifdef __AVX__
 
 
-template<unsigned int Abytes, typename std::enable_if<(Abytes==0),int>::type = 0>
+template<int Abytes, typename std::enable_if<(Abytes==0),int>::type = 0>
 inline __m256i _align256b(__m256i x, __m256i y) { return x; }
 
-template<unsigned int Abytes, typename std::enable_if<(Abytes==32),int>::type = 0>
+template<int Abytes, typename std::enable_if<(Abytes==32),int>::type = 0>
 inline __m256i _align256b(__m256i x, __m256i y) { return y; }
 
-template<unsigned int Abytes, typename std::enable_if<((Abytes > 0) && (Abytes < 16)),int>::type = 0>
+template<int Abytes, typename std::enable_if<((Abytes > 0) && (Abytes < 16)),int>::type = 0>
 inline __m256i _align256b(__m256i x, __m256i y) 
 { 
 #ifdef __AVX2__
@@ -94,13 +94,13 @@ inline __m256i _align256b(__m256i x, __m256i y)
 #endif
 }
 
-template<unsigned int Abytes, typename std::enable_if<(Abytes==16),int>::type = 0>
+template<int Abytes, typename std::enable_if<(Abytes==16),int>::type = 0>
 inline __m256i _align256b(__m256i x, __m256i y) 
 { 
     return _mm256_permute2f128_si256(x, y, 0x21);
 }
 
-template<unsigned int Abytes, typename std::enable_if<((Abytes > 16) && (Abytes < 32)),int>::type = 0>
+template<int Abytes, typename std::enable_if<((Abytes > 16) && (Abytes < 32)),int>::type = 0>
 inline __m256i _align256b(__m256i x, __m256i y) 
 { 
 #ifdef __AVX2__
@@ -117,10 +117,10 @@ inline __m256i _align256b(__m256i x, __m256i y)
 }
 
 
-template<unsigned int A, typename T, unsigned int S, typename std::enable_if<((A <= S) && (S*sizeof(T)==32)),int>::type = 0>
+template<int A, typename T, int S, typename std::enable_if<((A <= S) && (S*sizeof(T)==32)),int>::type = 0>
 inline simd_t<T,S> align(simd_t<T,S> x, simd_t<T,S> y)
 {
-    constexpr unsigned int Abytes = A * sizeof(T);
+    constexpr int Abytes = A * sizeof(T);
     __m256i ret = _align256b<Abytes> ((__m256i) x.x, (__m256i) y.x);
     return reinterpret_cast<decltype(x.x)> (ret);
 }
@@ -132,12 +132,12 @@ inline simd_t<T,S> align(simd_t<T,S> x, simd_t<T,S> y)
 // -------------------------------------------------------------------------------------------------
 
 
-template<unsigned int A, typename T, unsigned int S, unsigned int N, typename std::enable_if<((N==0) && (A<=S)),int>::type = 0>
+template<int A, typename T, int S, int N, typename std::enable_if<((N==0) && (A<=S)),int>::type = 0>
 inline void align(simd_ntuple<T,S,N> &dst, const simd_ntuple<T,S,N> &x, const simd_ntuple<T,S,N> &y) 
 { }
 
 
-template<unsigned int A, typename T, unsigned int S, unsigned int N, typename std::enable_if<((N>0) && (A<=S)),int>::type = 0>
+template<int A, typename T, int S, int N, typename std::enable_if<((N>0) && (A<=S)),int>::type = 0>
 inline void align(simd_ntuple<T,S,N> &dst, const simd_ntuple<T,S,N> &x, const simd_ntuple<T,S,N> &y)
 {
     align<A> (dst.v, x.v, y.v);

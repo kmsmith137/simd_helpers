@@ -40,7 +40,7 @@ template<> struct simd_t<float,4>
     inline void storeu(float *p) const { _mm_storeu_ps(p,x); }
     inline void stores(float *p) const { _mm_stream_ps(p,x); }
 
-    template<unsigned int M> 
+    template<int M> 
     inline float extract() const
     {
 	union { int i; float x; } u;
@@ -125,14 +125,14 @@ template<> struct simd_t<float,8>
     inline void storeu(float *p) const { _mm256_storeu_ps(p,x); }
     inline void stores(float *p) const { _mm256_stream_ps(p,x); }
 
-    template<unsigned int M> 
+    template<int M> 
     inline float extract() const
     {
 	simd_t<float,4> x2 = _mm256_extractf128_ps(x, M/4);
 	return x2.extract<M%4> ();
     }
 
-    template<unsigned int M> inline simd_t<float,4> extract_half() const 
+    template<int M> inline simd_t<float,4> extract_half() const 
     { 
 	return _mm256_extractf128_ps(x,M); 
     }

@@ -14,7 +14,7 @@ namespace simd_helpers {
 #endif
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 struct simd_trimatrix {
     simd_trimatrix<T,S,N-1> m;
     simd_ntuple<T,S,N> v;
@@ -201,7 +201,7 @@ struct simd_trimatrix {
 };
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 struct simd_trimatrix<T,S,0>
 {
     inline void setzero() { }

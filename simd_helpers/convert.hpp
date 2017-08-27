@@ -24,13 +24,13 @@ namespace simd_helpers {
 //
 // convert() can take one of three generic forms.
 
-template<typename T, typename T2, unsigned int S>
+template<typename T, typename T2, int S>
 inline void convert(simd_t<T,S> &dst, simd_t<T2,S> src);
 
-template<typename T, typename T2, unsigned int S, unsigned int N>
+template<typename T, typename T2, int S, int N>
 inline void convert(simd_ntuple<T,S,N> &dst, simd_t<T2,S*N> src);
 
-template<typename T, typename T2, unsigned int S, unsigned int N>
+template<typename T, typename T2, int S, int N>
 inline void convert(simd_t<T,S*N> &dst, simd_ntuple<T2,S,N> src);
 
 
@@ -39,9 +39,9 @@ inline void convert(simd_t<T,S*N> &dst, simd_ntuple<T2,S,N> src);
 // Trivial T->T conversions
 
 
-template<typename T, unsigned int S> inline void convert(simd_t<T,S> &dst, simd_t<T,S> src)         { dst = src; }
-template<typename T, unsigned int S> inline void convert(simd_ntuple<T,S,1> &dst, simd_t<T,S> src)  { dst.x = src; }
-template<typename T, unsigned int S> inline void convert(simd_t<T,S> &dst, simd_ntuple<T,S,1> src)  { dst = src.x; }
+template<typename T, int S> inline void convert(simd_t<T,S> &dst, simd_t<T,S> src)         { dst = src; }
+template<typename T, int S> inline void convert(simd_ntuple<T,S,1> &dst, simd_t<T,S> src)  { dst.x = src; }
+template<typename T, int S> inline void convert(simd_t<T,S> &dst, simd_ntuple<T,S,1> src)  { dst = src.x; }
 
 
 // ---------------------------------------------------------------------------------------

@@ -41,10 +41,10 @@ template<> inline std::string type_name<int64_t> ()  { return "int64_t"; }
 template<> inline std::string type_name<float> ()    { return "float"; }
 template<> inline std::string type_name<double> ()   { return "double"; }
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline std::string type_name(const simd_t<T,S> &x) { std::stringstream ss; ss << "simd_t<" << type_name<T>() << "," << S << ">"; return ss.str(); }
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline std::string type_name(const simd_ntuple<T,S,N> &x) { std::stringstream ss; ss << "simd_ntuple<" << type_name<T>() << "," << S << "," << N << ">"; return ss.str(); }
 
 
@@ -58,45 +58,45 @@ inline std::string type_name(const simd_ntuple<T,S,N> &x) { std::stringstream ss
 // As the name suggests, these are very slow and not intended for production use!
 
 
-template<typename T, unsigned int S, unsigned int Imax, typename std::enable_if<(Imax>0),int>::type = 0>
+template<typename T, int S, int Imax, typename std::enable_if<(Imax>0),int>::type = 0>
 inline T _extract_slow(simd_t<T,S> x, int i)
 {
     return (i == Imax-1) ? x.template extract<(Imax-1)>() : _extract_slow<T,S,(Imax-1)> (x,i);
 }
 
-template<typename T, unsigned int S, unsigned int Imax, typename std::enable_if<(Imax==0),int>::type = 0>
+template<typename T, int S, int Imax, typename std::enable_if<(Imax==0),int>::type = 0>
 inline T _extract_slow(simd_t<T,S> x, int i)
 {
     throw std::runtime_error("simd_debug internal error: index to extract_slow() is out-of-range");
 }
 
-template<typename T, unsigned int S> 
+template<typename T, int S> 
 inline T extract_slow(simd_t<T,S> x, int i)
 {
     return _extract_slow<T,S,S> (x, i);
 }
 
 
-template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N>0),int>::type = 0>
+template<typename T, int S, int N, typename std::enable_if<(N>0),int>::type = 0>
 inline simd_t<T,S> extract_slow(simd_ntuple<T,S,N> x, int i)
 {
     return (i == N-1) ? x.x : extract_slow(x.v,i);
 }
 
-template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N==0),int>::type = 0>
+template<typename T, int S, int N, typename std::enable_if<(N==0),int>::type = 0>
 inline simd_t<T,S> extract_slow(simd_ntuple<T,S,N> x, int i)
 {
     throw std::runtime_error("simd_debug internal error: index to extract_slow() is out-of-range");
 }
 
-template<typename T, unsigned int S, unsigned int N> 
+template<typename T, int S, int N> 
 inline T extract_slow(simd_ntuple<T,S,N> x, int i, int j)
 {
     return extract_slow(extract_slow(x,i), j);
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline void set_slow(simd_t<T,S> &x, int i, T t)
 {
     smask_t<T,S> mask = simd_t<T,S>::range().compare_eq(simd_t<T,S>(i));
@@ -110,7 +110,7 @@ inline void set_slow(simd_t<T,S> &x, int i, T t)
 // pack_simd_xx(): converts a std::vector back to a simd type
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline std::vector<T> vectorize(simd_t<T,S> x)
 {
     std::vector<T> ret(S);
@@ -119,7 +119,7 @@ inline std::vector<T> vectorize(simd_t<T,S> x)
 }
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline std::vector<T> vectorize(const simd_ntuple<T,S,N> &v)
 {
     std::vector<T> ret(N*S);
@@ -128,7 +128,7 @@ inline std::vector<T> vectorize(const simd_ntuple<T,S,N> &v)
 }
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline std::vector<T> vectorize(const simd_trimatrix<T,S,N> &m)
 {
     std::vector<T> ret((N*(N+1)*S)/2);
@@ -137,7 +137,7 @@ inline std::vector<T> vectorize(const simd_trimatrix<T,S,N> &m)
 }
 
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline simd_t<T,S> pack_simd_t(const std::vector<T> &v)
 {
     assert(v.size() == S);
@@ -145,7 +145,7 @@ inline simd_t<T,S> pack_simd_t(const std::vector<T> &v)
 }
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline simd_ntuple<T,S,N> pack_simd_ntuple(const std::vector<T> &v)
 {
     assert(v.size() == N*S);
@@ -155,7 +155,7 @@ inline simd_ntuple<T,S,N> pack_simd_ntuple(const std::vector<T> &v)
 }
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline simd_trimatrix<T,S,N> pack_simd_trimatrix(const std::vector<T> &v)
 {
     assert(v.size() == (N*(N+1)*S)/2);
@@ -198,7 +198,7 @@ inline T compare(const std::vector<T> &v, const std::vector<T> &w)
     return compare(v.size(), &v[0], &w[0]);
 }
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline T compare(simd_t<T,S> v, simd_t<T,S> w)
 {
     return compare(vectorize(v), vectorize(w));
@@ -226,13 +226,13 @@ inline T maxdiff(const std::vector<T> &v1, const std::vector<T> &v2)
     return maxdiff(v1.size(), &v1[0], &v2[0]);
 }
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline T maxdiff(simd_t<T,S> v, simd_t<T,S> w)
 {
     return maxdiff(vectorize(v), vectorize(w));
 }
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline T maxdiff(simd_ntuple<T,S,N> &v, simd_ntuple<T,S,N> &w)
 {
     return maxdiff(vectorize(v), vectorize(w));
@@ -244,7 +244,7 @@ inline T maxabs(S n, const T *v)
     assert(n > 0);
 
     T ret = std::abs(v[0]);
-    for (unsigned int i = 1; i < n; i++)
+    for (int i = 1; i < n; i++)
 	ret = std::max(ret, std::abs(v[i]));
 
     return ret;
@@ -257,7 +257,7 @@ inline T maxabs(const std::vector<T> &v)
     return maxabs(v.size(), &v[0]);
 }
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline T maxabs(simd_t<T,S> v)
 {
     return maxabs(vectorize(v));
@@ -282,7 +282,7 @@ inline bool strictly_equal(const std::vector<T> &v, const std::vector<T> &w)
     return strictly_equal(v.size(), &v[0], &w[0]);
 }
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline bool strictly_equal(simd_t<T,S> v, simd_t<T,S> w)
 {
     return strictly_equal(vectorize(v), vectorize(w));
@@ -313,20 +313,20 @@ inline T uniform_rand(std::mt19937 &rng, T lo, T hi) { return std::uniform_real_
 
 
 template<typename T>
-inline std::vector<T> uniform_randvec(std::mt19937 &rng, unsigned int n, T lo, T hi)
+inline std::vector<T> uniform_randvec(std::mt19937 &rng, int n, T lo, T hi)
 {
     std::vector<T> ret(n);
-    for (unsigned int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
 	ret[i] = uniform_rand<T> (rng,lo,hi);
     return ret;
 }
 
 template<typename T>
-inline std::vector<T> random_bitvec(std::mt19937 &rng, unsigned int n, double bit_prob)
+inline std::vector<T> random_bitvec(std::mt19937 &rng, int n, double bit_prob)
 {
     std::vector<T> ret(n, 0);
 
-    for (unsigned int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
 	for (unsigned int j = 0; j < 8*sizeof(T); j++)
 	    if (std::uniform_real_distribution<double>(0.,1.)(rng) < bit_prob)
 		ret[i] |= (1 << j);
@@ -334,25 +334,25 @@ inline std::vector<T> random_bitvec(std::mt19937 &rng, unsigned int n, double bi
     return ret;
 }
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline simd_t<T,S> uniform_random_simd_t(std::mt19937 &rng, T lo, T hi)
 {
     return pack_simd_t<T,S> (uniform_randvec<T> (rng, S, lo, hi));
 }
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline simd_ntuple<T,S,N> uniform_random_simd_ntuple(std::mt19937 &rng, T lo, T hi)
 {
     return pack_simd_ntuple<T,S,N> (uniform_randvec<T> (rng, N*S, lo, hi));
 }
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline simd_t<T,S> random_simd_bitmask(std::mt19937 &rng, double bit_prob)
 {
     return pack_simd_t<T,S> (random_bitvec<T> (rng, S, bit_prob));
 }
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline simd_ntuple<T,S,N> random_simd_bitmask_ntuple(std::mt19937 &rng, double bit_prob)
 {
     return pack_simd_ntuple<T,S,N> (random_bitvec<T> (rng, N*S, bit_prob));
@@ -361,12 +361,12 @@ inline simd_ntuple<T,S,N> random_simd_bitmask_ntuple(std::mt19937 &rng, double b
 
 // gaussian_randvec(): defined only in floating-point case
 template<typename T, typename std::enable_if<std::is_floating_point<T>::value,int>::type = 0>
-inline std::vector<T> gaussian_randvec(std::mt19937 &rng, unsigned int n)
+inline std::vector<T> gaussian_randvec(std::mt19937 &rng, int n)
 {
     std::normal_distribution<T> dist;
     std::vector<T> ret(n);
 
-    for (unsigned int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
 
 // Suppress spurious gcc compiler warning
 #if defined(__GNUC__) && !defined(__clang__)
@@ -385,20 +385,20 @@ inline std::vector<T> gaussian_randvec(std::mt19937 &rng, unsigned int n)
     return ret;
 }
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline simd_t<T,S> gaussian_random_simd_t(std::mt19937 &rng)
 {
     return pack_simd_t<T,S> (gaussian_randvec<T> (rng, S));
 }
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline simd_ntuple<T,S,N> gaussian_random_simd_ntuple(std::mt19937 &rng)
 {
     return pack_simd_ntuple<T,S,N> (gaussian_randvec<T> (rng, N*S));
 }
 
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline simd_trimatrix<T,S,N> random_simd_trimatrix(std::mt19937 &rng)
 {
     std::vector<T> buf((N*(N+1)*S)/2, 0);
@@ -427,7 +427,7 @@ inline std::string vecstr(ssize_t n, const T *v)
     std::stringstream ss;
 
     ss << "[";
-    for (size_t i = 0; i < n; i++)
+    for (ssize_t i = 0; i < n; i++)
 	ss << " " << v[i];
     ss << " ]";
 
@@ -440,40 +440,40 @@ inline std::string vecstr(const std::vector<T> &v)
     return vecstr(v.size(), &v[0]);
 }
 
-template<typename T, unsigned int S>
+template<typename T, int S>
 inline std::ostream &operator<<(std::ostream &os, simd_t<T,S> x)
 {
     os << "[";
-    for (unsigned int s = 0; s < S; s++)
+    for (int s = 0; s < S; s++)
 	os << " " << extract_slow(x,s);
     os << " ]";
     return os;
 }
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline std::ostream &operator<<(std::ostream &os, const simd_ntuple<T,S,N> &v)
 {
     os << "{ " << extract_slow(v,0);
-    for (unsigned int n = 1; n < N; n++)
+    for (int n = 1; n < N; n++)
 	os << ", " << extract_slow(v,n);
     os << " }";
     return os;
 }
 
-template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N==1),int>::type = 0>
+template<typename T, int S, int N, typename std::enable_if<(N==1),int>::type = 0>
 inline void _write_trimatrix(std::ostream &os, const simd_trimatrix<T,S,N> &t)
 {
     os << "  " << t.v;
 }
 
-template<typename T, unsigned int S, unsigned int N, typename std::enable_if<(N>1),int>::type = 0>
+template<typename T, int S, int N, typename std::enable_if<(N>1),int>::type = 0>
 inline void _write_trimatrix(std::ostream &os, const simd_trimatrix<T,S,N> &t)
 {
     _write_trimatrix(os, t.m);
     os << ",\n  " << t.v;
 }
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline std::ostream &operator<<(std::ostream &os, const simd_trimatrix<T,S,N> &t)
 {
     os << "{\n";

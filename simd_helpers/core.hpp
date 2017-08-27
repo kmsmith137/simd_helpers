@@ -48,13 +48,13 @@ namespace simd_helpers {
 
 // This basic class is used everywhere!
 // See extended comment below for more info.
-template<typename T, unsigned int S> struct simd_t;
+template<typename T, int S> struct simd_t;
 
 
 // simd_load(): alternate load() syntax which uses a boolean template argument to select between aligned/unaligned
 // simd_store(): alternate store() syntax which uses a boolean template argument to select between aligned/unaligned
 
-template<typename T, unsigned int S, bool Aligned=false, typename std::enable_if<Aligned,int>::type = 0>
+template<typename T, int S, bool Aligned=false, typename std::enable_if<Aligned,int>::type = 0>
 inline simd_t<T,S> simd_load(const T *p)
 {
     simd_t<T,S> ret;
@@ -62,7 +62,7 @@ inline simd_t<T,S> simd_load(const T *p)
     return ret;
 }
 
-template<typename T, unsigned int S, bool Aligned=false, typename std::enable_if<(!Aligned),int>::type = 0>
+template<typename T, int S, bool Aligned=false, typename std::enable_if<(!Aligned),int>::type = 0>
 inline simd_t<T,S> simd_load(const T *p)
 {
     simd_t<T,S> ret;
@@ -70,19 +70,19 @@ inline simd_t<T,S> simd_load(const T *p)
     return ret;
 }
 
-template<bool Aligned=false, bool Streaming=false, typename T, unsigned int S, typename std::enable_if<(Aligned && Streaming),int>::type = 0>
+template<bool Aligned=false, bool Streaming=false, typename T, int S, typename std::enable_if<(Aligned && Streaming),int>::type = 0>
 inline void simd_store(T *p, simd_t<T,S> x)
 {
     x.stores(p);
 }
 
-template<bool Aligned=false, bool Streaming=false, typename T, unsigned int S, typename std::enable_if<(Aligned && !Streaming),int>::type = 0>
+template<bool Aligned=false, bool Streaming=false, typename T, int S, typename std::enable_if<(Aligned && !Streaming),int>::type = 0>
 inline void simd_store(T *p, simd_t<T,S> x)
 {
     x.store(p);
 }
 
-template<bool Aligned=false, bool Streaming=false, typename T, unsigned int S, typename std::enable_if<(!Aligned),int>::type = 0>
+template<bool Aligned=false, bool Streaming=false, typename T, int S, typename std::enable_if<(!Aligned),int>::type = 0>
 inline void simd_store(T *p, simd_t<T,S> x)
 {
     x.storeu(p);
@@ -90,18 +90,18 @@ inline void simd_store(T *p, simd_t<T,S> x)
 
 
 // "Small" N-tuple of simd_t's (simd_ntuple.hpp)
-template<typename T, unsigned int S, unsigned int N> struct simd_ntuple; 
+template<typename T, int S, int N> struct simd_ntuple; 
 
 // "Small" (N,N) triangular matrix (simd_trimatrix.hpp)
-template<typename T, unsigned int S, unsigned int N> struct simd_trimatrix;  
+template<typename T, int S, int N> struct simd_trimatrix;  
 
 
 // These two blocks define mask types, which are returned by comparison operators.
 //    smask_t<T> = scalar mask type (signed integer type with same size as T)
 //    smask_t<T,S> = simd mask type (same as simd_t<smask_t<T>,S>)
 
-template<typename T, unsigned int S> struct _smask_t { using type = simd_t<typename _smask_t<T,1>::type,S>; };
-template<typename T, unsigned int S=1> using smask_t = typename _smask_t<T,S>::type;
+template<typename T, int S> struct _smask_t { using type = simd_t<typename _smask_t<T,1>::type,S>; };
+template<typename T, int S=1> using smask_t = typename _smask_t<T,S>::type;
 
 template<> struct _smask_t<int,1> { using type = int; };
 template<> struct _smask_t<float,1> { using type = int; };
@@ -110,31 +110,31 @@ template<> struct _smask_t<double,1> { using type = int64_t; };
 
 // blendv() is morally equivalent to (mask ? a : b)
 
-template<typename T, unsigned int S> 
+template<typename T, int S> 
 inline simd_t<T,S> blendv(smask_t<T,S> mask, simd_t<T,S> a, simd_t<T,S> b);
 
 // convert intrinsics (e.g. float<->double) can take one of three generic forms (convert.hpp)
 
-template<typename T, typename T2, unsigned int S>
+template<typename T, typename T2, int S>
 inline void convert(simd_t<T,S> &dst, simd_t<T2,S> src);
 
-template<typename T, typename T2, unsigned int S, unsigned int N>
+template<typename T, typename T2, int S, int N>
 inline void convert(simd_ntuple<T,S,N> &dst, simd_t<T2,S*N> src);   // 'dst' is wider than 'src' (e.g. float->double)
 
-template<typename T, typename T2, unsigned int S, unsigned int N>
+template<typename T, typename T2, int S, int N>
 inline void convert(simd_t<T,S*N> &dst, simd_ntuple<T2,S,N> src);   // 'dst' is narrower than 'src' (e.g. double->float)
 
 // Kernels for upsampling/downsampling by a factor N (udsample.hpp)
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline simd_ntuple<T,S,N> upsample(simd_ntuple<T,S,N> &dst, simd_t<T,S> src);
 
-template<typename T, unsigned int S, unsigned int N>
+template<typename T, int S, int N>
 inline simd_ntuple<T,S,N> downsample(simd_t<T,S> &dst, const simd_ntuple<T,S,N> &src);
 
 // Scalar-vector operations (these just wrap the associated vector-vector operation)
-template<typename T, unsigned int S> inline simd_t<T,S> operator*(T a, simd_t<T,S> b) { return simd_t<T,S>(a) * b; }
-template<typename T, unsigned int S> inline simd_t<T,S> operator*(simd_t<T,S> a, T b) { return a * simd_t<T,S>(b); }
+template<typename T, int S> inline simd_t<T,S> operator*(T a, simd_t<T,S> b) { return simd_t<T,S>(a) * b; }
+template<typename T, int S> inline simd_t<T,S> operator*(simd_t<T,S> a, T b) { return a * simd_t<T,S>(b); }
 
 // machine_epsilon<T>(): fractional roundoff error for floating-point type T
 template<typename T> inline constexpr T machine_epsilon();
@@ -165,8 +165,8 @@ template<> inline constexpr double machine_epsilon() { return 2.22e-16; }
 //      // Reminder: you may need to use the "template" keyword when calling these, e.g.
 //      //   x.template extract<M> ();
 //
-//      template<unsigned int M> inline T extract() const;                       // extracts M-th element of simd vector
-//      template<unsigned int M> inline simd_t<T,(S/2)> extract_half() const;    // extracts lower or upper half (only for 256-bit types)
+//      template<int M> inline T extract() const;                       // extracts M-th element of simd vector
+//      template<int M> inline simd_t<T,(S/2)> extract_half() const;    // extracts lower or upper half (only for 256-bit types)
 //
 //      // Arithmetic operators
 //      // Note: integer multiplication is pretty slow on some architectures (e.g. Haswell)
