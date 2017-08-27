@@ -244,7 +244,7 @@ inline T maxabs(S n, const T *v)
     assert(n > 0);
 
     T ret = std::abs(v[0]);
-    for (int i = 1; i < n; i++)
+    for (S i = 1; i < n; i++)
 	ret = std::max(ret, std::abs(v[i]));
 
     return ret;
