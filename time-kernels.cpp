@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include "simd_helpers.hpp"
 #include "simd_helpers/simd_debug.hpp"
+#include "simd_helpers/downsample.hpp"
 
 using namespace std;
 using namespace simd_helpers;
@@ -89,6 +90,31 @@ void time_downsample(T *zero, int niter)
 }
 
 
+template<typename T, int S, int N>
+void time_new_downsample(T *zero, int niter)
+{
+    struct timeval tv0 = get_time();
+    
+    simd_t<T,S> dummy;
+    dummy.loadu(zero);
+    
+    simd_ntuple<T,S,N> t;
+    t.loadu(zero);
+
+    for (int iter = 0; iter < niter; iter++) {
+	simd_t<T,S> u = simd_downsample(t);
+	dummy ^= u;
+	t ^= u;
+    }
+
+    simd_store(zero, dummy);
+    struct timeval tv1 = get_time();
+
+    double dt_ns = 1.0e9 * time_diff(tv0,tv1) / (S*N*float(niter));
+    cout << "time_new_downsample<" << type_name<T>() << "," << S << "," << N << ">: " << dt_ns << " ns" << endl;
+}
+
+
 int main(int argc, char **argv)
 {
     warm_up_cpu();
@@ -100,6 +126,8 @@ int main(int argc, char **argv)
     time_downsample<float,8,4> (&zero[0], 1 << 30);
     time_downsample<float,8,8> (&zero[0], 1 << 30);
     time_trivial(&zero[0], 1 << 30);
+
+    time_new_downsample<float,8,2> (&zero[0], 1 << 30);
     
     return 0;
 }
