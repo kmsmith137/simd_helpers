@@ -38,7 +38,7 @@ template<typename T, int S> struct simd_add {
 template<typename T, int S, int D, typename Op = simd_add<T,S> >
 struct simd_downsampler { 
     template<int N> inline void put(simd_t<T,S> x);
-    inline simd_t<T,S> get();
+    inline simd_t<T,S> get() const;
 
     // Weird boilerplate
     _simd_downsampler<T,S,D,Op> _s;
@@ -51,54 +51,8 @@ inline simd_t<T,S> simd_downsample(const simd_ntuple<T,S,N> &x);
 
 // -------------------------------------------------------------------------------------------------
 //
-// Weird boilerplate
-
-
-template<int N, typename Td, typename Ts, typename std::enable_if<(N==0),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put0(x); }
-template<int N, typename Td, typename Ts, typename std::enable_if<(N==1),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put1(x); }
-template<int N, typename Td, typename Ts, typename std::enable_if<(N==2),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put2(x); }
-template<int N, typename Td, typename Ts, typename std::enable_if<(N==3),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put3(x); }
-template<int N, typename Td, typename Ts, typename std::enable_if<(N==4),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put4(x); }
-template<int N, typename Td, typename Ts, typename std::enable_if<(N==5),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put5(x); }
-template<int N, typename Td, typename Ts, typename std::enable_if<(N==6),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put6(x); }
-template<int N, typename Td, typename Ts, typename std::enable_if<(N==7),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put7(x); }
-
-template<typename T, int S, int D, typename Op> 
-template<int N>
-inline void simd_downsampler<T,S,D,Op>::put(simd_t<T,S> x) 
-{ 
-    _simd_ds_put<N> (_s, x); 
-}
-
-template<typename T, int S, int D, typename Op> 
-inline simd_t<T,S> simd_downsampler<T,S,D,Op>::get()
-{
-    return _s.get();
-}
-
-
-template<typename Td, typename T, int S, int N, typename std::enable_if<(N==0),int>::type=0>
-inline void _simd_ds_mput(Td &d, const simd_ntuple<T,S,N> &x) { }
-
-template<typename Td, typename T, int S, int N, typename std::enable_if<(N>0),int>::type=0>
-inline void _simd_ds_mput(Td &d, const simd_ntuple<T,S,N> &x) 
-{ 
-    _simd_ds_mput(d, x.v);
-    _simd_ds_put<N-1> (d, x.x);
-}
-
-template<typename T, int S, typename Op, int N>
-inline simd_t<T,S> simd_downsample(const simd_ntuple<T,S,N> &x)
-{
-    _simd_downsampler<T,S,N,Op> ds;
-    _simd_ds_mput(ds, x);
-    return ds.get();
-}
-
-
-// -------------------------------------------------------------------------------------------------
-//
-// Trivial case: downsampling-by-one
+// Downsampling kernels follow.
+// Trivial case: downsampling-by-one.
 
 
 template<typename T, int S, typename Op>
@@ -107,7 +61,7 @@ struct _simd_downsampler<T,S,1,Op>
     simd_t<T,S> x;
 
     inline void put0(simd_t<T,S> x_) { x = x_; }
-    inline simd_t<T,S> get() { return x; }
+    inline simd_t<T,S> get() const { return x; }
 };
 
 
@@ -130,7 +84,7 @@ struct _simd_downsampler<float,4,2,Op>
 	a = Op::op(u,v);
     }
 
-    inline simd_t<float,4> get() { return a; }
+    inline simd_t<float,4> get() const { return a; }
 };
 
 
@@ -148,7 +102,7 @@ struct _simd_downsampler<int,4,2,Op>
 	a = Op::op(u,v);
     }
 
-    inline simd_t<int,4> get() { return a; }
+    inline simd_t<int,4> get() const { return a; }
 };
 
 
@@ -175,7 +129,7 @@ struct _simd_downsampler<float,4,4,Op>
     inline void put2(simd_t<float,4> t) { y = t; }
     inline void put3(simd_t<float,4> t) { y = _ds2(x,_ds2(y,t)); }
 
-    inline simd_t<float,4> get() { return y; }
+    inline simd_t<float,4> get() const { return y; }
 };
 
 
@@ -196,7 +150,7 @@ struct _simd_downsampler<int,4,4,Op>
     inline void put2(simd_t<int,4> t) { y = t; }
     inline void put3(simd_t<int,4> t) { y = _ds2(x,_ds2(y,t)); }
 
-    inline simd_t<int,4> get() { return y; }
+    inline simd_t<int,4> get() const { return y; }
 };
 
 
@@ -231,7 +185,7 @@ struct _simd_downsampler<float,8,2,Op>
 	a = _mm256_blend_ps(x, y, 0x3c);   // (00111100)_2
     }
 
-    inline simd_t<float,8> get() { return a; }
+    inline simd_t<float,8> get() const { return a; }
 };
 
 
@@ -254,7 +208,7 @@ struct _simd_downsampler<int,8,2,Op>
 	a = _mm256_blend_epi32(x, y, 0x3c);
     }
 
-    inline simd_t<int,8> get() { return a; }
+    inline simd_t<int,8> get() const { return a; }
 };
 
 
@@ -306,7 +260,7 @@ struct _simd_downsampler<float,8,4,Op>
 	bd = _mm256_blend_ps(x, y, 0x5a);   // (01011010)_2
     }
 
-    inline simd_t<float,8> get() { return bd; }
+    inline simd_t<float,8> get() const { return bd; }
 };
 
 
@@ -341,7 +295,7 @@ struct _simd_downsampler<int,8,4,Op>
 	bd = _mm256_blend_epi32(x, y, 0x5a);
     }
 
-    inline simd_t<int,8> get() { return bd; }
+    inline simd_t<int,8> get() const { return bd; }
 };
 
 
@@ -392,7 +346,7 @@ struct _simd_downsampler<float,8,8,Op>
 	x2 = Op::op(u, v);
     }
 
-    inline simd_t<float,8> get() { return x2; }
+    inline simd_t<float,8> get() const { return x2; }
 };
 
 
@@ -428,10 +382,56 @@ struct _simd_downsampler<int,8,8,Op>
 	x2 = Op::op(u, v);
     }
 
-    inline simd_t<int,8> get() { return x2; }
+    inline simd_t<int,8> get() const { return x2; }
 };
 
-    
+
+// -------------------------------------------------------------------------------------------------
+//
+// Weird boilerplate
+
+
+template<int N, typename Td, typename Ts, typename std::enable_if<(N==0),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put0(x); }
+template<int N, typename Td, typename Ts, typename std::enable_if<(N==1),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put1(x); }
+template<int N, typename Td, typename Ts, typename std::enable_if<(N==2),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put2(x); }
+template<int N, typename Td, typename Ts, typename std::enable_if<(N==3),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put3(x); }
+template<int N, typename Td, typename Ts, typename std::enable_if<(N==4),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put4(x); }
+template<int N, typename Td, typename Ts, typename std::enable_if<(N==5),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put5(x); }
+template<int N, typename Td, typename Ts, typename std::enable_if<(N==6),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put6(x); }
+template<int N, typename Td, typename Ts, typename std::enable_if<(N==7),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put7(x); }
+
+template<typename T, int S, int D, typename Op> 
+template<int N>
+inline void simd_downsampler<T,S,D,Op>::put(simd_t<T,S> x) 
+{ 
+    _simd_ds_put<N> (_s, x); 
+}
+
+template<typename T, int S, int D, typename Op> 
+inline simd_t<T,S> simd_downsampler<T,S,D,Op>::get() const
+{
+    return _s.get();
+}
+
+
+template<typename Td, typename T, int S, int N, typename std::enable_if<(N==0),int>::type=0>
+inline void _simd_ds_mput(Td &d, const simd_ntuple<T,S,N> &x) { }
+
+template<typename Td, typename T, int S, int N, typename std::enable_if<(N>0),int>::type=0>
+inline void _simd_ds_mput(Td &d, const simd_ntuple<T,S,N> &x) 
+{ 
+    _simd_ds_mput(d, x.v);
+    _simd_ds_put<N-1> (d, x.x);
+}
+
+template<typename T, int S, typename Op, int N>
+inline simd_t<T,S> simd_downsample(const simd_ntuple<T,S,N> &x)
+{
+    _simd_downsampler<T,S,N,Op> ds;
+    _simd_ds_mput(ds, x);
+    return ds.get();
+}
+
 
 }  // namespace simd_helpers
 

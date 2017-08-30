@@ -104,12 +104,15 @@ struct simd_ntuple
     inline simd_ntuple<T,S,N> _rdiv(const simd_t<T,S> &t)  { simd_ntuple<T,S,N> ret; ret.v = t/v; ret.x = t/x; return ret; }
 
     // vertical_sum(): returns elementwise sum of all N simd_t's
-    inline simd_t<T,S> _vertical_sum(simd_t<T,S> u) const  { return v._vertical_sum(u+x); }
-    inline simd_t<T,S> vertical_sum() const  { return v._vertical_sum(x); }
+    inline simd_t<T,S> _vertical_sum(simd_t<T,S> u) const { return v._vertical_sum(u+x); }
+    inline simd_t<T,S> vertical_sum() const { return v._vertical_sum(x); }
 
-    // vertical_max(): returns elementwise sum of all N simd_t's
-    inline simd_t<T,S> _vertical_max(simd_t<T,S> u) const  { return v._vertical_max(u.max(x)); }
-    inline simd_t<T,S> vertical_max() const  { return v._vertical_max(x); }
+    // ...and analogously for vertical_max(), etc.
+    inline simd_t<T,S> _vertical_max(simd_t<T,S> u) const { return v._vertical_max(u.max(x)); }
+    inline simd_t<T,S> vertical_max() const { return v._vertical_max(x); }
+
+    inline simd_t<T,S> _vertical_xor(simd_t<T,S> u) const { return v._vertical_xor(u ^ x); }
+    inline simd_t<T,S> vertical_xor() const { return v._vertical_xor(x); }
 
     // vertical_dot(): returns elementwise length-N dot product of simd_t's
     inline simd_t<T,S> _vertical_dot(const simd_ntuple<T,S,N> &t, simd_t<T,S> u) const  { return v._vertical_dot(t.v, u + x*t.x); }
@@ -180,6 +183,7 @@ struct simd_ntuple<T,S,0>
 
     inline simd_t<T,S> _vertical_sum(simd_t<T,S> u) const { return u; }
     inline simd_t<T,S> _vertical_max(simd_t<T,S> u) const { return u; }
+    inline simd_t<T,S> _vertical_xor(simd_t<T,S> u) const { return u; }
     inline simd_t<T,S> _vertical_dot(const simd_ntuple<T,S,0> &t, simd_t<T,S> u) const { return u; }
     inline simd_t<T,S> _vertical_dotn(const simd_ntuple<T,S,0> &t, simd_t<T,S> u) const { return u; }
 

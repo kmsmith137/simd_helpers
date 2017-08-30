@@ -5,6 +5,7 @@
 #include "simd_helpers.hpp"
 #include "simd_helpers/simd_debug.hpp"
 #include "simd_helpers/downsample.hpp"
+#include "simd_helpers/upsample.hpp"
 
 using namespace std;
 using namespace simd_helpers;
@@ -46,27 +47,8 @@ void warm_up_cpu()
 // -------------------------------------------------------------------------------------------------
 
 
-inline void time_trivial(float *zero, int niter)
-{
-    struct timeval tv0 = get_time();
-    __m256 dummy = _mm256_loadu_ps(zero);
-    __m256 t = _mm256_loadu_ps(zero);
-
-    for (int iter = 0; iter < niter; iter++) {
-	dummy = _mm256_xor_ps(dummy, t);
-	t = _mm256_xor_ps(dummy, t);
-    }
-
-    _mm256_storeu_ps(zero, dummy);
-    struct timeval tv1 = get_time();
-
-    double dt_ns = 1.0e9 * time_diff(tv0,tv1) / (8*float(niter));
-    cout << "time_trivial: " << dt_ns << " ns" << endl;
-}
-
-
 template<typename T, int S, int N>
-void time_downsample(T *zero, int niter)
+void time_old_downsample(T *zero, int niter)
 {
     struct timeval tv0 = get_time();
     
@@ -86,7 +68,7 @@ void time_downsample(T *zero, int niter)
     struct timeval tv1 = get_time();
 
     double dt_ns = 1.0e9 * time_diff(tv0,tv1) / (S*N*float(niter));
-    cout << "time_downsample<" << type_name<T>() << "," << S << "," << N << ">: " << dt_ns << " ns" << endl;
+    cout << "time_old_downsample<" << type_name<T>() << "," << S << "," << N << ">: " << dt_ns << " ns" << endl;
 }
 
 
@@ -115,36 +97,114 @@ void time_new_downsample(T *zero, int niter)
 }
 
 
-int main(int argc, char **argv)
-{
-    warm_up_cpu();
+// -------------------------------------------------------------------------------------------------
+
+
     
+template<typename T, int S, int N>
+void time_old_upsample(T *zero, int niter)
+{
+    struct timeval tv0 = get_time();
+    
+    simd_t<T,S> dummy;
+    dummy.loadu(zero);
+
+    simd_ntuple<T,S,N> t;
+
+    for (int iter = 0; iter < niter; iter++) {
+	upsample(t, dummy);
+	dummy ^= t.vertical_xor();
+    }
+    
+    simd_store(zero, dummy);
+    struct timeval tv1 = get_time();
+
+    double dt_ns = 1.0e9 * time_diff(tv0,tv1) / (S*N*float(niter));
+    cout << "time_old_upsample<" << type_name<T>() << "," << S << "," << N << ">: " << dt_ns << " ns" << endl;
+}
+
+
+template<typename T, int S, int N>
+void time_new_upsample(T *zero, int niter)
+{
+    struct timeval tv0 = get_time();
+    
+    simd_t<T,S> dummy;
+    dummy.loadu(zero);
+
+    simd_ntuple<T,S,N> t;
+
+    for (int iter = 0; iter < niter; iter++) {
+	simd_upsample(t, dummy);
+	dummy ^= t.vertical_xor();
+    }
+    
+    simd_store(zero, dummy);
+    struct timeval tv1 = get_time();
+
+    double dt_ns = 1.0e9 * time_diff(tv0,tv1) / (S*N*float(niter));
+    cout << "time_new_upsample<" << type_name<T>() << "," << S << "," << N << ">: " << dt_ns << " ns" << endl;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
+
+void time_downsample()
+{
     vector<float> zero(64, 0.0);
     vector<int> izero(64, 0);
 
-    // time_downsample<float,4,1> (&zero[0], 1 << 30);
-    time_downsample<float,4,2> (&zero[0], 1 << 30);
-    time_downsample<float,4,4> (&zero[0], 1 << 29);
-    // time_downsample<float,8,1> (&zero[0], 1 << 30);
-    time_downsample<float,8,2> (&zero[0], 1 << 29);
-    time_downsample<float,8,4> (&zero[0], 1 << 28);
-    time_downsample<float,8,8> (&zero[0], 1 << 27);
+    time_old_downsample<float,4,2> (&zero[0], 1 << 30);
+    time_old_downsample<float,4,4> (&zero[0], 1 << 29);
+    time_old_downsample<float,8,2> (&zero[0], 1 << 29);
+    time_old_downsample<float,8,4> (&zero[0], 1 << 28);
+    time_old_downsample<float,8,8> (&zero[0], 1 << 27);
 
-    // time_new_downsample<float,4,1> (&zero[0], 1 << 30);
     time_new_downsample<float,4,2> (&zero[0], 1 << 30);
     time_new_downsample<float,4,4> (&zero[0], 1 << 29);
-    // time_new_downsample<float,8,1> (&zero[0], 1 << 30);
     time_new_downsample<float,8,2> (&zero[0], 1 << 29);
     time_new_downsample<float,8,4> (&zero[0], 1 << 28);
     time_new_downsample<float,8,8> (&zero[0], 1 << 27);
 
-    // time_new_downsample<int,4,1> (&izero[0], 1 << 30);
     time_new_downsample<int,4,2> (&izero[0], 1 << 30);
     time_new_downsample<int,4,4> (&izero[0], 1 << 29);
-    // time_new_downsample<int,8,1> (&izero[0], 1 << 30);
     time_new_downsample<int,8,2> (&izero[0], 1 << 29);
     time_new_downsample<int,8,4> (&izero[0], 1 << 28);
     time_new_downsample<int,8,8> (&izero[0], 1 << 27);
+}
+
+
+template<int S, int N>
+void time_upsample(int niter)
+{
+    vector<float> zero(64, 0.0);
+    vector<int> izero(64, 0.0);
+    
+    time_old_upsample<int,S,N> (&izero[0], niter);
+    time_new_upsample<int,S,N> (&izero[0], niter);
+    
+    time_old_upsample<float,S,N> (&zero[0], niter);
+    time_new_upsample<float,S,N> (&zero[0], niter);
+}
+
+    
+void time_upsample()
+{
+    time_upsample<4,2> (1 << 30);
+    time_upsample<4,4> (1 << 29);
+    time_upsample<8,2> (1 << 29);
+    time_upsample<8,4> (1 << 28);
+    time_upsample<8,8> (1 << 27);
+}
+
+
+int main(int argc, char **argv)
+{
+    warm_up_cpu();
+    
+    // time_downsample();
+    time_upsample();
     
     return 0;
 }
