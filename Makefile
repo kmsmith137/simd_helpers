@@ -36,7 +36,7 @@ INCFILES_SUB=simd_helpers/core.hpp \
 
 TESTFILES=run-tests
 
-all: $(TESTFILES)
+all: $(TESTFILES) time-kernels
 
 clean:
 	rm -f *~ simd_helpers/*~ .gitignore~ $(TESTFILES)
@@ -57,4 +57,7 @@ uninstall:
 	if [ -e $(INCDIR)/simd_helpers ]; then rmdir $(INCDIR)/simd_helpers; fi
 
 run-tests: run-tests.cpp $(INCFILES_TOP) $(INCFILES_SUB)
+	$(CPP) -o $@ $<
+
+time-kernels: time-kernels.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<

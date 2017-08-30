@@ -30,6 +30,8 @@ struct simd_ntuple
 
     simd_ntuple() { }
     simd_ntuple(const simd_ntuple<T,S,N-1> &v_, simd_t<T,S> x_) : v(v_), x(x_) { }
+    
+    explicit simd_ntuple(const simd_t<T,S> &x_) : v(x_), x(x_) { }
 
     inline void setzero()
     {
@@ -67,25 +69,37 @@ struct simd_ntuple
     inline simd_ntuple<T,S,N> &operator-=(const simd_ntuple<T,S,N> &t)  { v -= t.v; x -= t.x; return *this; }
     inline simd_ntuple<T,S,N> &operator*=(const simd_ntuple<T,S,N> &t)  { v *= t.v; x *= t.x; return *this; }
     inline simd_ntuple<T,S,N> &operator/=(const simd_ntuple<T,S,N> &t)  { v /= t.v; x /= t.x; return *this; }
+    inline simd_ntuple<T,S,N> &operator&=(const simd_ntuple<T,S,N> &t)  { v &= t.v; x &= t.x; return *this; }
+    inline simd_ntuple<T,S,N> &operator|=(const simd_ntuple<T,S,N> &t)  { v |= t.v; x |= t.x; return *this; }
+    inline simd_ntuple<T,S,N> &operator^=(const simd_ntuple<T,S,N> &t)  { v ^= t.v; x ^= t.x; return *this; }
 
     inline simd_ntuple<T,S,N> operator+(const simd_ntuple<T,S,N> &t) const  { simd_ntuple<T,S,N> ret; ret.v = v+t.v; ret.x = x+t.x; return ret; }
     inline simd_ntuple<T,S,N> operator-(const simd_ntuple<T,S,N> &t) const  { simd_ntuple<T,S,N> ret; ret.v = v-t.v; ret.x = x-t.x; return ret; }
     inline simd_ntuple<T,S,N> operator*(const simd_ntuple<T,S,N> &t) const  { simd_ntuple<T,S,N> ret; ret.v = v*t.v; ret.x = x*t.x; return ret; }
     inline simd_ntuple<T,S,N> operator/(const simd_ntuple<T,S,N> &t) const  { simd_ntuple<T,S,N> ret; ret.v = v/t.v; ret.x = x/t.x; return ret; }
+    inline simd_ntuple<T,S,N> operator&(const simd_ntuple<T,S,N> &t) const  { simd_ntuple<T,S,N> ret; ret.v = v&t.v; ret.x = x&t.x; return ret; }
+    inline simd_ntuple<T,S,N> operator|(const simd_ntuple<T,S,N> &t) const  { simd_ntuple<T,S,N> ret; ret.v = v|t.v; ret.x = x|t.x; return ret; }
+    inline simd_ntuple<T,S,N> operator^(const simd_ntuple<T,S,N> &t) const  { simd_ntuple<T,S,N> ret; ret.v = v^t.v; ret.x = x^t.x; return ret; }
 
     inline simd_ntuple<T,S,N> &operator+=(const simd_t<T,S> &t)  { v += t; x += t; return *this; }
     inline simd_ntuple<T,S,N> &operator-=(const simd_t<T,S> &t)  { v -= t; x -= t; return *this; }
     inline simd_ntuple<T,S,N> &operator*=(const simd_t<T,S> &t)  { v *= t; x *= t; return *this; }
     inline simd_ntuple<T,S,N> &operator/=(const simd_t<T,S> &t)  { v /= t; x /= t; return *this; }
+    inline simd_ntuple<T,S,N> &operator&=(const simd_t<T,S> &t)  { v &= t; x &= t; return *this; }
+    inline simd_ntuple<T,S,N> &operator|=(const simd_t<T,S> &t)  { v |= t; x |= t; return *this; }
+    inline simd_ntuple<T,S,N> &operator^=(const simd_t<T,S> &t)  { v ^= t; x ^= t; return *this; }
 
     inline simd_ntuple<T,S,N> operator+(const simd_t<T,S> &t) const { simd_ntuple<T,S,N> ret; ret.v = v+t; ret.x = x+t; return ret; }
     inline simd_ntuple<T,S,N> operator-(const simd_t<T,S> &t) const { simd_ntuple<T,S,N> ret; ret.v = v-t; ret.x = x-t; return ret; }
     inline simd_ntuple<T,S,N> operator*(const simd_t<T,S> &t) const { simd_ntuple<T,S,N> ret; ret.v = v*t; ret.x = x*t; return ret; }
     inline simd_ntuple<T,S,N> operator/(const simd_t<T,S> &t) const { simd_ntuple<T,S,N> ret; ret.v = v/t; ret.x = x/t; return ret; }
+    inline simd_ntuple<T,S,N> operator&(const simd_t<T,S> &t) const { simd_ntuple<T,S,N> ret; ret.v = v&t; ret.x = x&t; return ret; }
+    inline simd_ntuple<T,S,N> operator|(const simd_t<T,S> &t) const { simd_ntuple<T,S,N> ret; ret.v = v|t; ret.x = x|t; return ret; }
+    inline simd_ntuple<T,S,N> operator^(const simd_t<T,S> &t) const { simd_ntuple<T,S,N> ret; ret.v = v^t; ret.x = x^t; return ret; }
 
     inline simd_ntuple<T,S,N> apply_mask(const smask_t<T,S> &t) const          { simd_ntuple<T,S,N> ret; ret.v = v.apply_mask(t); ret.x = x.apply_mask(t); return ret; }
     inline simd_ntuple<T,S,N> apply_inverse_mask(const smask_t<T,S> &t) const  { simd_ntuple<T,S,N> ret; ret.v = v.apply_inverse_mask(t); ret.x = x.apply_inverse_mask(t); return ret; }
-
+    
     inline simd_ntuple<T,S,N> _rsub(const simd_t<T,S> &t)  { simd_ntuple<T,S,N> ret; ret.v = t-v; ret.x = t-x; return ret; }
     inline simd_ntuple<T,S,N> _rdiv(const simd_t<T,S> &t)  { simd_ntuple<T,S,N> ret; ret.v = t/v; ret.x = t/x; return ret; }
 
@@ -130,22 +144,34 @@ struct simd_ntuple<T,S,0>
     inline simd_ntuple<T,S,0> &operator-=(const simd_ntuple<T,S,0> &t) { return *this; }
     inline simd_ntuple<T,S,0> &operator*=(const simd_ntuple<T,S,0> &t) { return *this; }
     inline simd_ntuple<T,S,0> &operator/=(const simd_ntuple<T,S,0> &t) { return *this; }
+    inline simd_ntuple<T,S,0> &operator&=(const simd_ntuple<T,S,0> &t) { return *this; }
+    inline simd_ntuple<T,S,0> &operator|=(const simd_ntuple<T,S,0> &t) { return *this; }
+    inline simd_ntuple<T,S,0> &operator^=(const simd_ntuple<T,S,0> &t) { return *this; }
 
     inline simd_ntuple<T,S,0> operator+(const simd_ntuple<T,S,0> &t) const { return simd_ntuple<T,S,0>(); }
     inline simd_ntuple<T,S,0> operator-(const simd_ntuple<T,S,0> &t) const { return simd_ntuple<T,S,0>(); }
     inline simd_ntuple<T,S,0> operator*(const simd_ntuple<T,S,0> &t) const { return simd_ntuple<T,S,0>(); }
     inline simd_ntuple<T,S,0> operator/(const simd_ntuple<T,S,0> &t) const { return simd_ntuple<T,S,0>(); }
+    inline simd_ntuple<T,S,0> operator&(const simd_ntuple<T,S,0> &t) const { return simd_ntuple<T,S,0>(); }
+    inline simd_ntuple<T,S,0> operator|(const simd_ntuple<T,S,0> &t) const { return simd_ntuple<T,S,0>(); }
+    inline simd_ntuple<T,S,0> operator^(const simd_ntuple<T,S,0> &t) const { return simd_ntuple<T,S,0>(); }
 
     inline simd_ntuple<T,S,0> &operator+=(const simd_t<T,S> &t) { return *this; }
     inline simd_ntuple<T,S,0> &operator-=(const simd_t<T,S> &t) { return *this; }
     inline simd_ntuple<T,S,0> &operator*=(const simd_t<T,S> &t) { return *this; }
     inline simd_ntuple<T,S,0> &operator/=(const simd_t<T,S> &t) { return *this; }
+    inline simd_ntuple<T,S,0> &operator&=(const simd_t<T,S> &t) { return *this; }
+    inline simd_ntuple<T,S,0> &operator|=(const simd_t<T,S> &t) { return *this; }
+    inline simd_ntuple<T,S,0> &operator^=(const simd_t<T,S> &t) { return *this; }
 
     inline simd_ntuple<T,S,0> operator+(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
     inline simd_ntuple<T,S,0> operator-(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
     inline simd_ntuple<T,S,0> operator*(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
     inline simd_ntuple<T,S,0> operator/(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
-
+    inline simd_ntuple<T,S,0> operator&(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
+    inline simd_ntuple<T,S,0> operator|(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
+    inline simd_ntuple<T,S,0> operator^(const simd_t<T,S> &t) const { return simd_ntuple<T,S,0>(); }
+    
     inline simd_ntuple<T,S,0> apply_mask(const smask_t<T,S> &t) const          { return simd_ntuple<T,S,0>(); }
     inline simd_ntuple<T,S,0> apply_inverse_mask(const smask_t<T,S> &t) const  { return simd_ntuple<T,S,0>(); }
 
