@@ -37,7 +37,7 @@ void warm_up_cpu()
     // the CPU seems to run slow for the first ~10^9 cycles or so.)
 
     long n = 0;
-    for (long i = 0; i < 10L * 1000L * 1000L * 1000L; i++)
+    for (long i = 0; i < 1000L * 1000L * 1000L; i++)
 	n += (i ^ (i-1));
     usleep(n % 2);
 }
@@ -118,16 +118,33 @@ void time_new_downsample(T *zero, int niter)
 int main(int argc, char **argv)
 {
     warm_up_cpu();
+    
     vector<float> zero(64, 0.0);
+    vector<int> izero(64, 0);
 
-    time_trivial(&zero[0], 1 << 30);
-    time_downsample<float,8,1> (&zero[0], 1 << 30);
-    time_downsample<float,8,2> (&zero[0], 1 << 30);
-    time_downsample<float,8,4> (&zero[0], 1 << 30);
-    time_downsample<float,8,8> (&zero[0], 1 << 30);
-    time_trivial(&zero[0], 1 << 30);
+    // time_downsample<float,4,1> (&zero[0], 1 << 30);
+    time_downsample<float,4,2> (&zero[0], 1 << 30);
+    time_downsample<float,4,4> (&zero[0], 1 << 29);
+    // time_downsample<float,8,1> (&zero[0], 1 << 30);
+    time_downsample<float,8,2> (&zero[0], 1 << 29);
+    time_downsample<float,8,4> (&zero[0], 1 << 28);
+    time_downsample<float,8,8> (&zero[0], 1 << 27);
 
-    time_new_downsample<float,8,2> (&zero[0], 1 << 30);
+    // time_new_downsample<float,4,1> (&zero[0], 1 << 30);
+    time_new_downsample<float,4,2> (&zero[0], 1 << 30);
+    time_new_downsample<float,4,4> (&zero[0], 1 << 29);
+    // time_new_downsample<float,8,1> (&zero[0], 1 << 30);
+    time_new_downsample<float,8,2> (&zero[0], 1 << 29);
+    time_new_downsample<float,8,4> (&zero[0], 1 << 28);
+    time_new_downsample<float,8,8> (&zero[0], 1 << 27);
+
+    // time_new_downsample<int,4,1> (&izero[0], 1 << 30);
+    time_new_downsample<int,4,2> (&izero[0], 1 << 30);
+    time_new_downsample<int,4,4> (&izero[0], 1 << 29);
+    // time_new_downsample<int,8,1> (&izero[0], 1 << 30);
+    time_new_downsample<int,8,2> (&izero[0], 1 << 29);
+    time_new_downsample<int,8,4> (&izero[0], 1 << 28);
+    time_new_downsample<int,8,8> (&izero[0], 1 << 27);
     
     return 0;
 }

@@ -44,6 +44,9 @@ template<> struct simd_t<int,4>
     inline simd_t<int,4> operator+(simd_t<int,4> t) const { return _mm_add_epi32(x,t.x); }
     inline simd_t<int,4> operator-(simd_t<int,4> t) const { return _mm_sub_epi32(x,t.x); }
     inline simd_t<int,4> operator*(simd_t<int,4> t) const { return _mm_mullo_epi32(x,t.x); }
+    inline simd_t<int,4> operator&(simd_t<int,4> t) const { return _mm_and_si128(x,t.x); }
+    inline simd_t<int,4> operator|(simd_t<int,4> t) const { return _mm_or_si128(x,t.x); }
+    inline simd_t<int,4> operator^(simd_t<int,4> t) const { return _mm_xor_si128(x,t.x); }
 
     inline simd_t<int,4> operator-() const
     {
@@ -54,6 +57,9 @@ template<> struct simd_t<int,4>
     inline simd_t<int,4> &operator+=(simd_t<int,4> t) { x = _mm_add_epi32(x,t.x); return *this; }
     inline simd_t<int,4> &operator-=(simd_t<int,4> t) { x = _mm_sub_epi32(x,t.x); return *this; }
     inline simd_t<int,4> &operator*=(simd_t<int,4> t) { x = _mm_mullo_epi32(x,t.x); return *this; }
+    inline simd_t<int,4> &operator&=(simd_t<int,4> t) { x = _mm_and_si128(x,t.x); return *this; }
+    inline simd_t<int,4> &operator|=(simd_t<int,4> t) { x = _mm_or_si128(x,t.x); return *this; }
+    inline simd_t<int,4> &operator^=(simd_t<int,4> t) { x = _mm_xor_si128(x,t.x); return *this; }
 
     inline simd_t<int,4> abs() const { return _mm_abs_epi32(x); }
     inline simd_t<int,4> min(simd_t<int,4> t) const { return _mm_min_epi32(x, t.x); }
@@ -181,10 +187,18 @@ template<> struct simd_t<int,8>
 #endif
     }
 
+    inline simd_t<int,8> operator&(simd_t<int,8> t) const { return _mm256_and_si256(x,t.x); }
+    inline simd_t<int,8> operator|(simd_t<int,8> t) const { return _mm256_or_si256(x,t.x); }
+    inline simd_t<int,8> operator^(simd_t<int,8> t) const { return _mm256_xor_si256(x,t.x); }
+
     inline simd_t<int,8> &operator+=(simd_t<int,8> t)  { *this = (*this) + t; return *this; }
     inline simd_t<int,8> &operator-=(simd_t<int,8> t)  { *this = (*this) - t; return *this; }
     inline simd_t<int,8> &operator*=(simd_t<int,8> t)  { *this = (*this) * t; return *this; }
 
+    inline simd_t<int,8> &operator&=(simd_t<int,8> t)  { *this = _mm256_and_si256(x,t.x); return *this; }
+    inline simd_t<int,8> &operator|=(simd_t<int,8> t)  { *this = _mm256_or_si256(x,t.x); return *this; }
+    inline simd_t<int,8> &operator^=(simd_t<int,8> t)  { *this = _mm256_xor_si256(x,t.x); return *this; }
+    
     inline simd_t<int,8> abs() const
     {
 #ifdef __AVX2__
