@@ -118,6 +118,10 @@ template<> inline simd_t<int,4> simd_upsampler<int,4,4>::get<2> () const { retur
 template<> inline simd_t<int,4> simd_upsampler<int,4,4>::get<3> () const { return _mm_shuffle_epi32(x.x, 0xff); }  // (3333)_4
 
 
+#ifdef __AVX__
+// 256-bit kernels start here
+
+
 // -------------------------------------------------------------------------------------------------
 //
 // 256-bit upsample by two
@@ -272,6 +276,10 @@ template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<4> () const { retur
 template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<5> () const { return _mm256_shuffle_epi32(v.x, 0x55); }
 template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<6> () const { return _mm256_shuffle_epi32(v.x, 0xaa); }
 template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<7> () const { return _mm256_shuffle_epi32(v.x, 0xff); }
+
+
+// 256-bit kernels end here
+#endif // __AVX__
 
 
 // -------------------------------------------------------------------------------------------------

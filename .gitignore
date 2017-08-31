@@ -2,4 +2,5 @@
 *.o
 Makefile.local
 run-tests
+time-kernels
 .touchfile_test

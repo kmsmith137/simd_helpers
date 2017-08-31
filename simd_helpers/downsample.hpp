@@ -27,12 +27,30 @@ template<typename T, int S, int D, typename Op> struct _simd_downsampler;
 
 // -------------------------------------------------------------------------------------------------
 //
-// Downsampling API defined in this file.
+// Binary operators which can be passed as template parameters to simd_downsample(r).
+//
+// FIXME: should define operators systematically (these are just the ones I happen to have needed so far).
 
 
-template<typename T, int S> struct simd_add {
-    static inline simd_t<T,S> op(simd_t<T,S> x, simd_t<T,S> y) { return x+y; }
+template<typename T, int S>
+struct simd_add {
+    static inline simd_t<T,S> op(simd_t<T,S> x, simd_t<T,S> y) { return x + y; }
 };
+
+template<typename T, int S>
+struct simd_max {
+    static inline simd_t<T,S> op(simd_t<T,S> x, simd_t<T,S> y) { return x.max(y); }
+};
+
+template<typename T, int S>
+struct simd_bitwise_or {
+    static inline simd_t<T,S> op(simd_t<T,S> x, simd_t<T,S> y) { return x | y; }
+};
+
+
+// -------------------------------------------------------------------------------------------------
+//
+// Downsampling API defined in this file.
 
 
 template<typename T, int S, int D, typename Op = simd_add<T,S> >
@@ -152,6 +170,10 @@ struct _simd_downsampler<int,4,4,Op>
 
     inline simd_t<int,4> get() const { return y; }
 };
+
+
+#ifdef __AVX__
+// 256-bit kernels start here
 
 
 // -------------------------------------------------------------------------------------------------
@@ -384,6 +406,10 @@ struct _simd_downsampler<int,8,8,Op>
 
     inline simd_t<int,8> get() const { return x2; }
 };
+
+
+// 256-bit kernels end here
+#endif // __AVX__
 
 
 // -------------------------------------------------------------------------------------------------
