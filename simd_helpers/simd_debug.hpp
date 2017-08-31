@@ -22,8 +22,12 @@
 #include "simd_float64.hpp"
 #include "simd_ntuple.hpp"
 #include "simd_trimatrix.hpp"
+
 #include "align.hpp"
 #include "convert.hpp"
+#include "downsample.hpp"
+#include "upsample.hpp"
+
 #include "udsample.hpp"
 #include "downsample_max.hpp"
 #include "downsample_bitwise_or.hpp"
@@ -176,10 +180,10 @@ inline simd_trimatrix<T,S,N> pack_simd_trimatrix(const std::vector<T> &v)
 
 
 template<typename T, typename S>
-inline T compare(S n, const T *v, const T *w)
+inline double compare(S n, const T *v, const T *w)
 {
-    T num = 0;
-    T den = 0;
+    double num = 0;
+    double den = 0;
     
     for (S i = 0; i < n; i++) {
 	T x = v[i];
@@ -192,14 +196,14 @@ inline T compare(S n, const T *v, const T *w)
 }
 
 template<typename T>
-inline T compare(const std::vector<T> &v, const std::vector<T> &w)
+inline double compare(const std::vector<T> &v, const std::vector<T> &w)
 {
     assert(v.size() == w.size());
     return compare(v.size(), &v[0], &w[0]);
 }
 
 template<typename T, int S>
-inline T compare(simd_t<T,S> v, simd_t<T,S> w)
+inline double compare(simd_t<T,S> v, simd_t<T,S> w)
 {
     return compare(vectorize(v), vectorize(w));
 }
