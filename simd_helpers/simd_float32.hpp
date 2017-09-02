@@ -66,6 +66,13 @@ template<> struct simd_t<float,4>
     inline simd_t<float,4> &operator&=(simd_t<float,4> t) { x = _mm_and_ps(x, t.x); return *this; }
     inline simd_t<float,4> &operator|=(simd_t<float,4> t) { x = _mm_or_ps(x, t.x); return *this; }
     inline simd_t<float,4> &operator^=(simd_t<float,4> t) { x = _mm_xor_ps(x, t.x); return *this; }
+
+    inline simd_t<float,4> operator==(simd_t<float,4> t) const { return _mm_cmpeq_ps(x, t.x); }
+    inline simd_t<float,4> operator!=(simd_t<float,4> t) const { return _mm_cmpneq_ps(x, t.x); }
+    inline simd_t<float,4> operator>=(simd_t<float,4> t) const { return _mm_cmpge_ps(x, t.x); }
+    inline simd_t<float,4> operator>(simd_t<float,4> t) const  { return _mm_cmpgt_ps(x, t.x); }
+    inline simd_t<float,4> operator<=(simd_t<float,4> t) const { return _mm_cmple_ps(x, t.x); }
+    inline simd_t<float,4> operator<(simd_t<float,4> t) const  { return _mm_cmplt_ps(x, t.x); }
     
     inline simd_t<float,4> horizontal_sum() const
     {
@@ -161,6 +168,13 @@ template<> struct simd_t<float,8>
     inline simd_t<float,8> &operator&=(simd_t<float,8> t) { x = _mm256_and_ps(x, t.x); return *this; }
     inline simd_t<float,8> &operator|=(simd_t<float,8> t) { x = _mm256_or_ps(x, t.x); return *this; }
     inline simd_t<float,8> &operator^=(simd_t<float,8> t) { x = _mm256_xor_ps(x, t.x); return *this; }
+
+    inline simd_t<float,8> operator==(simd_t<float,8> t) const { return _mm256_cmp_ps(x, t.x, _CMP_EQ_OQ); }
+    inline simd_t<float,8> operator!=(simd_t<float,8> t) const { return _mm256_cmp_ps(x, t.x, _CMP_NEQ_OQ); }
+    inline simd_t<float,8> operator>=(simd_t<float,8> t) const { return _mm256_cmp_ps(x, t.x, _CMP_GE_OQ); }
+    inline simd_t<float,8> operator>(simd_t<float,8> t) const  { return _mm256_cmp_ps(x, t.x, _CMP_GT_OQ); }
+    inline simd_t<float,8> operator<=(simd_t<float,8> t) const { return _mm256_cmp_ps(x, t.x, _CMP_LE_OQ); }
+    inline simd_t<float,8> operator<(simd_t<float,8> t) const  { return _mm256_cmp_ps(x, t.x, _CMP_LT_OQ); }
 
     // abs() is implemented by clearing the sign bit
     inline simd_t<float,8> abs() const   { return _mm256_andnot_ps(_mm256_set1_ps(-0.0), x); }
