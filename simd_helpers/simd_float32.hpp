@@ -105,6 +105,9 @@ template<> struct simd_t<float,4>
 
     inline simd_t<float,4> apply_mask(simd_t<int,4> t) const          { return _mm_and_ps(_mm_castsi128_ps(t.x), x); }
     inline simd_t<float,4> apply_inverse_mask(simd_t<int,4> t) const  { return _mm_andnot_ps(_mm_castsi128_ps(t.x), x); }
+
+    // "Equalizes" the float[4], by setting all 4 entries equal to the zeroth entry.
+    inline simd_t<float,4> equalize() const { return _mm_permute_ps(x, 0x0); }
 };
 
 
@@ -208,6 +211,9 @@ template<> struct simd_t<float,8>
 
     inline simd_t<float,8> apply_mask(simd_t<int,8> t) const          { return _mm256_and_ps(_mm256_castsi256_ps(t.x), x); }
     inline simd_t<float,8> apply_inverse_mask(simd_t<int,8> t) const  { return _mm256_andnot_ps(_mm256_castsi256_ps(t.x), x); }
+
+    // "Equalizes" the float[8], by setting all 8 entries equal to the zeroth entry.
+    inline simd_t<float,8> equalize() const { return _mm_permute_ps(_mm256_permute2f128_ps(x,x,0x0), 0x0); }
 };
 
 
