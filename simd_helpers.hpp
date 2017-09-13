@@ -19,6 +19,7 @@
 #include "simd_helpers/align.hpp"
 #include "simd_helpers/convert.hpp"
 #include "simd_helpers/downsample.hpp"
+#include "simd_helpers/transpose.hpp"
 #include "simd_helpers/upsample.hpp"
 
 #include "simd_helpers/udsample.hpp"                // upsample(), downsample()

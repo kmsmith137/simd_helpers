@@ -31,6 +31,7 @@ INCFILES_SUB=simd_helpers/core.hpp \
 	simd_helpers/align.hpp \
 	simd_helpers/convert.hpp \
 	simd_helpers/downsample.hpp \
+	simd_helpers/transpose.hpp \
 	simd_helpers/upsample.hpp \
 	simd_helpers/udsample.hpp \
 	simd_helpers/downsample_max.hpp \

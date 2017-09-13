@@ -748,6 +748,79 @@ static vector<T> reference_multiply_symmetric(const vector<T> &mat, const vector
 // -------------------------------------------------------------------------------------------------
 
 
+template<typename T>
+void reference_transpose(T *dst, const T *src, int S, int N)
+{
+    // Number of spectator indices
+    int M = S/N;
+
+    // Shape: (N,M,N)
+    for (int i = 0; i < N; i++)
+	for (int j = 0; j < M; j++)
+	    for (int k = 0; k < N; k++)
+		dst[i*M*N+j*N+k] = src[k*M*N+j*N+i];
+}
+
+
+template<typename T>
+void reference_btranspose(T *dst, const T *src, int S, int N)
+{
+    // Number of spectator indices
+    int M = S/N;
+
+    // Shape: (N,N,M)
+    for (int i = 0; i < N; i++)
+	for (int j = 0; j < N; j++)
+	    for (int k = 0; k < M; k++)
+		dst[i*M*N+j*M+k] = src[j*M*N+i*M+k];
+}
+
+
+template<typename T, int S, int N>
+void test_transpose(std::mt19937 &rng)
+{
+    vector<T> src = uniform_randvec<T> (rng, S*N, 0, 1000000);
+    vector<T> dst1(S*N);
+    vector<T> dst2(S*N);
+
+    simd_ntuple<T,S,N> t;
+    t.loadu(&src[0]);
+    simd_transpose(t);
+    t.storeu(&dst1[0]);
+
+    reference_transpose(&dst2[0], &src[0], S, N);
+
+    if (!strictly_equal(S*N, &dst1[0], &dst2[0])) {
+	cerr << "test_transpose(T=" << type_name<T>() << ",S=" << S << ",N=" << N << ") failed\n";
+	exit(1);
+    }
+}
+
+
+template<typename T, int S, int N>
+void test_btranspose(std::mt19937 &rng)
+{
+    vector<T> src = uniform_randvec<T> (rng, S*N, 0, 1000000);
+    vector<T> dst1(S*N);
+    vector<T> dst2(S*N);
+
+    simd_ntuple<T,S,N> t;
+    t.loadu(&src[0]);
+    simd_btranspose(t);
+    t.storeu(&dst1[0]);
+
+    reference_btranspose(&dst2[0], &src[0], S, N);
+
+    if (!strictly_equal(S*N, &dst1[0], &dst2[0])) {
+	cerr << "test_btranspose(T=" << type_name<T>() << ",S=" << S << ",N=" << N << ") failed\n";
+	exit(1);
+    }
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
+
 template<typename T, int S, int N>
 void test_linear_algebra_kernels_N(std::mt19937 &rng)
 {
@@ -1098,9 +1171,6 @@ inline void test_all(std::mt19937 &rng)
     test_udsample<4,2> (rng);
     test_udsample<4,4> (rng);
 
-    test_linear_algebra_kernels<float,4> (rng);
-    test_linear_algebra_kernels<double,2> (rng);
-
 #ifdef __AVX__
     test_convert<float,double,4> (rng);
     test_convert<double,float,4> (rng);
@@ -1114,6 +1184,16 @@ inline void test_all(std::mt19937 &rng)
     test_linear_algebra_kernels<float,8> (rng);
     test_linear_algebra_kernels<double,4> (rng);
 #endif
+
+#ifdef __AVX2__
+    // FIXME transpose kernels currently assume AVX2
+    test_transpose<float,8,4> (rng);
+    test_transpose<float,8,8> (rng);
+    test_btranspose<float,8,2> (rng);
+#endif
+
+    test_linear_algebra_kernels<float,4> (rng);
+    test_linear_algebra_kernels<double,2> (rng);
 
 #if defined(__AVX__) && defined(__F16C__)
     test_float16_kernels<8> (rng);

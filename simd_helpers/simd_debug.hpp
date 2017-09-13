@@ -26,6 +26,7 @@
 #include "align.hpp"
 #include "convert.hpp"
 #include "downsample.hpp"
+#include "transpose.hpp"
 #include "upsample.hpp"
 
 #include "udsample.hpp"
