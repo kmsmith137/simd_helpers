@@ -9,7 +9,7 @@
 #error "Either you're compiling on an old machine, or you forgot the -march=native compiler flag.  If this is an old machine, see note in simd_helpers/README.md."
 #endif
 
-#define SIMD_HELPERS_VERSION 4
+#define SIMD_HELPERS_VERSION 5
 
 #include <type_traits>
 #include "immintrin.h"
