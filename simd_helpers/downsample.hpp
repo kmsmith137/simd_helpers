@@ -50,11 +50,19 @@ struct simd_bitwise_or {
 
 // -------------------------------------------------------------------------------------------------
 //
-// Downsampling API defined in this file.
+// Downsampling API defined in this file
 
 
-template<typename T, int S, int D, typename Op = simd_add<T,S> >
-struct simd_downsampler { 
+template<typename T, int S, int D, typename Op = simd_add<T,S>, bool two_stage = (D > S)>
+struct simd_downsampler;
+
+
+// One-stage case (D <= S)
+template<typename T, int S, int D, typename Op>
+struct simd_downsampler<T,S,D,Op,false> {
+    static constexpr bool valid = (D >= 1) && (D <= S) && (D & (D-1)) == 0;
+    static_assert(valid, "simd_downsampler: downsampling factor D must be either a power of two, or an integer multiple of simd size S");
+
     template<int N> inline void put(simd_t<T,S> x);
     inline simd_t<T,S> get() const;
 
@@ -63,6 +71,21 @@ struct simd_downsampler {
 };
 
 
+// Two-stage case (D > S)
+template<typename T, int S, int D, typename Op>
+struct simd_downsampler<T,S,D,Op,true> {
+    static constexpr bool valid = (D > S) && (D % S) == 0;
+    static_assert(valid, "simd_downsampler: downsampling factor D must be either a power of two, or an integer multiple of simd size S");
+
+    template<int N> inline void put(simd_t<T,S> x);
+    inline simd_t<T,S> get() const;
+
+    simd_downsampler<T,S,S,Op> _sd;
+    simd_t<T,S> _acc;
+};
+
+
+// N-tuple interface
 template<typename T, int S, typename Op = simd_add<T,S>, int N>
 inline simd_t<T,S> simd_downsample(const simd_ntuple<T,S,N> &x);
 
@@ -322,6 +345,8 @@ struct _simd_downsampler<int,8,4,Op>
 
 
 // -------------------------------------------------------------------------------------------------
+//
+// 256-bit downsampling by 8.
 
 
 template<typename Op>
@@ -414,7 +439,7 @@ struct _simd_downsampler<int,8,8,Op>
 
 // -------------------------------------------------------------------------------------------------
 //
-// Weird boilerplate
+// Weird template boilerplate: single-stage case (D <= S).
 
 
 template<int N, typename Td, typename Ts, typename std::enable_if<(N==0),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put0(x); }
@@ -426,35 +451,86 @@ template<int N, typename Td, typename Ts, typename std::enable_if<(N==5),int>::t
 template<int N, typename Td, typename Ts, typename std::enable_if<(N==6),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put6(x); }
 template<int N, typename Td, typename Ts, typename std::enable_if<(N==7),int>::type=0> inline void _simd_ds_put(Td &d, Ts x) { d.put7(x); }
 
-template<typename T, int S, int D, typename Op> 
+template<typename T, int S, int D, typename Op>
 template<int N>
-inline void simd_downsampler<T,S,D,Op>::put(simd_t<T,S> x) 
+inline void simd_downsampler<T,S,D,Op,false>::put(simd_t<T,S> x)
 { 
     _simd_ds_put<N> (_s, x); 
 }
 
 template<typename T, int S, int D, typename Op> 
-inline simd_t<T,S> simd_downsampler<T,S,D,Op>::get() const
+inline simd_t<T,S> simd_downsampler<T,S,D,Op,false>::get() const
 {
     return _s.get();
 }
 
 
+// -------------------------------------------------------------------------------------------------
+//
+// Weird template boilerplate: two-stage case (D > S).
+
+
+template<int N, int R, typename Op, typename T, int S, typename std::enable_if<(N % R == 0),int>::type=0>
+inline void _simd_ds_stage1(simd_t<T,S> &acc, simd_t<T,S> x)
+{
+    acc = x;
+}
+
+template<int N, int R, typename Op, typename T, int S, typename std::enable_if<(N % R > 0),int>::type=0>
+inline void _simd_ds_stage1(simd_t<T,S> &acc, simd_t<T,S> x)
+{
+    acc = Op::op(acc, x);
+}
+
+template<int N, int R, typename Op, typename T, int S, typename std::enable_if<(N % R != R-1),int>::type=0>
+inline void _simd_ds_stage2(simd_downsampler<T,S,S,Op> &sd, simd_t<T,S> acc)
+{
+    // Do nothing.
+}
+
+template<int N, int R, typename Op, typename T, int S, typename std::enable_if<(N % R == R-1),int>::type=0>
+inline void _simd_ds_stage2(simd_downsampler<T,S,S,Op> &sd, simd_t<T,S> acc)
+{
+    sd.template put<(N/R)> (acc);
+}
+
+template<typename T, int S, int D, typename Op>
+template<int N>
+inline void simd_downsampler<T,S,D,Op,true>::put(simd_t<T,S> x)
+{
+    constexpr int R = D / S;
+
+    _simd_ds_stage1<N,R,Op> (_acc, x);
+    _simd_ds_stage2<N,R,Op> (_sd, _acc);
+}
+
+template<typename T, int S, int D, typename Op> 
+inline simd_t<T,S> simd_downsampler<T,S,D,Op,true>::get() const
+{
+    return _sd.get();
+}
+
+
+// -------------------------------------------------------------------------------------------------
+//
+// Weird template boilerplate: N-tuple interface
+
+
 template<typename Td, typename T, int S, int N, typename std::enable_if<(N==0),int>::type=0>
-inline void _simd_ds_mput(Td &d, const simd_ntuple<T,S,N> &x) { }
+inline void _simd_ds_ntuple(Td &d, const simd_ntuple<T,S,N> &x) { }
 
 template<typename Td, typename T, int S, int N, typename std::enable_if<(N>0),int>::type=0>
-inline void _simd_ds_mput(Td &d, const simd_ntuple<T,S,N> &x) 
+inline void _simd_ds_ntuple(Td &d, const simd_ntuple<T,S,N> &x) 
 { 
-    _simd_ds_mput(d, x.v);
-    _simd_ds_put<N-1> (d, x.x);
+    _simd_ds_ntuple(d, x.v);
+    d.template put<N-1> (x.x);
 }
 
 template<typename T, int S, typename Op, int N>
 inline simd_t<T,S> simd_downsample(const simd_ntuple<T,S,N> &x)
 {
-    _simd_downsampler<T,S,N,Op> ds;
-    _simd_ds_mput(ds, x);
+    simd_downsampler<T,S,N,Op> ds;
+    _simd_ds_ntuple(ds, x);
     return ds.get();
 }
 

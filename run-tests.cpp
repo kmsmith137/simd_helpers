@@ -621,11 +621,34 @@ static vector<T> reference_upsample(const vector<T> &v, int N)
 }
 
 
-template<typename T, int S, int N, typename Op = simd_add<T,S> >
-static void test_downsample(std::mt19937 &rng, std::function<T(T,T)> op, const char *op_name)
+// Test upsample for a given (T,S,N) triple.
+template<typename T, int S, int N>
+static void test_upsample1(std::mt19937 &rng)
 {
-    // Factor 3000 is because the inputs go up to 100.
-    const double epsilon0 = 3000. * machine_epsilon<T>();
+    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, 0, 100);
+
+    simd_ntuple<T,S,N> y;
+    simd_upsample(y, x);
+
+    assert(strictly_equal(vectorize(y), reference_upsample(vectorize(x),N)));
+}
+
+
+// Test upsample for a given (S,N) pair.
+template<int S, int N>
+static void test_upsample(std::mt19937 &rng)
+{
+    test_upsample1<int,S,N> (rng);
+    test_upsample1<float,S,N> (rng);
+}
+
+
+// Test downsample for a given (T,S,N,Op) quadruple.
+template<typename T, int S, int N, typename Op = simd_add<T,S> >
+static void test_downsample1(std::mt19937 &rng, std::function<T(T,T)> op, const char *op_name)
+{
+    // Factor 300 is because the inputs go up to 100.
+    const double epsilon0 = 300. * N * machine_epsilon<T>();
 
     simd_ntuple<T,S,N> x = uniform_random_simd_ntuple<T,S,N> (rng, 0, 100);
     simd_t<T,S> y = simd_downsample<T,S,Op> (x);
@@ -642,32 +665,17 @@ static void test_downsample(std::mt19937 &rng, std::function<T(T,T)> op, const c
 }
 
 
-template<typename T, int S, int N>
-static void test_upsample(std::mt19937 &rng)
-{
-    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, 0, 100);
-
-    simd_ntuple<T,S,N> y;
-    simd_upsample(y, x);
-
-    assert(strictly_equal(vectorize(y), reference_upsample(vectorize(x),N)));
-}
-
-
-// Tests all upsample/downsample ops for a given (S,N)
+// Test downsample for a given (S,N) pair.
 template<int S, int N>
-static void test_udsample(std::mt19937 &rng)
+static void test_downsample(std::mt19937 &rng)
 {
-    test_upsample<int,S,N> (rng);
-    test_upsample<float,S,N> (rng);
+    test_downsample1<int,S,N> (rng, [](int x, int y) { return x+y; }, "+");
+    test_downsample1<float,S,N> (rng, [](float x, float y) { return x+y; }, "+");
 
-    test_downsample<int,S,N> (rng, [](int x, int y) { return x+y; }, "+");
-    test_downsample<float,S,N> (rng, [](float x, float y) { return x+y; }, "+");
-
-    test_downsample<int,S,N,simd_max<int,S>> (rng, [](int x, int y) { return max(x,y); }, "max");
-    test_downsample<float,S,N,simd_max<float,S>> (rng, [](float x, float y) { return max(x,y); }, "max");
+    test_downsample1<int,S,N,simd_max<int,S>> (rng, [](int x, int y) { return max(x,y); }, "max");
+    test_downsample1<float,S,N,simd_max<float,S>> (rng, [](float x, float y) { return max(x,y); }, "max");
     
-    test_downsample<int,S,N,simd_bitwise_or<int,S>> (rng, [](int x, int y) { return x|y; }, "|");
+    test_downsample1<int,S,N,simd_bitwise_or<int,S>> (rng, [](int x, int y) { return x|y; }, "|");
 }
 
 
@@ -1168,18 +1176,39 @@ inline void test_all(std::mt19937 &rng)
     test_floating_point_T<float> (rng);
     test_floating_point_T<double> (rng);
 
-    test_udsample<4,2> (rng);
-    test_udsample<4,4> (rng);
+    // Upsampling is implemented for (D <= S).
+    test_upsample<4,1> (rng);
+    test_upsample<4,2> (rng);
+    test_upsample<4,4> (rng);
+
+    // Downsampling is implemented for general D.
+    test_downsample<4,1> (rng);
+    test_downsample<4,2> (rng);
+    test_downsample<4,4> (rng);
+    test_downsample<4,8> (rng);
+    test_downsample<4,12> (rng);
+    test_downsample<4,16> (rng);
 
 #ifdef __AVX__
     test_convert<float,double,4> (rng);
     test_convert<double,float,4> (rng);
     test_upconvert<double,float,4,2> (rng);
     test_downconvert<float,double,4,2> (rng);
-    
-    test_udsample<8,2> (rng);
-    test_udsample<8,4> (rng);
-    test_udsample<8,8> (rng);
+
+    // Upsampling is implemented for (D <= S).
+    test_upsample<8,1> (rng);
+    test_upsample<8,2> (rng);
+    test_upsample<8,4> (rng);
+    test_upsample<8,8> (rng);
+
+    // Downsampling is implemented for general D.
+    test_downsample<8,1> (rng);
+    test_downsample<8,2> (rng);
+    test_downsample<8,4> (rng);
+    test_downsample<8,8> (rng);
+    test_downsample<8,16> (rng);
+    test_downsample<8,24> (rng);
+    test_downsample<8,32> (rng);
 
     test_linear_algebra_kernels<float,8> (rng);
     test_linear_algebra_kernels<double,4> (rng);

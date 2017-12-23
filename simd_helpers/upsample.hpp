@@ -17,6 +17,7 @@ namespace simd_helpers {
 
 
 // FIXME use more C++ template-ology to eliminate cut-and-paste between int, float kernels!
+// FIXME implement case (D > S), as already done for downsampling kernels
 
 
 // -------------------------------------------------------------------------------------------------
