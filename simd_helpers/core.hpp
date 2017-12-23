@@ -46,6 +46,22 @@ namespace simd_helpers {
 // To get some useful debugging stuff, e.g. print routines, do #include <simd_helpers/simd_debug.hpp>
 
 
+// simd_size<T>() returns the size (in units sizeof(T)) of a SIMD register containing type T.
+template<typename T> constexpr int simd_size();
+
+#ifdef __AVX__
+template<> constexpr int simd_size<float>()    { return 8; }
+template<> constexpr int simd_size<double>()   { return 4; }
+template<> constexpr int simd_size<int>()      { return 8; }
+template<> constexpr int simd_size<int64_t>()  { return 4; }
+#else
+template<> constexpr int simd_size<float>()    { return 4; }
+template<> constexpr int simd_size<double>()   { return 2; }
+template<> constexpr int simd_size<int>()      { return 4; }
+template<> constexpr int simd_size<int64_t>()  { return 2; }
+#endif
+
+
 // This basic class is used everywhere!
 // See extended comment below for more info.
 template<typename T, int S> struct simd_t;
