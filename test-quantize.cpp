@@ -4,15 +4,15 @@ using namespace std;
 using namespace simd_helpers;
 
 
-void slow_quantize(int *dst, const float *src, int nsrc, int B)
+void slow_quantize(uint8_t *dst, const float *src, int nsrc, int B)
 {
     assert(B == 1);   // only 1-bit kernel implemented for now!
-    assert(nsrc % 32 == 0);
+    assert(nsrc % 8 == 0);
 
-    for (int m = 0; m < nsrc/32; m++) {
-	int iout = 0;
-	for (int n = 0; n < 32; n++)
-	    if (src[32*m+n] > 0.0f)
+    for (int m = 0; m < nsrc/8; m++) {
+	uint8_t iout = 0;
+	for (int n = 0; n < 8; n++)
+	    if (src[8*m+n] > 0.0f)
 		iout |= (1 << n);
 	dst[m] = iout;
     }
@@ -20,31 +20,29 @@ void slow_quantize(int *dst, const float *src, int nsrc, int B)
 
 
 template<int S, int B>
-void fast_quantize(int *dst, const float *src, int nsrc)
+void fast_quantize(uint8_t *dst, const float *src, int nsrc)
 {
     // Length of quantization kernel, in units sizeof(simd_t<T,S>).
     constexpr int K = (sizeof(*src) * 8) / B;
     assert(nsrc % (K*S) == 0);
 
     simd_quantizer<float,S,B> q;
+    int *dst32 = reinterpret_cast<int *> (dst);
 
     for (int m = 0; m < nsrc/(K*S); m++)
-	simd_store(dst + m*S, q.quantize(src + m*K*S));
+	simd_store(dst32 + m*S, q.quantize(src + m*K*S));
 }
 
 
 template<typename T, int S, int B>
 void test_quantize(std::mt19937 &rng)
 {
-    // Length of quantization kernel, in units sizeof(simd_t<T,S>).
-    constexpr int K = (sizeof(T) * 8) / B;
-
     int n = simd_randint(rng, 1, 10);
-    int ndst = n*S;
-    int nsrc = n*K*S;
+    int ndst = n * (sizeof(T) * S);    // number of uint8_t's in output array.
+    int nsrc = (ndst * 8) / B;         // number of T's in input array.
 
-    unique_ptr<int[]> dst1(new int[ndst]);
-    unique_ptr<int[]> dst2(new int[ndst]);
+    unique_ptr<uint8_t[]> dst1(new uint8_t[ndst]);
+    unique_ptr<uint8_t[]> dst2(new uint8_t[ndst]);
     unique_ptr<float[]> src(new float[nsrc]);
 
     for (int i = 0; i < nsrc; i++)
