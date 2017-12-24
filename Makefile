@@ -39,17 +39,20 @@ INCFILES_SUB=simd_helpers/core.hpp \
 	simd_helpers/downsample_max.hpp \
 	simd_helpers/downsample_bitwise_or.hpp
 
-TESTFILES=run-tests
+TESTFILES=run-tests test-quantize
 
 all: $(TESTFILES) time-kernels
 
 clean:
-	rm -f *~ simd_helpers/*~ .gitignore~ $(TESTFILES)
+	rm -f *~ simd_helpers/*~ .gitignore~ $(TESTFILES) .touchfile*
 
-test: .touchfile_test
+test: $(TESTFILES) .touchfile_test .touchfile_test_quantize
 
 .touchfile_test: run-tests
 	./run-tests && touch $@
+
+.touchfile_test_quantize: test-quantize
+	./test-quantize && touch $@
 
 install:
 	mkdir -p $(INCDIR)
@@ -62,6 +65,9 @@ uninstall:
 	if [ -e $(INCDIR)/simd_helpers ]; then rmdir $(INCDIR)/simd_helpers; fi
 
 run-tests: run-tests.cpp $(INCFILES_TOP) $(INCFILES_SUB)
+	$(CPP) -o $@ $<
+
+test-quantize: test-quantize.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<
 
 time-kernels: time-kernels.cpp $(INCFILES_TOP) $(INCFILES_SUB)

@@ -1,0 +1,77 @@
+#include "simd_helpers/simd_debug.hpp"
+
+using namespace std;
+using namespace simd_helpers;
+
+
+void slow_quantize(int *dst, const float *src, int nsrc, int B)
+{
+    assert(B == 1);   // only 1-bit kernel implemented for now!
+    assert(nsrc % 32 == 0);
+
+    for (int m = 0; m < nsrc/32; m++) {
+	int iout = 0;
+	for (int n = 0; n < 32; n++)
+	    if (src[32*m+n] > 0.0f)
+		iout |= (1 << n);
+	dst[m] = iout;
+    }
+}
+
+
+template<int S, int B>
+void fast_quantize(int *dst, const float *src, int nsrc)
+{
+    // Length of quantization kernel, in units sizeof(simd_t<T,S>).
+    constexpr int K = sizeof(*src) / B;
+    assert(nsrc % (K*S) == 0);
+
+    simd_quantizer<float,S,B> q;
+
+    for (int m = 0; m < nsrc/(K*S); m++)
+	simd_store(dst + m*S, q.quantize(src + m*K*S));
+}
+
+
+template<typename T, int S, int B>
+void test_quantize(std::mt19937 &rng)
+{
+    // Length of quantization kernel, in units sizeof(simd_t<T,S>).
+    constexpr int K = sizeof(T) / B;
+
+    int n = simd_randint(rng, 1, 10);
+    int ndst = n*S;
+    int nsrc = n*K*S;
+
+    unique_ptr<int[]> dst1(new int[ndst]);
+    unique_ptr<int[]> dst2(new int[ndst]);
+    unique_ptr<float[]> src(new float[nsrc]);
+
+    for (int i = 0; i < n; i++) {
+	slow_quantize(dst1.get(), src.get(), nsrc, B);
+	fast_quantize<S,B> (dst2.get(), src.get(), nsrc);
+    }
+
+    for (int i = 0; i < ndst; i++) {
+	if (dst1[i] != dst2[i]) {
+	    cout << "test_quantize<" << type_name<T>() << "," << S << "," << B << "> failed\n";
+	    exit(1);
+	}
+    }
+}
+
+
+int main(int argc, char **argv)
+{
+    std::random_device rd;
+    std::mt19937 rng(rd());
+
+    for (int iter = 0; iter < 1000; iter++) {
+	test_quantize<float,4,1> (rng);
+#ifdef __AVX__
+	test_quantize<float,8,1> (rng);
+#endif
+    }
+
+    return 0;
+}
