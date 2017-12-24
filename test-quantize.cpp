@@ -23,7 +23,7 @@ template<int S, int B>
 void fast_quantize(int *dst, const float *src, int nsrc)
 {
     // Length of quantization kernel, in units sizeof(simd_t<T,S>).
-    constexpr int K = sizeof(*src) / B;
+    constexpr int K = (sizeof(*src) * 8) / B;
     assert(nsrc % (K*S) == 0);
 
     simd_quantizer<float,S,B> q;
@@ -37,7 +37,7 @@ template<typename T, int S, int B>
 void test_quantize(std::mt19937 &rng)
 {
     // Length of quantization kernel, in units sizeof(simd_t<T,S>).
-    constexpr int K = sizeof(T) / B;
+    constexpr int K = (sizeof(T) * 8) / B;
 
     int n = simd_randint(rng, 1, 10);
     int ndst = n*S;
@@ -46,6 +46,9 @@ void test_quantize(std::mt19937 &rng)
     unique_ptr<int[]> dst1(new int[ndst]);
     unique_ptr<int[]> dst2(new int[ndst]);
     unique_ptr<float[]> src(new float[nsrc]);
+
+    for (int i = 0; i < nsrc; i++)
+	src[i] = simd_randint(rng,0,4) ? uniform_rand(rng,-1,1) : 0.0;
 
     for (int i = 0; i < n; i++) {
 	slow_quantize(dst1.get(), src.get(), nsrc, B);
@@ -73,5 +76,6 @@ int main(int argc, char **argv)
 #endif
     }
 
+    cout << "test-quantize: pass\n";
     return 0;
 }
