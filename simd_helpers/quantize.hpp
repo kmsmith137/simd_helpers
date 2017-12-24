@@ -19,9 +19,9 @@ namespace simd_helpers {
 // Quantization API:
 //
 //   using T = float;
-//   constexpr int S = 8;               // simd size
-//   constexpr int B = 1;               // bit depth
-//   constexpr int L = sizeof(T) / B;   // length of quantization kernel
+//   constexpr int S = 8;   // simd size
+//   constexpr int B = 1;   // bit depth
+//   constexpr int K = (sizeof(T) * 8) / B;   // length of quantization kernel, in units sizeof(simd_t<T,S>)
 //
 //   const T *p;
 //   simd_quantizer<T,S,B> q;
@@ -30,11 +30,11 @@ namespace simd_helpers {
 //      q.template put<0> (simd_load<T,S> (p));
 //      q.template put<1> (simd_load<T,S> (p+S));
 //         ...
-//      q.template put<L-1> (simd_load<T,S> (p+(L-1)*S));
+//      q.template put<K-1> (simd_load<T,S> (p+(K-1)*S));
 //      simd_t<int,S> out = q.get();
 //
 //   Option 2:
-//      q.template mput<0,L> (p);
+//      q.template mput<0,K> (p);
 //      simd_t<int,S> out = q.get();
 //
 //   Option 3:
@@ -113,7 +113,7 @@ inline void _simd_quantizer_mput(simd_quantizer<T,S,B> &q, const T *p) { }
 template<int M, int N, bool Aligned, typename T, int S, int B, typename std::enable_if<(N>0),int>::type=0>
 inline void _simd_quantizer_mput(simd_quantizer<T,S,B> &q, const T *p) 
 {
-    _simd_quantizer_mput<M,N-1> (q, p);
+    _simd_quantizer_mput<M,N-1,Aligned> (q, p);
     q.template put<M+N-1> (simd_load<T,S> (p + (N-1)*S));
 }
 
