@@ -1117,31 +1117,65 @@ inline void test_integer_TS(std::mt19937 &rng)
     test_is_all_zeros_masked<T,S> (rng);
     test_is_all_zeros_inverse_masked<T,S> (rng);
 
-
-    test_binary_operator<T,S> ("bitwise_and", rng, 
-			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_and(y); }, 
+    test_binary_operator<T,S> ("&", rng, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x & y; }, 
 			       [](T x, T y) { return x & y; },
 			       -100, 100, -100, 100, 0);
 
-    test_binary_operator<T,S> ("bitwise_or", rng, 
-			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_or(y); }, 
+    test_binary_operator<T,S> ("|", rng, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x | y; }, 
 			       [](T x, T y) { return x | y; },
 			       -100, 100, -100, 100, 0);
 
-    test_binary_operator<T,S> ("bitwise_xor", rng, 
-			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_xor(y); }, 
+    test_binary_operator<T,S> ("^", rng, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x ^ y; }, 
 			       [](T x, T y) { return x ^ y; },
 			       -100, 100, -100, 100, 0);
 
+    test_binary_operator<T,S> ("<<", rng, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x << y; }, 
+			       [](T x, T y) { return x << y; },
+			       0, 100, 0, 10, 0);
+
+    test_binary_operator<T,S> (">>", rng, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x >> y; }, 
+			       [](T x, T y) { return x >> y; },
+			       0, 10000000, 0, 10, 0);
+
     test_binary_operator<T,S> ("bitwise_andnot", rng, 
-			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_andnot(y); }, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_andnot(y); }, 
 			       [](T x, T y) { return x & ~y; },
 			       -100, 100, -100, 100, 0);
 
-    test_unary_operation<T,S> ("bitwise_not", rng,
+    test_unary_operation<T,S> ("~", rng,
 			       [](simd_t<T,S> x) { return x.bitwise_not(); },
 			       [](T t) { return ~t; },
 			       -100, 100, 0);
+
+    test_compound_assignment_operator<T,S> ("&=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x &= y; }, 
+					    [](T &x, T y) { x &= y; },
+					    -100, 100, -100, 100, 0);
+
+    test_compound_assignment_operator<T,S> ("|=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x |= y; }, 
+					    [](T &x, T y) { x |= y; },
+					    -100, 100, -100, 100, 0);
+
+    test_compound_assignment_operator<T,S> ("^=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x ^= y; }, 
+					    [](T &x, T y) { x ^= y; },
+					    -100, 100, -100, 100, 0);
+
+    test_compound_assignment_operator<T,S> ("<<=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x <<= y; }, 
+					    [](T &x, T y) { x <<= y; },
+					    0, 100, 0, 10, 0);
+
+    test_compound_assignment_operator<T,S> (">>=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x >>= y; }, 
+					    [](T &x, T y) { x >>= y; },
+					    0, 10000000, 0, 10, 0);
 }
 
 

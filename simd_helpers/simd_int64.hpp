@@ -54,15 +54,35 @@ template<> struct simd_t<int64_t,2>
 	return _mm_add_epi64(y, z);
     }
 
+    inline simd_t<int64_t,2> operator&(simd_t<int64_t,2> t) const { return _mm_and_si128(x,t.x); }
+    inline simd_t<int64_t,2> operator|(simd_t<int64_t,2> t) const { return _mm_or_si128(x,t.x); }
+    inline simd_t<int64_t,2> operator^(simd_t<int64_t,2> t) const { return _mm_xor_si128(x,t.x); }
+
+    // Note: operator>> wraps the "shift in zeros" version of the right-shift operator.
+    // FIXME define a wrapper for the "shift in sign bit" version.
+    inline simd_t<int64_t,2> operator<<(simd_t<int64_t,2> t) const { return _mm_sllv_epi64(x,t.x); }
+    inline simd_t<int64_t,2> operator>>(simd_t<int64_t,2> t) const { return _mm_srlv_epi64(x,t.x); }
+    
+    // These versions of the shift operators can only be used if 'n' is a compile-time constant.
+    inline simd_t<int64_t,2> operator<<(int n) const { return _mm_slli_epi64(x,n); }
+    inline simd_t<int64_t,2> operator>>(int n) const { return _mm_srli_epi64(x,n); }
+
     inline simd_t<int64_t,2> operator-() const
     {
 	__m128i t = _mm_set1_epi16(-1);
 	return _mm_xor_si128(_mm_add_epi64(x,t), t);
     }
 
-    inline simd_t<int64_t,2> &operator+=(simd_t<int64_t,2> t) { *this = (*this) + t; return *this; }
-    inline simd_t<int64_t,2> &operator-=(simd_t<int64_t,2> t) { *this = (*this) - t; return *this; }
-    inline simd_t<int64_t,2> &operator*=(simd_t<int64_t,2> t) { *this = (*this) * t; return *this; }
+    inline simd_t<int64_t,2> &operator+=(simd_t<int64_t,2> t)   { *this = (*this) + t; return *this; }
+    inline simd_t<int64_t,2> &operator-=(simd_t<int64_t,2> t)   { *this = (*this) - t; return *this; }
+    inline simd_t<int64_t,2> &operator*=(simd_t<int64_t,2> t)   { *this = (*this) * t; return *this; }
+    inline simd_t<int64_t,2> &operator&=(simd_t<int64_t,2> t)   { *this = (*this) & t; return *this; }
+    inline simd_t<int64_t,2> &operator|=(simd_t<int64_t,2> t)   { *this = (*this) | t; return *this; }
+    inline simd_t<int64_t,2> &operator^=(simd_t<int64_t,2> t)   { *this = (*this) ^ t; return *this; }
+    inline simd_t<int64_t,2> &operator<<=(simd_t<int64_t,2> t)  { *this = (*this) << t; return *this; }
+    inline simd_t<int64_t,2> &operator>>=(simd_t<int64_t,2> t)  { *this = (*this) >> t; return *this; }
+    inline simd_t<int64_t,2> &operator<<=(int n)                { *this = (*this) << n; return *this; }
+    inline simd_t<int64_t,2> &operator>>=(int n)                { *this = (*this) >> n; return *this; }
 
     inline simd_t<int64_t,2> abs() const
     {
@@ -203,10 +223,30 @@ template<> struct simd_t<int64_t,4>
 	return simd_t<int64_t,4> (-extract_half<0>(), -extract_half<1>());
 #endif
     }
+
+    inline simd_t<int64_t,4> operator&(simd_t<int64_t,4> t) const  { return _mm256_and_si256(x,t.x); }
+    inline simd_t<int64_t,4> operator|(simd_t<int64_t,4> t) const  { return _mm256_or_si256(x,t.x); }
+    inline simd_t<int64_t,4> operator^(simd_t<int64_t,4> t) const  { return _mm256_xor_si256(x,t.x); }
+
+    // Note: operator>> wraps the "shift in zeros" version of the right-shift operator.
+    // FIXME define a wrapper for the "shift in sign bit" version.
+    inline simd_t<int64_t,4> operator<<(simd_t<int64_t,4> t) const { return _mm256_sllv_epi64(x,t.x); }
+    inline simd_t<int64_t,4> operator>>(simd_t<int64_t,4> t) const { return _mm256_srlv_epi64(x,t.x); }
     
-    inline simd_t<int64_t,4> &operator+=(simd_t<int64_t,4> t)  { *this = (*this) + t; return *this; }
-    inline simd_t<int64_t,4> &operator-=(simd_t<int64_t,4> t)  { *this = (*this) - t; return *this; }
-    inline simd_t<int64_t,4> &operator*=(simd_t<int64_t,4> t)  { *this = (*this) * t; return *this; }
+    // These versions of the shift operators can only be used if 'n' is a compile-time constant.
+    inline simd_t<int64_t,4> operator<<(int n) const { return _mm256_slli_epi64(x,n); }
+    inline simd_t<int64_t,4> operator>>(int n) const { return _mm256_srli_epi64(x,n); }
+    
+    inline simd_t<int64_t,4> &operator+=(simd_t<int64_t,4> t)   { *this = (*this) + t; return *this; }
+    inline simd_t<int64_t,4> &operator-=(simd_t<int64_t,4> t)   { *this = (*this) - t; return *this; }
+    inline simd_t<int64_t,4> &operator*=(simd_t<int64_t,4> t)   { *this = (*this) * t; return *this; }
+    inline simd_t<int64_t,4> &operator&=(simd_t<int64_t,4> t)   { *this = (*this) & t; return *this; }
+    inline simd_t<int64_t,4> &operator|=(simd_t<int64_t,4> t)   { *this = (*this) | t; return *this; }
+    inline simd_t<int64_t,4> &operator^=(simd_t<int64_t,4> t)   { *this = (*this) ^ t; return *this; }
+    inline simd_t<int64_t,4> &operator<<=(simd_t<int64_t,4> t)  { *this = (*this) << t; return *this; }
+    inline simd_t<int64_t,4> &operator>>=(simd_t<int64_t,4> t)  { *this = (*this) >> t; return *this; }
+    inline simd_t<int64_t,4> &operator<<=(int n)                { *this = (*this) << n; return *this; }
+    inline simd_t<int64_t,4> &operator>>=(int n)                { *this = (*this) >> n; return *this; }
 
     inline simd_t<int64_t,4> abs() const
     {
