@@ -3,5 +3,6 @@
 Makefile.local
 run-tests
 test-quantize
+test-udsample
 time-kernels
 .touchfile_*
