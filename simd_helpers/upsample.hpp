@@ -17,7 +17,6 @@ namespace simd_helpers {
 
 
 // FIXME use more C++ template-ology to eliminate cut-and-paste between int, float kernels!
-// FIXME implement case (D > S), as already done for downsampling kernels
 
 
 // -------------------------------------------------------------------------------------------------
@@ -25,7 +24,7 @@ namespace simd_helpers {
 // Upsampling API defined in this file.
 
 
-template<typename T, int S, int D>
+template<typename T, int S, int D, bool two_stage = (D > S)>
 struct simd_upsampler {
     explicit simd_upsampler(simd_t<T,S> x);
     template<int N> inline simd_t<T,S> get() const;
@@ -43,7 +42,7 @@ inline void simd_upsample(simd_ntuple<T,S,N> &dst, simd_t<T,S> src);
 
 
 template<typename T, int S>
-struct simd_upsampler<T,S,1>
+struct simd_upsampler<T,S,1,false>
 {
     simd_t<T,S> x;
 
@@ -59,7 +58,7 @@ struct simd_upsampler<T,S,1>
 
 
 template<>
-struct simd_upsampler<float,4,2> {
+struct simd_upsampler<float,4,2,false> {
     simd_t<float,4> x;
 
     simd_upsampler(simd_t<float,4> t) { x = t; }
@@ -67,12 +66,12 @@ struct simd_upsampler<float,4,2> {
     template<int N> inline simd_t<float,4> get() const;
 };
 
-template<> inline simd_t<float,4> simd_upsampler<float,4,2>::get<0> () const { return _mm_permute_ps(x.x, 0x50); }  // (1100)_4
-template<> inline simd_t<float,4> simd_upsampler<float,4,2>::get<1> () const { return _mm_permute_ps(x.x, 0xfa); }  // (3322)_4
+template<> inline simd_t<float,4> simd_upsampler<float,4,2,false>::get<0> () const { return _mm_permute_ps(x.x, 0x50); }  // (1100)_4
+template<> inline simd_t<float,4> simd_upsampler<float,4,2,false>::get<1> () const { return _mm_permute_ps(x.x, 0xfa); }  // (3322)_4
 
 
 template<>
-struct simd_upsampler<int,4,2> {
+struct simd_upsampler<int,4,2,false> {
     simd_t<int,4> x;
 
     simd_upsampler(simd_t<int,4> t) { x = t; }
@@ -80,8 +79,8 @@ struct simd_upsampler<int,4,2> {
     template<int N> inline simd_t<int,4> get() const;
 };
 
-template<> inline simd_t<int,4> simd_upsampler<int,4,2>::get<0> () const { return _mm_shuffle_epi32(x.x, 0x50); }  // (1100)_4
-template<> inline simd_t<int,4> simd_upsampler<int,4,2>::get<1> () const { return _mm_shuffle_epi32(x.x, 0xfa); }  // (3322)_4
+template<> inline simd_t<int,4> simd_upsampler<int,4,2,false>::get<0> () const { return _mm_shuffle_epi32(x.x, 0x50); }  // (1100)_4
+template<> inline simd_t<int,4> simd_upsampler<int,4,2,false>::get<1> () const { return _mm_shuffle_epi32(x.x, 0xfa); }  // (3322)_4
 
 
 // -------------------------------------------------------------------------------------------------
@@ -90,7 +89,7 @@ template<> inline simd_t<int,4> simd_upsampler<int,4,2>::get<1> () const { retur
 
 
 template<>
-struct simd_upsampler<float,4,4> {
+struct simd_upsampler<float,4,4,false> {
     simd_t<float,4> x;
 
     simd_upsampler(simd_t<float,4> t) { x = t; }
@@ -98,14 +97,14 @@ struct simd_upsampler<float,4,4> {
     template<int N> inline simd_t<float,4> get() const;
 };
 
-template<> inline simd_t<float,4> simd_upsampler<float,4,4>::get<0> () const { return _mm_permute_ps(x.x, 0x00); }  // (0000)_4
-template<> inline simd_t<float,4> simd_upsampler<float,4,4>::get<1> () const { return _mm_permute_ps(x.x, 0x55); }  // (1111)_4
-template<> inline simd_t<float,4> simd_upsampler<float,4,4>::get<2> () const { return _mm_permute_ps(x.x, 0xaa); }  // (2222)_4
-template<> inline simd_t<float,4> simd_upsampler<float,4,4>::get<3> () const { return _mm_permute_ps(x.x, 0xff); }  // (3333)_4
+template<> inline simd_t<float,4> simd_upsampler<float,4,4,false>::get<0> () const { return _mm_permute_ps(x.x, 0x00); }  // (0000)_4
+template<> inline simd_t<float,4> simd_upsampler<float,4,4,false>::get<1> () const { return _mm_permute_ps(x.x, 0x55); }  // (1111)_4
+template<> inline simd_t<float,4> simd_upsampler<float,4,4,false>::get<2> () const { return _mm_permute_ps(x.x, 0xaa); }  // (2222)_4
+template<> inline simd_t<float,4> simd_upsampler<float,4,4,false>::get<3> () const { return _mm_permute_ps(x.x, 0xff); }  // (3333)_4
 
 
 template<>
-struct simd_upsampler<int,4,4> {
+struct simd_upsampler<int,4,4,false> {
     simd_t<int,4> x;
 
     simd_upsampler(simd_t<int,4> t) { x = t; }
@@ -113,10 +112,10 @@ struct simd_upsampler<int,4,4> {
     template<int N> inline simd_t<int,4> get() const;
 };
 
-template<> inline simd_t<int,4> simd_upsampler<int,4,4>::get<0> () const { return _mm_shuffle_epi32(x.x, 0x00); }  // (0000)_4
-template<> inline simd_t<int,4> simd_upsampler<int,4,4>::get<1> () const { return _mm_shuffle_epi32(x.x, 0x55); }  // (1111)_4
-template<> inline simd_t<int,4> simd_upsampler<int,4,4>::get<2> () const { return _mm_shuffle_epi32(x.x, 0xaa); }  // (2222)_4
-template<> inline simd_t<int,4> simd_upsampler<int,4,4>::get<3> () const { return _mm_shuffle_epi32(x.x, 0xff); }  // (3333)_4
+template<> inline simd_t<int,4> simd_upsampler<int,4,4,false>::get<0> () const { return _mm_shuffle_epi32(x.x, 0x00); }  // (0000)_4
+template<> inline simd_t<int,4> simd_upsampler<int,4,4,false>::get<1> () const { return _mm_shuffle_epi32(x.x, 0x55); }  // (1111)_4
+template<> inline simd_t<int,4> simd_upsampler<int,4,4,false>::get<2> () const { return _mm_shuffle_epi32(x.x, 0xaa); }  // (2222)_4
+template<> inline simd_t<int,4> simd_upsampler<int,4,4,false>::get<3> () const { return _mm_shuffle_epi32(x.x, 0xff); }  // (3333)_4
 
 
 #ifdef __AVX__
@@ -129,7 +128,7 @@ template<> inline simd_t<int,4> simd_upsampler<int,4,4>::get<3> () const { retur
 
 
 template<>
-struct simd_upsampler<float,8,2> {
+struct simd_upsampler<float,8,2,false> {
     simd_t<float,8> a;
     simd_t<float,8> b;
 
@@ -145,12 +144,12 @@ struct simd_upsampler<float,8,2> {
     template<int N> inline simd_t<float,8> get() const;
 };
 
-template<> inline simd_t<float,8> simd_upsampler<float,8,2>::get<0> () const { return a; }
-template<> inline simd_t<float,8> simd_upsampler<float,8,2>::get<1> () const { return b; }
+template<> inline simd_t<float,8> simd_upsampler<float,8,2,false>::get<0> () const { return a; }
+template<> inline simd_t<float,8> simd_upsampler<float,8,2,false>::get<1> () const { return b; }
 
 
 template<>
-struct simd_upsampler<int,8,2> {
+struct simd_upsampler<int,8,2,false> {
     simd_t<int,8> a;
     simd_t<int,8> b;
 
@@ -166,8 +165,8 @@ struct simd_upsampler<int,8,2> {
     template<int N> inline simd_t<int,8> get() const;
 };
 
-template<> inline simd_t<int,8> simd_upsampler<int,8,2>::get<0> () const { return a; }
-template<> inline simd_t<int,8> simd_upsampler<int,8,2>::get<1> () const { return b; }
+template<> inline simd_t<int,8> simd_upsampler<int,8,2,false>::get<0> () const { return a; }
+template<> inline simd_t<int,8> simd_upsampler<int,8,2,false>::get<1> () const { return b; }
 
 
 
@@ -177,7 +176,7 @@ template<> inline simd_t<int,8> simd_upsampler<int,8,2>::get<1> () const { retur
 
 
 template<>
-struct simd_upsampler<float,8,4> {
+struct simd_upsampler<float,8,4,false> {
     simd_t<float,8> w;
 
     simd_upsampler(simd_t<float,8> t) 
@@ -190,14 +189,14 @@ struct simd_upsampler<float,8,4> {
     template<int N> inline simd_t<float,8> get() const;
 };
 
-template<> inline simd_t<float,8> simd_upsampler<float,8,4>::get<0> () const { return _mm256_permute_ps(w.x, 0x55); }  // [ t0 t0 t0 t0 t1 t1 t1 t1 ],  (1111)_4
-template<> inline simd_t<float,8> simd_upsampler<float,8,4>::get<1> () const { return _mm256_permute_ps(w.x, 0xff); }  // [ t2 t2 t2 t2 t3 t3 t3 t3 ],  (3333)_4
-template<> inline simd_t<float,8> simd_upsampler<float,8,4>::get<2> () const { return _mm256_permute_ps(w.x, 0x00); }  // [ t4 t4 t4 t4 t5 t5 t5 t5 ],  (0000)_4
-template<> inline simd_t<float,8> simd_upsampler<float,8,4>::get<3> () const { return _mm256_permute_ps(w.x, 0xaa); }  // [ t6 t6 t6 t6 t7 t7 t7 t7 ],  (2222)_4
+template<> inline simd_t<float,8> simd_upsampler<float,8,4,false>::get<0> () const { return _mm256_permute_ps(w.x, 0x55); }  // [ t0 t0 t0 t0 t1 t1 t1 t1 ],  (1111)_4
+template<> inline simd_t<float,8> simd_upsampler<float,8,4,false>::get<1> () const { return _mm256_permute_ps(w.x, 0xff); }  // [ t2 t2 t2 t2 t3 t3 t3 t3 ],  (3333)_4
+template<> inline simd_t<float,8> simd_upsampler<float,8,4,false>::get<2> () const { return _mm256_permute_ps(w.x, 0x00); }  // [ t4 t4 t4 t4 t5 t5 t5 t5 ],  (0000)_4
+template<> inline simd_t<float,8> simd_upsampler<float,8,4,false>::get<3> () const { return _mm256_permute_ps(w.x, 0xaa); }  // [ t6 t6 t6 t6 t7 t7 t7 t7 ],  (2222)_4
 
 
 template<>
-struct simd_upsampler<int,8,4> {
+struct simd_upsampler<int,8,4,false> {
     simd_t<int,8> w;
 
     simd_upsampler(simd_t<int,8> t) 
@@ -210,10 +209,10 @@ struct simd_upsampler<int,8,4> {
     template<int N> inline simd_t<int,8> get() const;
 };
 
-template<> inline simd_t<int,8> simd_upsampler<int,8,4>::get<0> () const { return _mm256_shuffle_epi32(w.x, 0x55); }  // [ t0 t0 t0 t0 t1 t1 t1 t1 ],  (1111)_4
-template<> inline simd_t<int,8> simd_upsampler<int,8,4>::get<1> () const { return _mm256_shuffle_epi32(w.x, 0xff); }  // [ t2 t2 t2 t2 t3 t3 t3 t3 ],  (3333)_4
-template<> inline simd_t<int,8> simd_upsampler<int,8,4>::get<2> () const { return _mm256_shuffle_epi32(w.x, 0x00); }  // [ t4 t4 t4 t4 t5 t5 t5 t5 ],  (0000)_4
-template<> inline simd_t<int,8> simd_upsampler<int,8,4>::get<3> () const { return _mm256_shuffle_epi32(w.x, 0xaa); }  // [ t6 t6 t6 t6 t7 t7 t7 t7 ],  (2222)_4
+template<> inline simd_t<int,8> simd_upsampler<int,8,4,false>::get<0> () const { return _mm256_shuffle_epi32(w.x, 0x55); }  // [ t0 t0 t0 t0 t1 t1 t1 t1 ],  (1111)_4
+template<> inline simd_t<int,8> simd_upsampler<int,8,4,false>::get<1> () const { return _mm256_shuffle_epi32(w.x, 0xff); }  // [ t2 t2 t2 t2 t3 t3 t3 t3 ],  (3333)_4
+template<> inline simd_t<int,8> simd_upsampler<int,8,4,false>::get<2> () const { return _mm256_shuffle_epi32(w.x, 0x00); }  // [ t4 t4 t4 t4 t5 t5 t5 t5 ],  (0000)_4
+template<> inline simd_t<int,8> simd_upsampler<int,8,4,false>::get<3> () const { return _mm256_shuffle_epi32(w.x, 0xaa); }  // [ t6 t6 t6 t6 t7 t7 t7 t7 ],  (2222)_4
 
 
 // -------------------------------------------------------------------------------------------------
@@ -222,7 +221,7 @@ template<> inline simd_t<int,8> simd_upsampler<int,8,4>::get<3> () const { retur
 
 
 template<>
-struct simd_upsampler<float,8,8> {
+struct simd_upsampler<float,8,8,false> {
     simd_t<float,8> u;
     simd_t<float,8> v;
 
@@ -237,18 +236,18 @@ struct simd_upsampler<float,8,8> {
     template<int N> inline simd_t<float,8> get() const;
 };
 
-template<> inline simd_t<float,8> simd_upsampler<float,8,8>::get<0> () const { return _mm256_permute_ps(u.x, 0x00); }  // (0000)_4
-template<> inline simd_t<float,8> simd_upsampler<float,8,8>::get<1> () const { return _mm256_permute_ps(u.x, 0x55); }  // (1111)_4
-template<> inline simd_t<float,8> simd_upsampler<float,8,8>::get<2> () const { return _mm256_permute_ps(u.x, 0xaa); }  // (2222)_4
-template<> inline simd_t<float,8> simd_upsampler<float,8,8>::get<3> () const { return _mm256_permute_ps(u.x, 0xff); }  // (3333)_4
-template<> inline simd_t<float,8> simd_upsampler<float,8,8>::get<4> () const { return _mm256_permute_ps(v.x, 0x00); }
-template<> inline simd_t<float,8> simd_upsampler<float,8,8>::get<5> () const { return _mm256_permute_ps(v.x, 0x55); }
-template<> inline simd_t<float,8> simd_upsampler<float,8,8>::get<6> () const { return _mm256_permute_ps(v.x, 0xaa); }
-template<> inline simd_t<float,8> simd_upsampler<float,8,8>::get<7> () const { return _mm256_permute_ps(v.x, 0xff); }
+template<> inline simd_t<float,8> simd_upsampler<float,8,8,false>::get<0> () const { return _mm256_permute_ps(u.x, 0x00); }  // (0000)_4
+template<> inline simd_t<float,8> simd_upsampler<float,8,8,false>::get<1> () const { return _mm256_permute_ps(u.x, 0x55); }  // (1111)_4
+template<> inline simd_t<float,8> simd_upsampler<float,8,8,false>::get<2> () const { return _mm256_permute_ps(u.x, 0xaa); }  // (2222)_4
+template<> inline simd_t<float,8> simd_upsampler<float,8,8,false>::get<3> () const { return _mm256_permute_ps(u.x, 0xff); }  // (3333)_4
+template<> inline simd_t<float,8> simd_upsampler<float,8,8,false>::get<4> () const { return _mm256_permute_ps(v.x, 0x00); }
+template<> inline simd_t<float,8> simd_upsampler<float,8,8,false>::get<5> () const { return _mm256_permute_ps(v.x, 0x55); }
+template<> inline simd_t<float,8> simd_upsampler<float,8,8,false>::get<6> () const { return _mm256_permute_ps(v.x, 0xaa); }
+template<> inline simd_t<float,8> simd_upsampler<float,8,8,false>::get<7> () const { return _mm256_permute_ps(v.x, 0xff); }
 
 
 template<>
-struct simd_upsampler<int,8,8> {
+struct simd_upsampler<int,8,8,false> {
     simd_t<int,8> u;
     simd_t<int,8> v;
 
@@ -269,18 +268,55 @@ struct simd_upsampler<int,8,8> {
     template<int N> inline simd_t<int,8> get() const;
 };
 
-template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<0> () const { return _mm256_shuffle_epi32(u.x, 0x00); }  // (0000)_4
-template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<1> () const { return _mm256_shuffle_epi32(u.x, 0x55); }  // (1111)_4
-template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<2> () const { return _mm256_shuffle_epi32(u.x, 0xaa); }  // (2222)_4
-template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<3> () const { return _mm256_shuffle_epi32(u.x, 0xff); }  // (3333)_4
-template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<4> () const { return _mm256_shuffle_epi32(v.x, 0x00); }
-template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<5> () const { return _mm256_shuffle_epi32(v.x, 0x55); }
-template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<6> () const { return _mm256_shuffle_epi32(v.x, 0xaa); }
-template<> inline simd_t<int,8> simd_upsampler<int,8,8>::get<7> () const { return _mm256_shuffle_epi32(v.x, 0xff); }
+template<> inline simd_t<int,8> simd_upsampler<int,8,8,false>::get<0> () const { return _mm256_shuffle_epi32(u.x, 0x00); }  // (0000)_4
+template<> inline simd_t<int,8> simd_upsampler<int,8,8,false>::get<1> () const { return _mm256_shuffle_epi32(u.x, 0x55); }  // (1111)_4
+template<> inline simd_t<int,8> simd_upsampler<int,8,8,false>::get<2> () const { return _mm256_shuffle_epi32(u.x, 0xaa); }  // (2222)_4
+template<> inline simd_t<int,8> simd_upsampler<int,8,8,false>::get<3> () const { return _mm256_shuffle_epi32(u.x, 0xff); }  // (3333)_4
+template<> inline simd_t<int,8> simd_upsampler<int,8,8,false>::get<4> () const { return _mm256_shuffle_epi32(v.x, 0x00); }
+template<> inline simd_t<int,8> simd_upsampler<int,8,8,false>::get<5> () const { return _mm256_shuffle_epi32(v.x, 0x55); }
+template<> inline simd_t<int,8> simd_upsampler<int,8,8,false>::get<6> () const { return _mm256_shuffle_epi32(v.x, 0xaa); }
+template<> inline simd_t<int,8> simd_upsampler<int,8,8,false>::get<7> () const { return _mm256_shuffle_epi32(v.x, 0xff); }
 
 
 // 256-bit kernels end here
 #endif // __AVX__
+
+
+// -------------------------------------------------------------------------------------------------
+//
+// Preceding versions of simd_upsampler<> have all been for (D <= S).
+// The next bit of code suffices to extend to the case (D > S).
+
+
+template<int N, typename T, int S, int D, typename std::enable_if<(N % (D/S) == 0),int>::type = 0>
+inline void _simd_upsample_stage1(const simd_upsampler<T,S,D,true> &s)
+{
+    constexpr int M = N / (D/S);
+    s._x = s._s.template get<M> ();
+}
+
+template<int N, typename T, int S, int D, typename std::enable_if<(N % (D/S) != 0),int>::type = 0>
+inline void _simd_upsample_stage1(const simd_upsampler<T,S,D,true> &s)
+{
+    // Do nothing.
+}
+
+
+template<typename T, int S, int D>
+struct simd_upsampler<T,S,D,true> {
+    simd_upsampler<T,S,S> _s;
+    mutable simd_t<T,S> _x;
+    
+    explicit simd_upsampler(simd_t<T,S> x) : _s(x) { }
+
+    template<int N>
+    inline simd_t<T,S> get() const
+    {
+	// Delegate to inline function, so that we can use std::enable_if.
+	_simd_upsample_stage1<N> (*this);
+	return _x;
+    }
+};
 
 
 // -------------------------------------------------------------------------------------------------

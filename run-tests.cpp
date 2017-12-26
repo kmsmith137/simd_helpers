@@ -1214,6 +1214,9 @@ inline void test_all(std::mt19937 &rng)
     test_upsample<4,1> (rng);
     test_upsample<4,2> (rng);
     test_upsample<4,4> (rng);
+    test_upsample<4,8> (rng);
+    test_upsample<4,12> (rng);
+    test_upsample<4,16> (rng);
 
     // Downsampling is implemented for general D.
     test_downsample<4,1> (rng);
@@ -1234,6 +1237,9 @@ inline void test_all(std::mt19937 &rng)
     test_upsample<8,2> (rng);
     test_upsample<8,4> (rng);
     test_upsample<8,8> (rng);
+    test_upsample<8,16> (rng);
+    test_upsample<8,24> (rng);
+    test_upsample<8,32> (rng);
 
     // Downsampling is implemented for general D.
     test_downsample<8,1> (rng);
