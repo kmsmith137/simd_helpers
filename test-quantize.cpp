@@ -1,3 +1,4 @@
+#include <memory>
 #include "simd_helpers/simd_debug.hpp"
 
 using namespace std;
