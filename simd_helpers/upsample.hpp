@@ -26,7 +26,10 @@ namespace simd_helpers {
 
 template<typename T, int S, int D, bool two_stage = (D > S)>
 struct simd_upsampler {
-    explicit simd_upsampler(simd_t<T,S> x);
+    simd_upsampler();
+    simd_upsampler(simd_t<T,S> x);
+
+    inline void put(simd_t<T,S> x);
     template<int N> inline simd_t<T,S> get() const;
 };
 
@@ -46,8 +49,10 @@ struct simd_upsampler<T,S,1,false>
 {
     simd_t<T,S> x;
 
-    simd_upsampler(simd_t<T,S> x_) { x = x_; }
+    simd_upsampler() { }
+    simd_upsampler(simd_t<T,S> x_) : x(x_) { }
 
+    inline void put(simd_t<T,S> x_) { x = x_; }
     template<int N> inline simd_t<T,S> get() const { return x; }
 };
 
@@ -61,8 +66,10 @@ template<>
 struct simd_upsampler<float,4,2,false> {
     simd_t<float,4> x;
 
-    simd_upsampler(simd_t<float,4> t) { x = t; }
+    simd_upsampler() { }
+    simd_upsampler(simd_t<float,4> x_) : x(x_) { }
 
+    inline void put(simd_t<float,4> x_) { x = x_; }
     template<int N> inline simd_t<float,4> get() const;
 };
 
@@ -74,8 +81,10 @@ template<>
 struct simd_upsampler<int,4,2,false> {
     simd_t<int,4> x;
 
-    simd_upsampler(simd_t<int,4> t) { x = t; }
+    simd_upsampler() { }
+    simd_upsampler(simd_t<int,4> x_) : x(x_) { }
 
+    inline void put(simd_t<int,4> x_) { x = x_; }
     template<int N> inline simd_t<int,4> get() const;
 };
 
@@ -92,8 +101,10 @@ template<>
 struct simd_upsampler<float,4,4,false> {
     simd_t<float,4> x;
 
-    simd_upsampler(simd_t<float,4> t) { x = t; }
+    simd_upsampler() { }
+    simd_upsampler(simd_t<float,4> x_) : x(x_) { }
 
+    inline void put(simd_t<float,4> x_) { x = x_; }
     template<int N> inline simd_t<float,4> get() const;
 };
 
@@ -107,8 +118,10 @@ template<>
 struct simd_upsampler<int,4,4,false> {
     simd_t<int,4> x;
 
-    simd_upsampler(simd_t<int,4> t) { x = t; }
+    simd_upsampler() { }
+    simd_upsampler(simd_t<int,4> x_) : x(x_) { }
 
+    inline void put(simd_t<int,4> x_) { x = x_; }
     template<int N> inline simd_t<int,4> get() const;
 };
 
@@ -132,7 +145,10 @@ struct simd_upsampler<float,8,2,false> {
     simd_t<float,8> a;
     simd_t<float,8> b;
 
-    simd_upsampler(simd_t<float,8> t)
+    simd_upsampler() { }
+    simd_upsampler(simd_t<float,8> t) { put(t); }
+
+    inline void put(simd_t<float,8> t)
     {
 	__m256 u = _mm256_permute_ps(t.x, 0x50);   // [ t0 t0 t1 t1 t4 t4 t5 t5 ]
 	__m256 v = _mm256_permute_ps(t.x, 0xfa);   // [ t2 t2 t3 t3 t6 t6 t7 t7 ]
@@ -153,7 +169,10 @@ struct simd_upsampler<int,8,2,false> {
     simd_t<int,8> a;
     simd_t<int,8> b;
 
-    simd_upsampler(simd_t<int,8> t)
+    simd_upsampler() { }
+    simd_upsampler(simd_t<int,8> t) { put(t); }
+
+    inline void put(simd_t<int,8> t)
     {
 	__m256i u = _mm256_shuffle_epi32(t.x, 0x50);   // [ t0 t0 t1 t1 t4 t4 t5 t5 ]
 	__m256i v = _mm256_shuffle_epi32(t.x, 0xfa);   // [ t2 t2 t3 t3 t6 t6 t7 t7 ]
@@ -179,7 +198,10 @@ template<>
 struct simd_upsampler<float,8,4,false> {
     simd_t<float,8> w;
 
-    simd_upsampler(simd_t<float,8> t) 
+    simd_upsampler() { }
+    simd_upsampler(simd_t<float,8> t) { put(t); }
+
+    inline void put(simd_t<float,8> t) 
     {
 	__m256 u = _mm256_permute_ps(t.x, 0xb1);            // [ t1 t0 t3 t2 t5 t4 t7 t6 ],  0xb1 = (2301)_4
 	__m256 v = _mm256_permute2f128_ps(t.x, t.x, 0x01);  // [ t4 t5 t6 t7 t0 t1 t2 t3 ]
@@ -199,7 +221,10 @@ template<>
 struct simd_upsampler<int,8,4,false> {
     simd_t<int,8> w;
 
-    simd_upsampler(simd_t<int,8> t) 
+    simd_upsampler() { }
+    simd_upsampler(simd_t<int,8> t) { put(t); }
+
+    inline void put(simd_t<int,8> t) 
     {
 	__m256i u = _mm256_shuffle_epi32(t.x, 0xb1);            // [ t1 t0 t3 t2 t5 t4 t7 t6 ],  0xb1 = (2301)_4
 	__m256i v = _mm256_permute2f128_si256(t.x, t.x, 0x01);  // [ t4 t5 t6 t7 t0 t1 t2 t3 ]
@@ -225,7 +250,10 @@ struct simd_upsampler<float,8,8,false> {
     simd_t<float,8> u;
     simd_t<float,8> v;
 
-    simd_upsampler(simd_t<float,8> t) 
+    simd_upsampler() { }
+    simd_upsampler(simd_t<float,8> t) { put(t); }
+    
+    inline void put(simd_t<float,8> t) 
     {
 	__m256 r = _mm256_permute2f128_ps(t.x, t.x, 0x01);  // [t1 t0]
 
@@ -251,7 +279,10 @@ struct simd_upsampler<int,8,8,false> {
     simd_t<int,8> u;
     simd_t<int,8> v;
 
-    simd_upsampler(simd_t<int,8> t) 
+    simd_upsampler() { }
+    simd_upsampler(simd_t<int,8> t) { put(t); }
+
+    inline void put(simd_t<int,8> t) 
     {
 #if 1
 	// Fastest
@@ -306,8 +337,11 @@ template<typename T, int S, int D>
 struct simd_upsampler<T,S,D,true> {
     simd_upsampler<T,S,S> _s;
     mutable simd_t<T,S> _x;
-    
-    explicit simd_upsampler(simd_t<T,S> x) : _s(x) { }
+
+    simd_upsampler() { }
+    simd_upsampler(simd_t<T,S> t) : _s(t) { }
+
+    inline void put(simd_t<T,S> t) { _s.put(t); }
 
     template<int N>
     inline simd_t<T,S> get() const
