@@ -20,9 +20,9 @@
 #include "simd_helpers/cast.hpp"
 #include "simd_helpers/convert.hpp"
 #include "simd_helpers/downsample.hpp"
+#include "simd_helpers/quantize.hpp"
 #include "simd_helpers/transpose.hpp"
 #include "simd_helpers/upsample.hpp"
-#include "simd_helpers/quantize.hpp"
 
 // Old upsampling/downsampling API, to be removed soon.
 #include "simd_helpers/udsample.hpp"                // upsample(), downsample()

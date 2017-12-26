@@ -27,9 +27,9 @@
 #include "cast.hpp"
 #include "convert.hpp"
 #include "downsample.hpp"
+#include "quantize.hpp"
 #include "transpose.hpp"
 #include "upsample.hpp"
-#include "quantize.hpp"
 
 #include "udsample.hpp"
 #include "downsample_max.hpp"
