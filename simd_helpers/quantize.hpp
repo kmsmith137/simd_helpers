@@ -7,6 +7,7 @@
 
 #include "cast.hpp"
 #include "downsample.hpp"
+#include "upsample.hpp"
 
 namespace simd_helpers {
 #if 0
@@ -39,10 +40,18 @@ namespace simd_helpers {
 //
 //   Option 3:
 //      simd_t<int,S> out = q.quantize(p);
+//
+//
+// Dequantization API: not documented yet, since I haven't decided on the details
+// of how it will work in general!  The simd_dequantizer is currently only defined 
+// for B=1, and its interface is specific to the 1-bit case.
 
 
 template<typename T, int S, int B>
 struct simd_quantizer;
+
+template<typename T, int S, int B>
+struct simd_dequantizer;
 
 
 // -------------------------------------------------------------------------------------------------
@@ -50,10 +59,10 @@ struct simd_quantizer;
 // Only 1-bit quantization is implemented for now!
 //
 // A detail: we define 1-bit quantization by
-//   q(x) = (x > 0.0) ? 1 : 0
+//   q(x) = (x > thresh) ? 1 : 0
 //
 // where we use ">" instead of ">=" so that applying 1-bit quantization to a "weights" array
-// gives the bitmask (not an all-ones array).
+// with thresh=0 gives the bitmask (not an all-ones array).
 
 
 // _get_qmask(): returns a particular bitmask used by the quantization kernels
@@ -65,23 +74,23 @@ template<> inline simd_t<int,8> _get_qmask() { return _mm256_set_epi32(1U<<7, 1U
 template<int S>
 struct simd_quantizer<float,S,1> {
     simd_downsampler<int,S,32,simd_bitwise_or<int,S>> ds;
-    const simd_t<float,S> z;
+    const simd_t<float,S> thresh;
     const simd_t<int,S> c;
     
-    simd_quantizer() : 
-	z(0.0f),
+    simd_quantizer(float thresh_=0.0f) : 
+	thresh(thresh_),
 	c(_get_qmask<S>())
     { }
 
     template<int M>
     inline void put(simd_t<float,S> x)
     {
-	// Amount of left shifting to apply
-	constexpr int LS = (M % (32/S)) * S;
+	constexpr int L = (M % (32/S)) * S;
+	simd_t<int,S> cs = c << L;
 	
-	simd_t<float,S> fmask = (x > z);
+	simd_t<float,S> fmask = (x > thresh);
 	simd_t<int,S> imask = simd_cast<int,S> (fmask);
-	ds.template put<M> ((imask & c) << LS);
+	ds.template put<M> (imask & cs);
     }
 
     // Defined below.
@@ -98,6 +107,38 @@ struct simd_quantizer<float,S,1> {
 	this->template mput<0,32> (p);
 	return get();
     }
+};
+
+
+template<int S>
+struct simd_dequantizer<float,S,1> {
+    simd_upsampler<int,S,32> us;
+    const simd_t<int,S> c;
+    const simd_t<int,S> z;
+
+    simd_dequantizer() :
+	c(_get_qmask<S>()),
+	z(0)
+    { }
+
+    inline void put(simd_t<int,S> x)
+    {
+	us.put(x);
+    }
+
+    template<int N>
+    inline simd_t<float,S> get_bitmask() const
+    {
+	constexpr int L = (N % (32/S)) * S;
+	simd_t<int,S> cs = c << L;
+
+	simd_t<int,S> imask = us.template get<N> ();
+	imask = cs.compare_eq(imask & cs);
+
+	return simd_cast<float,S> (imask);
+    }
+
+    inline void apply_bitmask(float *dst) const;
 };
 
 
@@ -122,6 +163,31 @@ template<int M, int N, bool Aligned>
 inline void simd_quantizer<float,S,1>::mput(const float *p)
 {
     _simd_quantizer_mput<M,N,Aligned> (*this, p);
+}
+
+
+// -------------------------------------------------------------------------------------------------
+//
+// We implement simd_dequantizer::apply_bitmask() by delegating to an inline function,
+// in order to use std::enable_if().
+
+
+template<int M, int N, typename T, int S, int B, typename std::enable_if<(N==0),int>::type = 0>
+inline void _simd_dequantizer_apply_bitmask(const simd_dequantizer<T,S,B> &s, T *p) { }
+
+template<int M, int N, typename T, int S, int B, typename std::enable_if<(N > 0),int>::type = 0>
+inline void _simd_dequantizer_apply_bitmask(const simd_dequantizer<T,S,B> &s, T *p)
+{
+    simd_t<T,S> x = simd_load<T,S> (p);
+    simd_store(p, x & s.template get_bitmask<M> ());
+    _simd_dequantizer_apply_bitmask<M+1,N-1> (s, p+S);
+}
+
+
+template<int S>
+inline void simd_dequantizer<float,S,1>::apply_bitmask(float *dst) const
+{
+    _simd_dequantizer_apply_bitmask<0,32> (*this, dst);
 }
 
 
