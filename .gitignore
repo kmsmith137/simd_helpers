@@ -2,6 +2,7 @@
 *.o
 Makefile.local
 run-tests
+test-convert
 test-quantize
 test-udsample
 time-kernels
