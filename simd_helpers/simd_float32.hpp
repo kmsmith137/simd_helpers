@@ -108,6 +108,9 @@ template<> struct simd_t<float,4>
 
     // "Equalizes" the float[4], by setting all 4 entries equal to the zeroth entry.
     inline simd_t<float,4> equalize() const { return _mm_permute_ps(x, 0x0); }
+
+    // Note that round() returns a floating-point simd type.  To convert to an integer type, see convert.hpp.
+    inline simd_t<float,4> round() const { return _mm_round_ps(x, _MM_FROUND_TO_NEAREST_INT); }
 };
 
 
@@ -214,6 +217,9 @@ template<> struct simd_t<float,8>
 
     // "Equalizes" the float[8], by setting all 8 entries equal to the zeroth entry.
     inline simd_t<float,8> equalize() const { return _mm256_permute_ps(_mm256_permute2f128_ps(x,x,0x0), 0x0); }
+
+    // Note that round() returns a floating-point simd type.  To convert to an integer type, see convert.hpp.
+    inline simd_t<float,8> round() const { return _mm256_round_ps(x, _MM_FROUND_TO_NEAREST_INT); }
 };
 
 
