@@ -78,6 +78,37 @@ template<> inline void convert(simd_t<float,8> &dst, simd_ntuple<double,4,2> src
 #endif  // __AVX__
 
 
+// -------------------------------------------------------------------------------------------------
+//
+// Float <-> int32 conversions
+
+
+template<> inline void convert(simd_t<int,4> &dst, simd_t<float,4> src)         
+{ 
+    dst = _mm_cvttps_epi32(src.x);
+}
+
+template<> inline void convert(simd_t<float,4> &dst, simd_t<int,4> src)
+{
+    dst = _mm_cvtepi32_ps(src.x);
+}
+
+
+#ifdef __AVX__
+
+template<> inline void convert(simd_t<int,8> &dst, simd_t<float,8> src)         
+{ 
+    dst = _mm256_cvttps_epi32(src.x);
+}
+
+template<> inline void convert(simd_t<float,8> &dst, simd_t<int,8> src)
+{
+    dst = _mm256_cvtepi32_ps(src.x);
+}
+
+#endif
+
+
 }  // namespace simd_helpers
 
 #endif
