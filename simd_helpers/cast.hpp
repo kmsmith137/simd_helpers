@@ -24,6 +24,9 @@ inline simd_t<T,S> simd_cast(simd_t<T2,S2> x);
 template<> inline simd_t<int,4> simd_cast(simd_t<float,4> x)  { return _mm_castps_si128(x.x); }
 template<> inline simd_t<float,4> simd_cast(simd_t<int,4> x)  { return _mm_castsi128_ps(x.x); }
 
+template<> inline simd_t<int64_t,2> simd_cast(simd_t<double,2> x)  { return _mm_castpd_si128(x.x); }
+template<> inline simd_t<double,2> simd_cast(simd_t<int64_t,2> x)  { return _mm_castsi128_pd(x.x); }
+
 
 #ifdef __AVX__
 

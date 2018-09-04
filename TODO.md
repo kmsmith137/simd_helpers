@@ -5,6 +5,9 @@
 - Double <-> int64_t conversions silently fail before ~2^52 or so, but not obvious
   how to fix this (see FIXME in convert.hpp.)
 
+- Unit test simd_t<T,S>::round().  (Should systematically audit for missing unit tests,
+  there are probably lots of little things which have fallen through the cracks!)
+
 - Aligned/streaming load/store flags will be implemented soon!
   It might be useful to move my memory bandwidth profiling code to this github repo.
 
@@ -18,6 +21,8 @@
 - Horizontal reducing min/max.  (Needed soon for bonsai)
 
 - Random loose end: scalar-vector ops, e.g. (T * simd_t<T,S>), are not currently unit tested.
+
+- Hmm, I think my two versions of operator>> are slightly inconsistent... what a pain!
 
 - I think more syntactic sugar would be nice.
   Random example: min(x,y) can be a synonym for x.min(y)
