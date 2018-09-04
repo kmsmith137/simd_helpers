@@ -24,6 +24,12 @@ namespace simd_helpers {
 
 template<> struct simd_t<double,2>
 {
+    using scalar_type = double;
+    using iscalar_type = int64_t;
+
+    static constexpr int simd_size = 2;
+    static constexpr int total_size = 2;
+
     __m128d x;
 
     simd_t() { }
@@ -112,6 +118,12 @@ inline simd_t<double,2> blendv(simd_t<int64_t,2> mask, simd_t<double,2> a, simd_
 
 template<> struct simd_t<double,4>
 {
+    using scalar_type = double;
+    using iscalar_type = int64_t;
+
+    static constexpr int simd_size = 4;
+    static constexpr int total_size = 4;
+
     __m256d x;
 
     simd_t() { }
