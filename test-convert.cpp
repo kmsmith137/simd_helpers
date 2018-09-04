@@ -190,6 +190,14 @@ int main(int argc, char **argv)
 	test_convert<simd_t<int,8>, simd_t<float,8>> (rng);
 	test_convert<simd_t<float,8>, simd_t<int,8>> (rng);
 #endif
+
+	// Double <-> int64 conversions
+	test_convert<simd_t<int64_t,2>, simd_t<double,2>> (rng);
+	test_convert<simd_t<double,2>, simd_t<int64_t,2>> (rng);
+#ifdef __AVX__
+	test_convert<simd_t<int64_t,4>, simd_t<double,4>> (rng);
+	test_convert<simd_t<double,4>, simd_t<int64_t,4>> (rng);
+#endif
     }
     
     cout << "test-convert: all tests passed\n";
