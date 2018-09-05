@@ -7,16 +7,16 @@ using namespace simd_helpers;
 template<typename T, int S>
 void test_exp2(std::mt19937 &rng)
 {
-    const T thresh = (sizeof(T)==8) ? 1.0e-13 : 3.0e-6;
+    const T xmax = (sizeof(T)==8) ? 990.0 : 89.0;
+    const T thresh = (sizeof(T)==8) ? 3.0e-13 : 3.0e-6;
     simd_t<T,S> x, y;
 
     T x_arr[S];
     T y_arr[S];
 
-    for (int iter = 0; iter < 1000; iter++) {
-	// FIXME should test underflow/overflow
+    for (int iter = 0; iter < 100000; iter++) {
 	for (int i = 0; i < S; i++)
-	    x_arr[i] = uniform_rand(rng, -40.0, 40.0);
+	    x_arr[i] = uniform_rand(rng, -xmax, xmax);
 
 	x.loadu(x_arr);
 	y = simd_exp2_unsafe(x);
@@ -45,7 +45,7 @@ void test_log2p(std::mt19937 &rng)
     T x_arr[S];
     T y_arr[S];
 
-    for (int iter = 0; iter < 1000; iter++) {
+    for (int iter = 0; iter < 100000; iter++) {
 	for (int i = 0; i < S; i++)
 	    x_arr[i] = uniform_rand(rng, 0.0, 1.0);
 
