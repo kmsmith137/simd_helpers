@@ -5,8 +5,7 @@
 - Double <-> int64_t conversions silently fail before ~2^52 or so, but not obvious
   how to fix this (see FIXME in convert.hpp.)
 
-- Unit test simd_t<T,S>::round().  (Should systematically audit for missing unit tests,
-  there are probably lots of little things which have fallen through the cracks!)
+- Unit test simd_t<T,S>::round().  Should also understand x86 "rounding mode".
 
 - Aligned/streaming load/store flags will be implemented soon!
   It might be useful to move my memory bandwidth profiling code to this github repo.
