@@ -31,6 +31,10 @@
 #include "transpose.hpp"
 #include "upsample.hpp"
 
+#include "exp.hpp"
+#include "log.hpp"
+#include "log_add.hpp"
+
 #include "udsample.hpp"
 #include "downsample_max.hpp"
 #include "downsample_bitwise_or.hpp"

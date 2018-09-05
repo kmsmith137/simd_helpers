@@ -20,6 +20,8 @@
 
 - Horizontal reducing min/max.  (Needed soon for bonsai)
 
+- Most exp/log type operations are still unimplemented.
+
 - Random loose end: scalar-vector ops, e.g. (T * simd_t<T,S>), are not currently unit tested.
 
 - Hmm, I think my two versions of operator>> are slightly inconsistent... what a pain!
