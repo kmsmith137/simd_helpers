@@ -7,6 +7,7 @@
 
 #include "core.hpp"
 #include "simd_float32.hpp"
+#include "simd_ntuple.hpp"
 
 namespace simd_helpers {
 #if 0
