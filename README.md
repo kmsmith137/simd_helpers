@@ -5,6 +5,10 @@ This is a helper library for writing fast x86 SIMD kernels.
 This library is currently in an "initial hacking" stage, and will be hard to use until it gets more documentation!
 Let me know if this should be a higher priority.
 
+Authors:
+  - [Kendrick Smith](https://github.com/kmsmith137)
+  - [Erik Schnetter](https://github.com/eschnett)
+
 Compilation instructions:
 ```
 # First you need to create a file Makefile.local, which defines Makefile variables
