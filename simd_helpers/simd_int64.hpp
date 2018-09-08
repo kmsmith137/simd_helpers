@@ -90,6 +90,10 @@ template<> struct simd_t<int64_t,2>
     inline simd_t<int64_t,2> &operator<<=(int n)                { *this = (*this) << n; return *this; }
     inline simd_t<int64_t,2> &operator>>=(int n)                { *this = (*this) >> n; return *this; }
 
+    // FIXME implement operator!=, operator<, operator<=, operator>= (using bit flip)
+    inline simd_t<int64_t,2> operator==(simd_t<int64_t,2> t) const { return _mm_cmpeq_epi64(x, t.x); }
+    inline simd_t<int64_t,2> operator>(simd_t<int64_t,2> t) const  { return _mm_cmpgt_epi64(x, t.x); }
+
     inline simd_t<int64_t,2> abs() const
     {
 	__m128i t = _mm_set1_epi16(-1);
@@ -135,8 +139,10 @@ template<> struct simd_t<int64_t,2>
     inline simd_t<int64_t,2> bitwise_not() const                        { return _mm_xor_si128(x, _mm_set1_epi16(-1)); }
 };
 
-// blendv(mask,a,b) is morally equivalent to (mask ? a : b)
-inline simd_t<int64_t,2> blendv(simd_t<int64_t,2> mask, simd_t<int64_t,2> a, simd_t<int64_t,2> b)
+
+// simd_if(mask,a,b) is morally equivalent to (mask ? a : b)
+// Note that there is no x86 blendv() for integer types, need to cast to float64!
+inline simd_t<int64_t,2> simd_if(simd_t<int64_t,2> mask, simd_t<int64_t,2> a, simd_t<int64_t,2> b)
 { 
     __m128d xmask = _mm_castsi128_pd(mask.x);
     __m128d xa = _mm_castsi128_pd(a.x);
@@ -144,6 +150,10 @@ inline simd_t<int64_t,2> blendv(simd_t<int64_t,2> mask, simd_t<int64_t,2> a, sim
     __m128d ret = _mm_blendv_pd(xb, xa, xmask);
     return _mm_castpd_si128(ret);
 }
+
+
+// FIXME deprecated alias for simd_if().
+inline simd_t<int64_t,2> blendv(simd_t<int64_t,2> mask, simd_t<int64_t,2> a, simd_t<int64_t,2> b) { return simd_if(mask,a,b); }
 
 
 // -------------------------------------------------------------------------------------------------
@@ -259,6 +269,11 @@ template<> struct simd_t<int64_t,4>
     inline simd_t<int64_t,4> &operator>>=(simd_t<int64_t,4> t)  { *this = (*this) >> t; return *this; }
     inline simd_t<int64_t,4> &operator<<=(int n)                { *this = (*this) << n; return *this; }
     inline simd_t<int64_t,4> &operator>>=(int n)                { *this = (*this) >> n; return *this; }
+
+    // FIXME implement operator!=, operator<, operator<=, operator>= (using bit flip)
+    // FIXME this assumes AVX2, write AVX-but-no-AVX2 version.
+    inline simd_t<int64_t,4> operator==(simd_t<int64_t,4> t) const { return _mm256_cmpeq_epi64(x, t.x); }
+    inline simd_t<int64_t,4> operator>(simd_t<int64_t,4> t) const  { return _mm256_cmpgt_epi64(x, t.x); }
 
     inline simd_t<int64_t,4> abs() const
     {
@@ -412,8 +427,9 @@ template<> struct simd_t<int64_t,4>
 };
 
 
-// blendv(mask,a,b) is morally equivalent to (mask ? a : b)
-inline simd_t<int64_t,4> blendv(simd_t<int64_t,4> mask, simd_t<int64_t,4> a, simd_t<int64_t,4> b)
+// simd_if(mask,a,b) is morally equivalent to (mask ? a : b)
+// Note that there is no x86 blendv() for integer types, need to cast to float64!
+inline simd_t<int64_t,4> simd_if(simd_t<int64_t,4> mask, simd_t<int64_t,4> a, simd_t<int64_t,4> b)
 { 
     __m256d xmask = _mm256_castsi256_pd(mask.x);
     __m256d xa = _mm256_castsi256_pd(a.x);
@@ -421,6 +437,9 @@ inline simd_t<int64_t,4> blendv(simd_t<int64_t,4> mask, simd_t<int64_t,4> a, sim
     __m256d ret = _mm256_blendv_pd(xb, xa, xmask);
     return _mm256_castpd_si256(ret);
 }
+
+// FIXME deprecated alias for simd_if().
+inline simd_t<int64_t,4> blendv(simd_t<int64_t,4> mask, simd_t<int64_t,4> a, simd_t<int64_t,4> b) { return simd_if(mask,a,b); }
 
 
 #endif // __AVX__
