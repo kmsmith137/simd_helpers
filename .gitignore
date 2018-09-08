@@ -4,6 +4,7 @@ Makefile.local
 run-tests
 test-convert
 test-quantize
+test-sort
 test-special-functions
 test-udsample
 time-kernels

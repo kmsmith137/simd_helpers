@@ -36,13 +36,14 @@ INCFILES_SUB=simd_helpers/core.hpp \
 	simd_helpers/log.hpp \
 	simd_helpers/log_add.hpp \
 	simd_helpers/quantize.hpp \
+	simd_helpers/sort.hpp \
 	simd_helpers/transpose.hpp \
 	simd_helpers/upsample.hpp \
 	simd_helpers/udsample.hpp \
 	simd_helpers/downsample_max.hpp \
 	simd_helpers/downsample_bitwise_or.hpp
 
-TESTFILES=run-tests test-convert test-quantize test-special-functions test-udsample
+TESTFILES=run-tests test-convert test-quantize test-sort test-special-functions test-udsample
 
 all: $(TESTFILES) time-kernels
 
@@ -56,6 +57,9 @@ test: $(TESTFILES) .touchfile_test .touchfile_test_convert .touchfile_test_quant
 
 .touchfile_test_convert: test-convert
 	./test-convert && touch $@
+
+.touchfile_test_sort: test-sort
+	./test-sort && touch $@
 
 .touchfile_test_special_functions: test-special-functions
 	./test-special-functions && touch $@
@@ -83,6 +87,9 @@ test-convert: test-convert.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<
 
 test-quantize: test-quantize.cpp $(INCFILES_TOP) $(INCFILES_SUB)
+	$(CPP) -o $@ $<
+
+test-sort: test-sort.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<
 
 test-special-functions: test-special-functions.cpp $(INCFILES_TOP) $(INCFILES_SUB)

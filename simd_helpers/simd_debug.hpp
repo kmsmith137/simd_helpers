@@ -28,6 +28,7 @@
 #include "convert.hpp"
 #include "downsample.hpp"
 #include "quantize.hpp"
+#include "sort.hpp"
 #include "transpose.hpp"
 #include "upsample.hpp"
 
