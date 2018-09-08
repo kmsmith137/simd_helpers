@@ -23,9 +23,9 @@
 
 - Horizontal reducing min/max.  (Needed soon for bonsai)
 
-- Most exp/log type operations are still unimplemented.
+- Is there a way to use Intel SVML?  (https://software.intel.com/en-us/node/524289)
 
-- Random loose end: scalar-vector ops, e.g. (T * simd_t<T,S>), are not currently unit tested.
+- Most exp/log type operations are still unimplemented.
 
 - Hmm, I think my two versions of operator>> are slightly inconsistent... what a pain!
 

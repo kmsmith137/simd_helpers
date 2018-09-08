@@ -35,6 +35,7 @@ INCFILES_SUB=simd_helpers/core.hpp \
 	simd_helpers/exp.hpp \
 	simd_helpers/log.hpp \
 	simd_helpers/log_add.hpp \
+	simd_helpers/median.hpp \
 	simd_helpers/quantize.hpp \
 	simd_helpers/sort.hpp \
 	simd_helpers/transpose.hpp \
@@ -43,7 +44,13 @@ INCFILES_SUB=simd_helpers/core.hpp \
 	simd_helpers/downsample_max.hpp \
 	simd_helpers/downsample_bitwise_or.hpp
 
-TESTFILES=run-tests test-convert test-quantize test-sort test-special-functions test-udsample
+TESTFILES=run-tests \
+	test-convert \
+	test-median \
+	test-quantize \
+	test-sort \
+	test-special-functions \
+	test-udsample
 
 all: $(TESTFILES) time-kernels
 
@@ -58,14 +65,17 @@ test: $(TESTFILES) .touchfile_test .touchfile_test_convert .touchfile_test_quant
 .touchfile_test_convert: test-convert
 	./test-convert && touch $@
 
+.touchfile_test_median: test-median
+	./test-median && touch $@
+
+.touchfile_test_quantize: test-quantize
+	./test-quantize && touch $@
+
 .touchfile_test_sort: test-sort
 	./test-sort && touch $@
 
 .touchfile_test_special_functions: test-special-functions
 	./test-special-functions && touch $@
-
-.touchfile_test_quantize: test-quantize
-	./test-quantize && touch $@
 
 .touchfile_test_udsample: test-udsample
 	./test-udsample && touch $@
@@ -84,6 +94,9 @@ run-tests: run-tests.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<
 
 test-convert: test-convert.cpp $(INCFILES_TOP) $(INCFILES_SUB)
+	$(CPP) -o $@ $<
+
+test-median: test-median.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<
 
 test-quantize: test-quantize.cpp $(INCFILES_TOP) $(INCFILES_SUB)

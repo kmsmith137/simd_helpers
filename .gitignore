@@ -3,6 +3,7 @@
 Makefile.local
 run-tests
 test-convert
+test-median
 test-quantize
 test-sort
 test-special-functions

@@ -22,7 +22,9 @@
 #include "simd_helpers/cast.hpp"
 #include "simd_helpers/convert.hpp"
 #include "simd_helpers/downsample.hpp"
+#include "simd_helpers/median.hpp"
 #include "simd_helpers/quantize.hpp"
+#include "simd_helpers/sort.hpp"
 #include "simd_helpers/transpose.hpp"
 #include "simd_helpers/upsample.hpp"
 

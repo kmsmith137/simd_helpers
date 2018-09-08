@@ -7,8 +7,6 @@
 
 #include "simd_ntuple.hpp"
 
-#define SWAP(i,j) _simd_sort_pair<i,j> (x)
-
 namespace simd_helpers {
 #if 0
 }  // pacify emacs c-mode
@@ -16,7 +14,7 @@ namespace simd_helpers {
 
 // The sorting API is really simple: we define an inline function
 //
-//  simd_sort(simd_ntuple<T,S,N> &x)
+//  void simd_sort(simd_ntuple<T,S,N> &x);
 //
 // which performs an N-element sort, independently in each of the S simd "slots".
 //
