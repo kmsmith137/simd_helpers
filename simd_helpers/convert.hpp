@@ -131,14 +131,14 @@ template<> inline void convert(simd_t<int64_t,2> &dst, simd_t<double,2> src)
 {
     __m128d t = _mm_set1_pd(0x0018000000000000);
     __m128d x = _mm_add_pd(src.x, t);
-    dst = _mm_sub_epi64(_mm_castpd_si128(x), t);
+    dst = _mm_sub_epi64(_mm_castpd_si128(x), _mm_castpd_si128(t));
 }
 
 
 template<> inline void convert(simd_t<double,2> &dst, simd_t<int64_t,2> src)
 {
     __m128d t = _mm_set1_pd(0x0018000000000000);
-    __m128d x = _mm_add_epi64(src.x, _mm_castpd_si128(t));
+    __m128i x = _mm_add_epi64(src.x, _mm_castpd_si128(t));
     dst = _mm_sub_pd(_mm_castsi128_pd(x), t);
 }
 
@@ -148,13 +148,13 @@ template<> inline void convert(simd_t<int64_t,4> &dst, simd_t<double,4> src)
 { 
     __m256d t = _mm256_set1_pd(0x0018000000000000);
     __m256d x = _mm256_add_pd(src.x, t);
-    dst.x = _mm256_sub_epi64(_mm256_castpd_si256(x), t);
+    dst.x = _mm256_sub_epi64(_mm256_castpd_si256(x), _mm256_castpd_si256(t));
 }
 
 template<> inline void convert(simd_t<double,4> &dst, simd_t<int64_t,4> src)
 {
     __m256d t = _mm256_set1_pd(0x0018000000000000);
-    __m256d x = _mm256_add_epi64(src.x, _mm256_castpd_si256(t));
+    __m256i x = _mm256_add_epi64(src.x, _mm256_castpd_si256(t));
     dst = _mm256_sub_pd(_mm256_castsi256_pd(x), t);
 }
 
