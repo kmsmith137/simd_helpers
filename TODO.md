@@ -2,9 +2,13 @@
 
 - High priority: systematic unit test of every kernel and inline operator!
 
+- I haven't tested on old machines in a long time!
+
 - Phase out smask_t in favor of simd_t<T,S>::iscalar_tpe.  (Also smask_ntuple.)
 
 - Phase out blendv() in favor of simd_if().
+
+- Phase out align() in favor of simd_align().
 
 - Double <-> int64_t conversions silently fail before ~2^52 or so, but not obvious
   how to fix this (see FIXME in convert.hpp.)
@@ -33,6 +37,8 @@
   Random example: simd_min(x,y) can be a synonym for x.min(y)
 
 - The _vertical_dot() type routines are confusing and could be improved.
+
+- Low-priority: define 'struct simd_ntuple_align_helper'.
 
 - Not all upsampling/downsampling kernels have been implemented.  So far we only have
      - upsampling: float32, int32
