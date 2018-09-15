@@ -45,6 +45,7 @@ INCFILES_SUB=simd_helpers/core.hpp \
 	simd_helpers/downsample_bitwise_or.hpp
 
 TESTFILES=run-tests \
+	test-align \
 	test-convert \
 	test-median \
 	test-quantize \
@@ -62,6 +63,9 @@ test: $(TESTFILES) .touchfile_test .touchfile_test_convert .touchfile_test_quant
 
 .touchfile_test: run-tests
 	./run-tests && touch $@
+
+.touchfile_test_align: test-align
+	./test-align && touch $@
 
 .touchfile_test_convert: test-convert
 	./test-convert && touch $@
@@ -95,6 +99,9 @@ uninstall:
 	if [ -e $(INCDIR)/simd_helpers ]; then rmdir $(INCDIR)/simd_helpers; fi
 
 run-tests: run-tests.cpp $(INCFILES_TOP) $(INCFILES_SUB)
+	$(CPP) -o $@ $<
+
+test-align: test-align.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<
 
 test-convert: test-convert.cpp $(INCFILES_TOP) $(INCFILES_SUB)
