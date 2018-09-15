@@ -50,6 +50,7 @@ TESTFILES=run-tests \
 	test-quantize \
 	test-sort \
 	test-special-functions \
+	test-transpose \
 	test-udsample
 
 all: $(TESTFILES) time-kernels
@@ -76,6 +77,9 @@ test: $(TESTFILES) .touchfile_test .touchfile_test_convert .touchfile_test_quant
 
 .touchfile_test_special_functions: test-special-functions
 	./test-special-functions && touch $@
+
+.touchfile_test_transpose: test-transpose
+	./test-transpose && touch $@
 
 .touchfile_test_udsample: test-udsample
 	./test-udsample && touch $@
@@ -106,6 +110,9 @@ test-sort: test-sort.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<
 
 test-special-functions: test-special-functions.cpp $(INCFILES_TOP) $(INCFILES_SUB)
+	$(CPP) -o $@ $<
+
+test-transpose: test-transpose.cpp $(INCFILES_TOP) $(INCFILES_SUB)
 	$(CPP) -o $@ $<
 
 test-udsample: test-udsample.cpp $(INCFILES_TOP) $(INCFILES_SUB)
