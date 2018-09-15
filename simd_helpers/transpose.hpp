@@ -70,6 +70,53 @@ inline void _btranspose2_ps256(__m256 &x, __m256 &y)
 }
 
 
+// _mtranspose2_ps256(): helper for _btranspose4_ps256()
+//
+// Input (where each entry is two float32's)
+//   [ a0 a1 a2 a3 ]
+//   [ b0 b1 b2 b3 ]
+//
+// Output 
+//   [ a0 b0 a2 b2 ]
+//   [ a1 b1 a2 b3 ]
+
+inline void _mtranspose2_ps256(__m256 &a, __m256 &b)
+{
+    __m256 anew = _mm256_shuffle_ps(a, b, 0x44);  // (1010)_4
+    __m256 bnew = _mm256_shuffle_ps(a, b, 0xee);  // (3232)_4
+
+    a = anew;
+    b = bnew;
+}
+
+
+inline void _btranspose4_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d)
+{
+    // Input
+    //   a = [ a0 a1 a2 a3 ]
+    //   b = [ b0 b1 b2 b3 ]
+    //   c = [ c0 c1 c2 c3 ]
+    //   d = [ d0 d1 d2 d3 ]
+    
+    _mtranspose2_ps256(a, b);
+    _mtranspose2_ps256(c, d);
+
+    // After _mtranspose2_256()
+    //   a = [ a0 b0 a2 b2 ]
+    //   b = [ a1 b1 a3 b2 ]
+    //   c = [ c0 d0 c2 d2 ]
+    //   d = [ c1 d1 c3 d3 ]
+
+    _btranspose2_ps256(a, c);
+    _btranspose2_ps256(b, d);
+    
+    // After _btranspose2_ps256()
+    //   a = [ a0 b0 c0 d0 ]
+    //   b = [ a1 b1 c1 d1 ]
+    //   c = [ a2 b2 c2 d2 ]
+    //   d = [ a3 b3 c3 d3 ]
+}
+
 inline void _transpose4_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d)
 {
     __m256 w = _mm256_shuffle_ps(a, c, 0x44);  // (1010)_4 -> [ a0 a1 c0 c1 ]
@@ -99,9 +146,17 @@ inline void _transpose8_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d, __m256
 }
 
 
+// -------------------------------------------------------------------------------------------------
+
+
 inline void simd_btranspose(simd_t<float,8> &a, simd_t<float,8> &b)
 {
     _btranspose2_ps256(a.x, b.x);
+}
+
+inline void simd_btranspose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float,8> &c, simd_t<float,8> &d)
+{
+    _btranspose4_ps256(a.x, b.x, c.x, d.x);
 }
 
 inline void simd_transpose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float,8> &c, simd_t<float,8> &d)
