@@ -159,6 +159,12 @@ inline void simd_btranspose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float
     _btranspose4_ps256(a.x, b.x, c.x, d.x);
 }
 
+inline void simd_btranspose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float,8> &c, simd_t<float,8> &d, simd_t<float,8> &e, simd_t<float,8> &f, simd_t<float,8> &g, simd_t<float,8> &h)
+{
+    // Note that for N=S, the transpose and btranspose kernels are the same.
+    _transpose8_ps256(a.x, b.x, c.x, d.x, e.x, f.x, g.x, h.x);
+}
+
 inline void simd_transpose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float,8> &c, simd_t<float,8> &d)
 {
     _transpose4_ps256(a.x, b.x, c.x, d.x);

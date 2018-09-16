@@ -122,6 +122,7 @@ int main(int argc, char **argv)
 	test_transpose<float,8,8> (rng);
 	test_btranspose<float,8,2> (rng);
 	test_btranspose<float,8,4> (rng);
+	test_btranspose<float,8,8> (rng);
     }
     cout << "test-transpose: all tests passed\n";
 #else
