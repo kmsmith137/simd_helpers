@@ -25,6 +25,7 @@ template<> struct simd_t<int,4>
 {
     using scalar_type = int;
     using iscalar_type = int;
+    using wrapped_type = __m128i;
 
     static constexpr int simd_size = 4;
     static constexpr int total_size = 4;
@@ -154,6 +155,7 @@ template<> struct simd_t<int,8>
 {
     using scalar_type = int;
     using iscalar_type = int;
+    using wrapped_type = __m256i;
 
     static constexpr int simd_size = 8;
     static constexpr int total_size = 8;

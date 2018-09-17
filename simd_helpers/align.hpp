@@ -135,7 +135,7 @@ struct simd_align_helper<T,S,16>
     template<int A> simd_t<T,S> align() const
     {
 	__m128i ret = _simd_align128<(A * sizeof(T))> (x, y);
-	return reinterpret_cast<decltype(simd_t<T,S>::x)> (ret);
+	return reinterpret_cast<typename simd_t<T,S>::wrapped_type> (ret);
     }
 };
 
@@ -195,7 +195,7 @@ struct simd_align_helper<T,S,32>
     template<int A> simd_t<T,S> align() const
     {
 	__m256i ret = _simd_align256<(A * sizeof(T))> (x, xy, y);
-	return reinterpret_cast<decltype(simd_t<T,S>::x)> (ret);	
+	return reinterpret_cast<typename simd_t<T,S>::wrapped_type> (ret);	
     }
 };
 
