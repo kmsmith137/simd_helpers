@@ -117,6 +117,17 @@ inline void _btranspose4_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d)
     //   d = [ a3 b3 c3 d3 ]
 }
 
+
+inline void _transpose2_ps256(__m256 &a, __m256 &b)
+{
+    __m256 ta = _mm256_permute_ps(a, 0xb1);  // (2301)_4 -> [ a1 a0 a3 a2 a5 a4 a7 a6 ]
+    __m256 tb = _mm256_permute_ps(b, 0xb1);  // (2301)_4 -> [ b1 b0 b3 b2 b5 b4 b7 b6 ]
+
+    a = _mm256_blend_ps(a, tb, 0xaa);  // (10101010)_2 -> [ a0 b0 a2 b2 a4 b4 a6 b6 ]
+    b = _mm256_blend_ps(ta, b, 0xaa);  // (10101010)_2 -> [ a1 b1 a3 b3 a5 b5 a7 b7 ]
+}
+
+
 inline void _transpose4_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d)
 {
     __m256 w = _mm256_shuffle_ps(a, c, 0x44);  // (1010)_4 -> [ a0 a1 c0 c1 ]
@@ -163,6 +174,11 @@ inline void simd_btranspose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float
 {
     // Note that for N=S, the transpose and btranspose kernels are the same.
     _transpose8_ps256(a.x, b.x, c.x, d.x, e.x, f.x, g.x, h.x);
+}
+
+inline void simd_transpose(simd_t<float,8> &a, simd_t<float,8> &b)
+{
+    _transpose2_ps256(a.x, b.x);
 }
 
 inline void simd_transpose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float,8> &c, simd_t<float,8> &d)

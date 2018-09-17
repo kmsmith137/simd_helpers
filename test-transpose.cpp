@@ -118,6 +118,7 @@ int main(int argc, char **argv)
     std::mt19937 rng(rd());
 
     for (int iter = 0; iter < 1000; iter++) {
+	test_transpose<float,8,2> (rng);
 	test_transpose<float,8,4> (rng);
 	test_transpose<float,8,8> (rng);
 	test_btranspose<float,8,2> (rng);
