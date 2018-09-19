@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "simd_helpers/simd_int32.hpp"
 #include "simd_helpers/simd_int64.hpp"
 #include "simd_helpers/simd_float32.hpp"

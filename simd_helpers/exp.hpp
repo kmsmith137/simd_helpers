@@ -5,6 +5,7 @@
 #error "This source file needs to be compiled with C++11 support (g++ -std=c++11)"
 #endif
 
+#include <limits>
 #include "core.hpp"
 #include "simd_float32.hpp"
 #include "simd_float64.hpp"
