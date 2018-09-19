@@ -14,38 +14,36 @@ namespace simd_helpers {
 }  // pacify emacs c-mode
 #endif
 
-// We define two SIMD transpose operations, "transpose" and "btranspose" (short for
-// "block transpose").  They have three parameters: a type T, simd length S, and 
-// rank N (= number of simd registers participating in the transpose).
+
+// The transpose API is:
 //
-// If N < S, then the transpose has spectator indices.  In the "transpose" kernels,
-// the spectator indices are slowly varying, whereas in the "btranspose" kernels, the
-// spectator indices are rapidly varying.
+//   simd_transpose<T,S,N,M=1> (simd_ntuple<T,S,N> &x);
+//   simd_transpose<M=1> (simd_t<T,S> &x1, simd_t<T,S> &x2, ..., simd_t<T,S> &xN);
 //
-// For example, if S=8 and N=2, then the transpose kernel looks like this:
+// Each transpose kernel is labeled by its "size" N and "multiplicity" M.
+// The size N is the number of simd_t's which participate in the transpose.
+// The multiplicity M determines which bits inside the simd_t participate in the transpose.
+//
+// Formally, the simd_ntuple<T,S,N> is viewed as a shape (N,M,N,S/(MN))-array, and the
+// two length-N axes are exchanged.  To write this out in detail, if N=2, then there
+// are three transpose kernels with M=1,2,4:
 //
 //   x_in = [ x0 x1 x2 x3 x4 x5 x6 x7 ]
 //   y_in = [ y0 y1 y2 y3 y4 y5 y6 y7 ]
 //
-//   x_out = [ x0 y0 x2 y2 x4 y4 x6 y6 ]
-//   y_out = [ x1 y1 x3 y3 x5 y5 x7 y7 ]
+//   x_out_M1 = [ x0 x1 x2 x3 y0 y1 y2 y3 ]
+//   y_out_M1 = [ x4 x5 x6 x7 y4 y5 y6 y7 ]
 //
-// whereas the btranspose kernel looks like this:
+//   x_out_M2 = [ x0 x1 y0 y1 x4 x5 y4 y5 ]
+//   y_out_M2 = [ x2 x3 y2 y3 x6 x7 y6 y7 ]
 //
-//   x_out = [ x0 x1 x2 x3 y0 y1 y2 y3 ]
-//   y_out = [ x4 x5 x6 x7 y4 y5 y6 y7 ]
+//   x_out_M4 = [ x0 y0 x2 y2 x4 y4 x6 y6 ]
+//   y_out_M4 = [ x1 y1 x3 y3 x5 y5 x7 y7 ]
 //
-// We define three interfaces to the transpose kernels as follows (for (T,S,N)=(float,8,2)):
-// 
-//    // low-level kernel with __m256 args
-//    _transpose2_ps256(__m256 x, __m256 y)
+// The multiplicity M is a power of 2, satisfying 1 <= M <= (S/N).
+// (In particular, if N=S, then M=1 is the only possibility.)
 //
-//    // simd_t<T,S> wrapper 
-//    simd_transpose(simd_t<float,8> x, simd_t<float,8> y)
-//
-//    // simd_ntuple<T,S,N> wrapper
-//    simd_transpose(simd_t<float,8,2> x)
-//
+// FIXME: could use static_asserts to check for bad (N,M) combinations (need to write some constexpr inline functions first)
 // FIXME: only a few (T,S,N) combinations are currently implemented!
 // FIXME: assumes AVX2!
 
@@ -53,7 +51,13 @@ namespace simd_helpers {
 #ifdef __AVX2__
 
 
-inline void _btranspose2_ps256(__m256 &x, __m256 &y)
+// -------------------------------------------------------------------------------------------------
+//
+// These versions of the kernels can be called directly on the low-level simd types (e.g. __m256)
+
+
+// Size 2, multiplicity 1.
+inline void _transpose2_m1_ps256(__m256 &x, __m256 &y)
 {
 #if 0
     // Slightly slower.
@@ -69,18 +73,8 @@ inline void _btranspose2_ps256(__m256 &x, __m256 &y)
 #endif    
 }
 
-
-// _mtranspose2_ps256(): helper for _btranspose4_ps256()
-//
-// Input (where each entry is two float32's)
-//   [ a0 a1 a2 a3 ]
-//   [ b0 b1 b2 b3 ]
-//
-// Output 
-//   [ a0 b0 a2 b2 ]
-//   [ a1 b1 a2 b3 ]
-
-inline void _mtranspose2_ps256(__m256 &a, __m256 &b)
+// Size 2, multiplicity 2.
+inline void _transpose2_m2_ps256(__m256 &a, __m256 &b)
 {
     __m256 anew = _mm256_shuffle_ps(a, b, 0x44);  // (1010)_4
     __m256 bnew = _mm256_shuffle_ps(a, b, 0xee);  // (3232)_4
@@ -89,36 +83,8 @@ inline void _mtranspose2_ps256(__m256 &a, __m256 &b)
     b = bnew;
 }
 
-
-inline void _btranspose4_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d)
-{
-    // Input
-    //   a = [ a0 a1 a2 a3 ]
-    //   b = [ b0 b1 b2 b3 ]
-    //   c = [ c0 c1 c2 c3 ]
-    //   d = [ d0 d1 d2 d3 ]
-    
-    _mtranspose2_ps256(a, b);
-    _mtranspose2_ps256(c, d);
-
-    // After _mtranspose2_256()
-    //   a = [ a0 b0 a2 b2 ]
-    //   b = [ a1 b1 a3 b2 ]
-    //   c = [ c0 d0 c2 d2 ]
-    //   d = [ c1 d1 c3 d3 ]
-
-    _btranspose2_ps256(a, c);
-    _btranspose2_ps256(b, d);
-    
-    // After _btranspose2_ps256()
-    //   a = [ a0 b0 c0 d0 ]
-    //   b = [ a1 b1 c1 d1 ]
-    //   c = [ a2 b2 c2 d2 ]
-    //   d = [ a3 b3 c3 d3 ]
-}
-
-
-inline void _transpose2_ps256(__m256 &a, __m256 &b)
+// Size 2, multiplicity 4.
+inline void _transpose2_m4_ps256(__m256 &a, __m256 &b)
 {
     __m256 ta = _mm256_permute_ps(a, 0xb1);  // (2301)_4 -> [ a1 a0 a3 a2 a5 a4 a7 a6 ]
     __m256 tb = _mm256_permute_ps(b, 0xb1);  // (2301)_4 -> [ b1 b0 b3 b2 b5 b4 b7 b6 ]
@@ -127,8 +93,36 @@ inline void _transpose2_ps256(__m256 &a, __m256 &b)
     b = _mm256_blend_ps(ta, b, 0xaa);  // (10101010)_2 -> [ a1 b1 a3 b3 a5 b5 a7 b7 ]
 }
 
+// Size 4, multiplicity 1.
+inline void _transpose4_m1_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d)
+{
+    // Input
+    //   a = [ a0 a1 a2 a3 ]
+    //   b = [ b0 b1 b2 b3 ]
+    //   c = [ c0 c1 c2 c3 ]
+    //   d = [ d0 d1 d2 d3 ]
+    
+    _transpose2_m2_ps256(a, b);
+    _transpose2_m2_ps256(c, d);
 
-inline void _transpose4_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d)
+    // After _mtranspose2_256()
+    //   a = [ a0 b0 a2 b2 ]
+    //   b = [ a1 b1 a3 b2 ]
+    //   c = [ c0 d0 c2 d2 ]
+    //   d = [ c1 d1 c3 d3 ]
+
+    _transpose2_m1_ps256(a, c);
+    _transpose2_m1_ps256(b, d);
+    
+    // After _btranspose2_ps256()
+    //   a = [ a0 b0 c0 d0 ]
+    //   b = [ a1 b1 c1 d1 ]
+    //   c = [ a2 b2 c2 d2 ]
+    //   d = [ a3 b3 c3 d3 ]
+}
+
+// Size 4, multiplicity 2.
+inline void _transpose4_m2_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d)
 {
     __m256 w = _mm256_shuffle_ps(a, c, 0x44);  // (1010)_4 -> [ a0 a1 c0 c1 ]
     __m256 x = _mm256_shuffle_ps(b, d, 0x11);  // (0101)_4 -> [ b1 b0 d1 d0 ]
@@ -144,51 +138,60 @@ inline void _transpose4_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d)
     d = _mm256_permute_ps(d, 0xb1);   // (2301)_4 -> [ a3 b3 c3 d3 ]
 }
 
-
-inline void _transpose8_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d, __m256 &e, __m256 &f, __m256 &g, __m256 &h)
+// Size 8, multiplicity 1.
+inline void _transpose8_m1_ps256(__m256 &a, __m256 &b, __m256 &c, __m256 &d, __m256 &e, __m256 &f, __m256 &g, __m256 &h)
 {
-    _btranspose2_ps256(a, e);
-    _btranspose2_ps256(b, f);
-    _btranspose2_ps256(c, g);
-    _btranspose2_ps256(d, h);
+    _transpose2_m1_ps256(a, e);
+    _transpose2_m1_ps256(b, f);
+    _transpose2_m1_ps256(c, g);
+    _transpose2_m1_ps256(d, h);
 
-    _transpose4_ps256(a, b, c, d);
-    _transpose4_ps256(e, f, g, h);
+    _transpose4_m2_ps256(a, b, c, d);
+    _transpose4_m2_ps256(e, f, g, h);
 }
 
 
 // -------------------------------------------------------------------------------------------------
+//
+// First simd_helpers transpose API:
+//
+//   simd_transpose<M=1> (simd_t<T,S> &x1, simd_t<T,S> &x2, ..., simd_t<T,S> &xN);
 
 
-inline void simd_btranspose(simd_t<float,8> &a, simd_t<float,8> &b)
-{
-    _btranspose2_ps256(a.x, b.x);
-}
-
-inline void simd_btranspose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float,8> &c, simd_t<float,8> &d)
-{
-    _btranspose4_ps256(a.x, b.x, c.x, d.x);
-}
-
-inline void simd_btranspose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float,8> &c, simd_t<float,8> &d, simd_t<float,8> &e, simd_t<float,8> &f, simd_t<float,8> &g, simd_t<float,8> &h)
-{
-    // Note that for N=S, the transpose and btranspose kernels are the same.
-    _transpose8_ps256(a.x, b.x, c.x, d.x, e.x, f.x, g.x, h.x);
-}
-
+template<int M=1, typename std::enable_if<(M==1),int>::type = 0>
 inline void simd_transpose(simd_t<float,8> &a, simd_t<float,8> &b)
 {
-    _transpose2_ps256(a.x, b.x);
+    _transpose2_m1_ps256(a.x, b.x);
 }
 
+template<int M=1, typename std::enable_if<(M==2),int>::type = 0>
+inline void simd_transpose(simd_t<float,8> &a, simd_t<float,8> &b)
+{
+    _transpose2_m2_ps256(a.x, b.x);
+}
+
+template<int M=1, typename std::enable_if<(M==4),int>::type = 0>
+inline void simd_transpose(simd_t<float,8> &a, simd_t<float,8> &b)
+{
+    _transpose2_m4_ps256(a.x, b.x);
+}
+
+template<int M=1, typename std::enable_if<(M==1),int>::type = 0>
 inline void simd_transpose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float,8> &c, simd_t<float,8> &d)
 {
-    _transpose4_ps256(a.x, b.x, c.x, d.x);
+    _transpose4_m1_ps256(a.x, b.x, c.x, d.x);
 }
 
+template<int M=1, typename std::enable_if<(M==2),int>::type = 0>
+inline void simd_transpose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float,8> &c, simd_t<float,8> &d)
+{
+    _transpose4_m2_ps256(a.x, b.x, c.x, d.x);
+}
+
+template<int M=1, typename std::enable_if<(M==1),int>::type = 0>
 inline void simd_transpose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float,8> &c, simd_t<float,8> &d, simd_t<float,8> &e, simd_t<float,8> &f, simd_t<float,8> &g, simd_t<float,8> &h)
 {
-    _transpose8_ps256(a.x, b.x, c.x, d.x, e.x, f.x, g.x, h.x);
+    _transpose8_m1_ps256(a.x, b.x, c.x, d.x, e.x, f.x, g.x, h.x);
 }
 
 
@@ -197,52 +200,27 @@ inline void simd_transpose(simd_t<float,8> &a, simd_t<float,8> &b, simd_t<float,
 
 // -------------------------------------------------------------------------------------------------
 //
-// The boilerplate below arranges things so that
+// The boilerplate below defines the second simd_helpers transpose API:
 //
-//   simd_transpose(simd_ntuple<T,S,N> &x)
-//   simd_btranspose(simd_ntuple<T,S,N> &x)
-//
-// are aliases for
-//
-//   simd_transpose(x.extract<0>(), ..., x.extract<N-1>())
-//   simd_btranspose(x.extract<0>(), ..., x.extract<N-1>())
+//   simd_transpose<T,S,N,M=1> (simd_ntuple<T,S,N> &x);
 
 
-template<typename T, int S, int N, typename... Args, typename std::enable_if<(N==0),int>::type = 0>
+template<int M, typename T, int S, int N, typename... Args, typename std::enable_if<(N==0),int>::type = 0>
 inline void _simd_transpose(simd_ntuple<T,S,N> &x, Args& ... a)
 { 
-    simd_transpose(a...);
+    simd_transpose<M> (a...);
 }
 
-template<typename T, int S, int N, typename... Args, typename std::enable_if<(N>0),int>::type = 0>
+template<int M, typename T, int S, int N, typename... Args, typename std::enable_if<(N>0),int>::type = 0>
 inline void _simd_transpose(simd_ntuple<T,S,N> &x, Args& ... a)
 {
-    _simd_transpose(x.v, x.x, a...);
+    _simd_transpose<M> (x.v, x.x, a...);
 }
 
-template<typename T, int S, int N, typename... Args, typename std::enable_if<(N==0),int>::type = 0>
-inline void _simd_btranspose(simd_ntuple<T,S,N> &x, Args& ... a)
-{
-    simd_btranspose(a...);
-}
-
-template<typename T, int S, int N, typename... Args, typename std::enable_if<(N>0),int>::type = 0>
-inline void _simd_btranspose(simd_ntuple<T,S,N> &x, Args& ... a)
-{
-    _simd_btranspose(x.v, x.x, a...);
-}
-
-
-template<typename T, int S, int N>
+template<typename T, int S, int N, int M=1>
 inline void simd_transpose(simd_ntuple<T,S,N> &x)
 {
-    _simd_transpose(x);
-}
-
-template<typename T, int S, int N>
-inline void simd_btranspose(simd_ntuple<T,S,N> &x)
-{
-    _simd_btranspose(x);
+    _simd_transpose<M> (x);
 }
 
 
