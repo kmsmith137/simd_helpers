@@ -199,12 +199,75 @@ void time_upsample()
 }
 
 
+// -------------------------------------------------------------------------------------------------
+
+
+template<typename T, int S, int N>
+void time_sort1(int niter)
+{
+    simd_ntuple<T,S,N> x;
+    x.setzero();
+
+    struct timeval tv1 = get_time();
+    
+    for (int i = 0; i < niter; i++)
+	simd_sort(x);
+
+    double ns_per_kernel = 1.0e9 * time_diff(tv1, get_time()) / double(niter);
+    double ns_per_scalar = ns_per_kernel / (S*N);
+
+    cout << "time_sort: " << type_name(x) << ": " << ns_per_kernel << " ns/kernel, " << ns_per_scalar << " ns/scalar" << endl;
+}
+
+
+template<int N>
+void time_sort2(int niter)
+{
+    cout << endl;
+#ifdef __AVX__
+    time_sort1<int,8,N> (niter);
+    time_sort1<int64_t,4,N> (niter);
+    time_sort1<float,8,N> (niter);
+    time_sort1<double,4,N> (niter);
+#else
+    time_sort1<int,4,N> (niter);
+    time_sort1<int64_t,2,N> (niter);
+    time_sort1<float,4,N> (niter);
+    time_sort1<double,2,N> (niter);
+#endif
+}
+
+
+void time_sort()
+{
+    time_sort2<2> (1 << 24);
+    time_sort2<3> (1 << 24);
+    time_sort2<4> (1 << 23);
+    time_sort2<5> (1 << 23);
+    time_sort2<6> (1 << 23);
+    time_sort2<7> (1 << 23);
+    time_sort2<8> (1 << 22);
+    time_sort2<9> (1 << 22);
+    time_sort2<10> (1 << 22);
+    time_sort2<11> (1 << 22);
+    time_sort2<12> (1 << 22);
+    time_sort2<13> (1 << 22);
+    time_sort2<14> (1 << 22);
+    time_sort2<15> (1 << 22);
+    time_sort2<16> (1 << 22);
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
+
 int main(int argc, char **argv)
 {
     warm_up_cpu();
     
     // time_downsample();
-    time_upsample();
+    // time_upsample();
+    time_sort();
     
     return 0;
 }

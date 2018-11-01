@@ -24,6 +24,13 @@ namespace simd_helpers {
 
 template<> struct simd_t<float,4>
 {
+    using scalar_type = float;
+    using iscalar_type = int;
+    using wrapped_type = __m128;
+
+    static constexpr int simd_size = 4;
+    static constexpr int total_size = 4;
+
     __m128 x;
 
     simd_t() { }
@@ -108,11 +115,18 @@ template<> struct simd_t<float,4>
 
     // "Equalizes" the float[4], by setting all 4 entries equal to the zeroth entry.
     inline simd_t<float,4> equalize() const { return _mm_permute_ps(x, 0x0); }
+
+    // Note that round() returns a floating-point simd type.  To convert to an integer type, see convert.hpp.
+    inline simd_t<float,4> round() const { return _mm_round_ps(x, _MM_FROUND_TO_NEAREST_INT); }
 };
 
 
 // blendv(mask,a,b) is morally equivalent to (mask ? a : b)
+// FIXME deprecated in favor of simd_if().
 inline simd_t<float,4> blendv(simd_t<int,4> mask, simd_t<float,4> a, simd_t<float,4> b)  { return _mm_blendv_ps(b.x, a.x, _mm_castsi128_ps(mask.x)); }
+
+// simd_if(mask, a, b) is morally equivalent to (mask ? a : b)
+inline simd_t<float,4> simd_if(simd_t<float,4> mask, simd_t<float,4> a, simd_t<float,4> b)  { return _mm_blendv_ps(b.x, a.x, mask.x); }
 
 
 // -------------------------------------------------------------------------------------------------
@@ -124,6 +138,13 @@ inline simd_t<float,4> blendv(simd_t<int,4> mask, simd_t<float,4> a, simd_t<floa
 
 template<> struct simd_t<float,8>
 {
+    using scalar_type = float;
+    using iscalar_type = int;
+    using wrapped_type = __m256;
+
+    static constexpr int simd_size = 8;
+    static constexpr int total_size = 8;
+
     __m256 x;
 
     simd_t() { }
@@ -214,11 +235,18 @@ template<> struct simd_t<float,8>
 
     // "Equalizes" the float[8], by setting all 8 entries equal to the zeroth entry.
     inline simd_t<float,8> equalize() const { return _mm256_permute_ps(_mm256_permute2f128_ps(x,x,0x0), 0x0); }
+
+    // Note that round() returns a floating-point simd type.  To convert to an integer type, see convert.hpp.
+    inline simd_t<float,8> round() const { return _mm256_round_ps(x, _MM_FROUND_TO_NEAREST_INT); }
 };
 
 
 // blendv(mask,a,b) is morally equivalent to (mask ? a : b)
+// FIXME deprecated in favor of simd_if().
 inline simd_t<float,8> blendv(simd_t<int,8> mask, simd_t<float,8> a, simd_t<float,8> b)  { return _mm256_blendv_ps(b.x, a.x, _mm256_castsi256_ps(mask.x)); }
+
+// simd_if(mask,a,b) is morally equivalent to (mask ? a : b)
+inline simd_t<float,8> simd_if(simd_t<float,8> mask, simd_t<float,8> a, simd_t<float,8> b)  { return _mm256_blendv_ps(b.x, a.x, mask.x); }
 
 
 #endif  // __AVX__

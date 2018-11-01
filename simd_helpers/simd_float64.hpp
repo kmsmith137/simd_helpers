@@ -24,6 +24,13 @@ namespace simd_helpers {
 
 template<> struct simd_t<double,2>
 {
+    using scalar_type = double;
+    using iscalar_type = int64_t;
+    using wrapped_type = __m128d;
+
+    static constexpr int simd_size = 2;
+    static constexpr int total_size = 2;
+
     __m128d x;
 
     simd_t() { }
@@ -47,6 +54,9 @@ template<> struct simd_t<double,2>
     inline simd_t<double,2> operator-(simd_t<double,2> t) const { return x - t.x; }
     inline simd_t<double,2> operator*(simd_t<double,2> t) const { return x * t.x; }
     inline simd_t<double,2> operator/(simd_t<double,2> t) const { return x / t.x; }
+    inline simd_t<double,2> operator&(simd_t<double,2> t) const { return _mm_and_pd(x, t.x); }
+    inline simd_t<double,2> operator|(simd_t<double,2> t) const { return _mm_or_pd(x, t.x); }
+    inline simd_t<double,2> operator^(simd_t<double,2> t) const { return _mm_xor_pd(x, t.x); }
 
     // Unary minus is implemented by flipping the sign bit    
     inline simd_t<double,2> operator-() const  { return _mm_xor_pd(_mm_set1_pd(-0.0), x); }
@@ -55,6 +65,16 @@ template<> struct simd_t<double,2>
     inline simd_t<double,2> &operator-=(simd_t<double,2> t) { x -= t.x; return *this; }
     inline simd_t<double,2> &operator*=(simd_t<double,2> t) { x *= t.x; return *this; }
     inline simd_t<double,2> &operator/=(simd_t<double,2> t) { x /= t.x; return *this; }
+    inline simd_t<double,2> &operator&=(simd_t<double,2> t) { x = _mm_and_pd(x, t.x); return *this; }
+    inline simd_t<double,2> &operator|=(simd_t<double,2> t) { x = _mm_or_pd(x, t.x); return *this; }
+    inline simd_t<double,2> &operator^=(simd_t<double,2> t) { x = _mm_xor_pd(x, t.x); return *this; }
+
+    inline simd_t<double,2> operator==(simd_t<double,2> t) const { return _mm_cmpeq_pd(x, t.x); }
+    inline simd_t<double,2> operator!=(simd_t<double,2> t) const { return _mm_cmpneq_pd(x, t.x); }
+    inline simd_t<double,2> operator>=(simd_t<double,2> t) const { return _mm_cmpge_pd(x, t.x); }
+    inline simd_t<double,2> operator>(simd_t<double,2> t) const  { return _mm_cmpgt_pd(x, t.x); }
+    inline simd_t<double,2> operator<=(simd_t<double,2> t) const { return _mm_cmple_pd(x, t.x); }
+    inline simd_t<double,2> operator<(simd_t<double,2> t) const  { return _mm_cmplt_pd(x, t.x); }
 
     // abs() is implemented by clearing the sign bit
     inline simd_t<double,2> abs() const   { return _mm_andnot_pd(_mm_set1_pd(-0.0), x); }
@@ -78,13 +98,20 @@ template<> struct simd_t<double,2>
 
     inline simd_t<double,2> apply_mask(simd_t<int64_t,2> t) const          { return _mm_and_pd(_mm_castsi128_pd(t.x), x); }
     inline simd_t<double,2> apply_inverse_mask(simd_t<int64_t,2> t) const  { return _mm_andnot_pd(_mm_castsi128_pd(t.x), x); }
+
+    // Note that round() returns a floating-point simd type.  To convert to an integer type, see convert.hpp.
+    inline simd_t<double,2> round() const { return _mm_round_pd(x, _MM_FROUND_TO_NEAREST_INT); }
 };
 
 template<> inline double simd_t<double,2>::extract<0>() const { return _mm_cvtsd_f64(x); }
 template<> inline double simd_t<double,2>::extract<1>() const { return _mm_cvtsd_f64(_mm_permute_pd(x,0x01)); }
 
 // blendv(mask,a,b) is morally equivalent to (mask ? a : b)
+// FIXME deprecated in favor of simd_if()
 inline simd_t<double,2> blendv(simd_t<int64_t,2> mask, simd_t<double,2> a, simd_t<double,2> b)  { return _mm_blendv_pd(b.x, a.x, _mm_castsi128_pd(mask.x)); }
+
+// simd_if(mask,a,b) is morally equivalent to (mask ? a : b)
+inline simd_t<double,2> simd_if(simd_t<double,2> mask, simd_t<double,2> a, simd_t<double,2> b)  { return _mm_blendv_pd(b.x, a.x, mask.x); }
 
 
 // -------------------------------------------------------------------------------------------------
@@ -96,6 +123,13 @@ inline simd_t<double,2> blendv(simd_t<int64_t,2> mask, simd_t<double,2> a, simd_
 
 template<> struct simd_t<double,4>
 {
+    using scalar_type = double;
+    using iscalar_type = int64_t;
+    using wrapped_type = __m256d;
+
+    static constexpr int simd_size = 4;
+    static constexpr int total_size = 4;
+
     __m256d x;
 
     simd_t() { }
@@ -130,6 +164,9 @@ template<> struct simd_t<double,4>
     inline simd_t<double,4> operator-(simd_t<double,4> t) const { return x - t.x; }
     inline simd_t<double,4> operator*(simd_t<double,4> t) const { return x * t.x; }
     inline simd_t<double,4> operator/(simd_t<double,4> t) const { return x / t.x; }
+    inline simd_t<double,4> operator&(simd_t<double,4> t) const { return _mm256_and_pd(x, t.x); }
+    inline simd_t<double,4> operator|(simd_t<double,4> t) const { return _mm256_or_pd(x, t.x); }
+    inline simd_t<double,4> operator^(simd_t<double,4> t) const { return _mm256_xor_pd(x, t.x); }
 
     // Unary minus is implemented by flipping the sign bit    
     inline simd_t<double,4> operator-() const  { return _mm256_xor_pd(_mm256_set1_pd(-0.0), x); }
@@ -138,6 +175,16 @@ template<> struct simd_t<double,4>
     inline simd_t<double,4> &operator-=(simd_t<double,4> t) { x -= t.x; return *this; }
     inline simd_t<double,4> &operator*=(simd_t<double,4> t) { x *= t.x; return *this; }
     inline simd_t<double,4> &operator/=(simd_t<double,4> t) { x /= t.x; return *this; }
+    inline simd_t<double,4> &operator&=(simd_t<double,4> t) { x = _mm256_and_pd(x, t.x); return *this; }
+    inline simd_t<double,4> &operator|=(simd_t<double,4> t) { x = _mm256_or_pd(x, t.x); return *this; }
+    inline simd_t<double,4> &operator^=(simd_t<double,4> t) { x = _mm256_xor_pd(x, t.x); return *this; }
+
+    inline simd_t<double,4> operator==(simd_t<double,4> t) const { return _mm256_cmp_pd(x, t.x, _CMP_EQ_OQ); }
+    inline simd_t<double,4> operator!=(simd_t<double,4> t) const { return _mm256_cmp_pd(x, t.x, _CMP_NEQ_OQ); }
+    inline simd_t<double,4> operator>=(simd_t<double,4> t) const { return _mm256_cmp_pd(x, t.x, _CMP_GE_OQ); }
+    inline simd_t<double,4> operator>(simd_t<double,4> t) const  { return _mm256_cmp_pd(x, t.x, _CMP_GT_OQ); }
+    inline simd_t<double,4> operator<=(simd_t<double,4> t) const { return _mm256_cmp_pd(x, t.x, _CMP_LE_OQ); }
+    inline simd_t<double,4> operator<(simd_t<double,4> t) const  { return _mm256_cmp_pd(x, t.x, _CMP_LT_OQ); }
 
     inline simd_t<double,4> abs() const   { return _mm256_andnot_pd(_mm256_set1_pd(-0.0), x); }
     inline simd_t<double,4> sqrt() const  { return _mm256_sqrt_pd(x); }
@@ -169,11 +216,18 @@ template<> struct simd_t<double,4>
 
     inline simd_t<double,4> apply_mask(simd_t<int64_t,4> t) const          { return _mm256_and_pd(_mm256_castsi256_pd(t.x), x); }
     inline simd_t<double,4> apply_inverse_mask(simd_t<int64_t,4> t) const  { return _mm256_andnot_pd(_mm256_castsi256_pd(t.x), x); }
+
+    // Note that round() returns a floating-point simd type.  To convert to an integer type, see convert.hpp.
+    inline simd_t<double,4> round() const  { return _mm256_round_pd(x, _MM_FROUND_TO_NEAREST_INT); }
 };
 
 
 // blendv(mask,a,b) is morally equivalent to (mask ? a : b)
+// FIXME deprecated in favor of simd_if()
 inline simd_t<double,4> blendv(simd_t<int64_t,4> mask, simd_t<double,4> a, simd_t<double,4> b)  { return _mm256_blendv_pd(b.x, a.x, _mm256_castsi256_pd(mask.x)); }
+
+// simd_if(mask,a,b) is morally equivalent to (mask ? a : b)
+inline simd_t<double,4> simd_if(simd_t<double,4> mask, simd_t<double,4> a, simd_t<double,4> b)  { return _mm256_blendv_pd(b.x, a.x, mask.x); }
 
 
 #endif

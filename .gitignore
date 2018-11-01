@@ -2,5 +2,13 @@
 *.o
 Makefile.local
 run-tests
+test-align
+test-convert
+test-median
+test-quantize
+test-sort
+test-special-functions
+test-transpose
+test-udsample
 time-kernels
-.touchfile_test
+.touchfile_*

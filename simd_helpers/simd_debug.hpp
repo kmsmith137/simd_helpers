@@ -24,10 +24,17 @@
 #include "simd_trimatrix.hpp"
 
 #include "align.hpp"
+#include "cast.hpp"
 #include "convert.hpp"
 #include "downsample.hpp"
+#include "quantize.hpp"
+#include "sort.hpp"
 #include "transpose.hpp"
 #include "upsample.hpp"
+
+#include "exp.hpp"
+#include "log.hpp"
+#include "log_add.hpp"
 
 #include "udsample.hpp"
 #include "downsample_max.hpp"
@@ -303,6 +310,10 @@ inline bool strictly_equal(simd_t<T,S> v, simd_t<T,S> w)
 //   std::random_device rd;
 //   std::mt19937 rng(rd());
 
+inline int simd_randint(std::mt19937 &rng, int lo, int hi)
+{
+    return std::uniform_int_distribution<>(lo,hi-1)(rng);   // note hi-1 here!
+}
 
 // The helper function
 //    T uniform_randvec(std::mt19937 &rng, T lo, T hi);

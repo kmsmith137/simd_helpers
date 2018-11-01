@@ -408,271 +408,6 @@ inline void test_horizontal_reducer(const char *name, std::mt19937 &rng, simd_t<
 
 
 // -------------------------------------------------------------------------------------------------
-//
-// void test_align<T,S>(rng)
-//    Tests all align() operations for a given (T,S)
-//
-// simd_t<T,S> align_slow(int A, simd_t<T,S> x, simd_t<T,S> y);
-//    Slow version of align() in which A is a function argument, not a template parameter.
-//
-// void align_slow(int A, simd_ntuple<T,S,N> &dst, const simd_ntuple<T,S,N> &x, const simd_ntuple<T,S,N> &src)
-//    Slow version of align() in which A is a function argument, not a template parameter.
-
-
-template<typename T, int S, int A1=S+1, typename std::enable_if<(A1==0),int>::type = 0>
-static simd_t<T,S> align_slow(int A, simd_t<T,S> x, simd_t<T,S> y)
-{
-    throw runtime_error("align_slow internal error");
-}
-
-template<typename T, int S, int A1=S+1, typename std::enable_if<(A1>0),int>::type = 0>
-static simd_t<T,S> align_slow(int A, simd_t<T,S> x, simd_t<T,S> y)
-{
-    return (A == A1-1) ? (align<A1-1>(x,y)) : align_slow<T,S,A1-1>(A,x,y);
-}
-
-
-template<typename T, int S, int N, int A1=S+1, typename std::enable_if<(A1==0),int>::type = 0>
-static void align_slow(int A, simd_ntuple<T,S,N> &dst, const simd_ntuple<T,S,N> &x, const simd_ntuple<T,S,N> &y)
-{
-    throw runtime_error("align_slow internal error");
-}
-
-template<typename T, int S, int N, int A1=S+1, typename std::enable_if<(A1>0),int>::type = 0>
-static void align_slow(int A, simd_ntuple<T,S,N> &dst, const simd_ntuple<T,S,N> &x, const simd_ntuple<T,S,N> &y)
-{
-    if (A == A1-1)
-	align<A1-1> (dst, x, y);
-    else
-	align_slow<T,S,N,A1-1> (A, dst, x, y);
-}
-
-
-template<typename T, int S, int N>
-static void test_align_ntuple(std::mt19937 &rng)
-{
-    for (int A = 0; A <= S; A++) {
-	simd_ntuple<T,S,N> x = uniform_random_simd_ntuple<T,S,N> (rng, 0, 100);
-	simd_ntuple<T,S,N> y = uniform_random_simd_ntuple<T,S,N> (rng, 0, 100);
-
-	simd_ntuple<T,S,N> t;
-	align_slow(A, t, x, y);
-
-	vector<T> vx = vectorize(x);
-	vector<T> vy = vectorize(y);
-	vector<T> vt = vectorize(t);
-
-	for (int i = 0; i < N; i++) {
-	    for (int s = 0; s < S; s++) {
-		T u = vt[i*S+s];
-		T v = (s+A < S) ? vx[i*S+(s+A)] : vy[i*S+(s+A-S)];
-		assert(u == v);
-	    }
-	}
-    }
-}
-
-
-template<typename T, int S>
-static void test_align(std::mt19937 &rng)
-{
-    for (int A = 0; A <= S; A++) {
-	simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, 0, 100);
-	simd_t<T,S> y = uniform_random_simd_t<T,S> (rng, 0, 100);
-	simd_t<T,S> t = align_slow(A, x, y);
-
-	vector<T> vx = vectorize(x);
-	vector<T> vy = vectorize(y);
-	vector<T> vt = vectorize(t);
-
-	for (int s = 0; s < S; s++) {
-	    T u = vt[s];
-	    T v = (s+A < S) ? vx[s+A] : vy[s+A-S];
-	    assert(u == v);
-	}
-    }
-
-    test_align_ntuple<T,S,1> (rng);
-    test_align_ntuple<T,S,2> (rng);
-    test_align_ntuple<T,S,3> (rng);
-    test_align_ntuple<T,S,4> (rng);
-}
-
-
-// -------------------------------------------------------------------------------------------------
-
-
-// convert(simd_t<T,S> &dst, simd_t<T2,S> src)
-template<typename T, typename T2, int S>
-static void test_convert(std::mt19937 &rng)
-{
-    const double epsilon = 2000. * max<double> (machine_epsilon<T>(), machine_epsilon<T2>());
-
-    simd_t<T,S> dst;
-    simd_t<T2,S> src = uniform_random_simd_t<T2,S> (rng, -1000, 1000);
-
-    convert(dst, src);
-
-    for (int s = 0; s < S; s++) {
-	if (std::abs(extract_slow(dst,s) - extract_slow(src,s)) <= epsilon)
-	    continue;
-
-	cerr << "test_convert() failed: simd_t<" << type_name<T2>() << "," << S << ">"
-	     << " -> simd_t<" << type_name<T>() << "," << S << ">\n"
-	     << "   input: " << src << "\n"
-	     << "   output: " << dst << "\n";
-
-	exit(1);
-    }
-}
-
-
-// convert(simd_ntuple<T,S,N> &dst, simd_t<T2,S*N> src)
-template<typename T, typename T2, int S, int N>
-inline void test_upconvert(std::mt19937 &rng)
-{
-    const double epsilon = 2000. * max<double> (machine_epsilon<T>(), machine_epsilon<T2>());
-
-    simd_ntuple<T,S,N> dst;
-    simd_t<T2,S*N> src = uniform_random_simd_t<T2,S*N> (rng, -1000, 1000);
-
-    convert(dst, src);
-
-    for (int n = 0; n < N; n++) {
-	for (int s = 0; s < S; s++) {
-	    if (std::abs(extract_slow(dst,n,s) - extract_slow(src,n*S+s)) <= epsilon)
-		continue;
-
-	    cerr << "test_upconvert() failed: simd_t<" << type_name<T2>() << "," << S << ">"
-		 << " -> simd_ntuple<" << type_name<T>() << "," << S << "," << N << ">\n"
-		 << "   input: " << src << "\n"
-		 << "   output: " << dst << "\n";
-	    
-	    exit(1);
-	}
-    }
-}
-
-
-// convert(simd_t<T,S*N> &dst, simd_ntuple<T2,S,N> src)
-template<typename T, typename T2, int S, int N>
-inline void test_downconvert(std::mt19937 &rng)
-{
-    const double epsilon = 2000. * max<double> (machine_epsilon<T>(), machine_epsilon<T2>());
-
-    simd_t<T,S*N> dst;
-    simd_ntuple<T2,S,N> src = uniform_random_simd_ntuple<T2,S,N> (rng, -1000, 1000);
-
-    convert(dst, src);
-
-    for (int n = 0; n < N; n++) {
-	for (int s = 0; s < S; s++) {
-	    if (std::abs(extract_slow(dst,n*S+s) - extract_slow(src,n,s)) <= epsilon)
-		continue;
-
-	    cerr << "test_downconvert() failed: simd_ntuple<" << type_name<T2>() << "," << S << "," << N << ">"
-		 << " -> simd_t<" << type_name<T>() << "," << (S*N) << ">\n"
-		 << "   input: " << src << "\n"
-		 << "   output: " << dst << "\n";
-	    
-	    exit(1);
-	}
-    }
-}
-
-
-// -------------------------------------------------------------------------------------------------
-//
-// Upsample/downsample
-
-
-template<typename T>
-static vector<T> reference_downsample(const vector<T> &v, int N, std::function<T(T,T)> op)
-{
-    assert(N > 0);
-    assert(v.size() > 0);
-    assert(v.size() % N == 0);
-
-    int m = v.size() / N;
-    vector<T> ret(m, 0);
-
-    for (int i = 0; i < m; i++) {
-	ret[i] = v[i*N];
-	for (int j = 1; j < N; j++)
-	    ret[i] = op(ret[i], v[i*N+j]);
-    }
-
-    return ret;
-}
-
-template<typename T>
-static vector<T> reference_upsample(const vector<T> &v, int N)
-{
-    assert(N > 0);
-    assert(v.size() > 0);
-
-    vector<T> ret(v.size()*N, 0);
-
-    for (unsigned int i = 0; i < v.size(); i++)
-	for (int j = 0; j < N; j++)
-	    ret[i*N+j] = v[i];
-    
-    return ret;
-}
-
-
-template<typename T, int S, int N, typename Op = simd_add<T,S> >
-static void test_downsample(std::mt19937 &rng, std::function<T(T,T)> op, const char *op_name)
-{
-    // Factor 3000 is because the inputs go up to 100.
-    const double epsilon0 = 3000. * machine_epsilon<T>();
-
-    simd_ntuple<T,S,N> x = uniform_random_simd_ntuple<T,S,N> (rng, 0, 100);
-    simd_t<T,S> y = simd_downsample<T,S,Op> (x);
-    vector<T> d = vectorize(y);
-
-    vector<T> refd = reference_downsample(vectorize(x), N, op);
-    double epsilon = maxdiff(d, refd);
-    
-    if (epsilon > epsilon0) {
-	cerr << "test_downsample(" << type_name<T>() << "," << S << "," << N << "," << op_name << ") failed: "
-	     << " epsilon=" << epsilon << ", epsilon0=" << epsilon0 << endl;
-	exit(1);
-    }
-}
-
-
-template<typename T, int S, int N>
-static void test_upsample(std::mt19937 &rng)
-{
-    simd_t<T,S> x = uniform_random_simd_t<T,S> (rng, 0, 100);
-
-    simd_ntuple<T,S,N> y;
-    simd_upsample(y, x);
-
-    assert(strictly_equal(vectorize(y), reference_upsample(vectorize(x),N)));
-}
-
-
-// Tests all upsample/downsample ops for a given (S,N)
-template<int S, int N>
-static void test_udsample(std::mt19937 &rng)
-{
-    test_upsample<int,S,N> (rng);
-    test_upsample<float,S,N> (rng);
-
-    test_downsample<int,S,N> (rng, [](int x, int y) { return x+y; }, "+");
-    test_downsample<float,S,N> (rng, [](float x, float y) { return x+y; }, "+");
-
-    test_downsample<int,S,N,simd_max<int,S>> (rng, [](int x, int y) { return max(x,y); }, "max");
-    test_downsample<float,S,N,simd_max<float,S>> (rng, [](float x, float y) { return max(x,y); }, "max");
-    
-    test_downsample<int,S,N,simd_bitwise_or<int,S>> (rng, [](int x, int y) { return x|y; }, "|");
-}
-
-
-// -------------------------------------------------------------------------------------------------
-
 
 
 template<typename T>
@@ -742,79 +477,6 @@ static vector<T> reference_multiply_symmetric(const vector<T> &mat, const vector
     }
 
     return ret;
-}
-
-
-// -------------------------------------------------------------------------------------------------
-
-
-template<typename T>
-void reference_transpose(T *dst, const T *src, int S, int N)
-{
-    // Number of spectator indices
-    int M = S/N;
-
-    // Shape: (N,M,N)
-    for (int i = 0; i < N; i++)
-	for (int j = 0; j < M; j++)
-	    for (int k = 0; k < N; k++)
-		dst[i*M*N+j*N+k] = src[k*M*N+j*N+i];
-}
-
-
-template<typename T>
-void reference_btranspose(T *dst, const T *src, int S, int N)
-{
-    // Number of spectator indices
-    int M = S/N;
-
-    // Shape: (N,N,M)
-    for (int i = 0; i < N; i++)
-	for (int j = 0; j < N; j++)
-	    for (int k = 0; k < M; k++)
-		dst[i*M*N+j*M+k] = src[j*M*N+i*M+k];
-}
-
-
-template<typename T, int S, int N>
-void test_transpose(std::mt19937 &rng)
-{
-    vector<T> src = uniform_randvec<T> (rng, S*N, 0, 1000000);
-    vector<T> dst1(S*N);
-    vector<T> dst2(S*N);
-
-    simd_ntuple<T,S,N> t;
-    t.loadu(&src[0]);
-    simd_transpose(t);
-    t.storeu(&dst1[0]);
-
-    reference_transpose(&dst2[0], &src[0], S, N);
-
-    if (!strictly_equal(S*N, &dst1[0], &dst2[0])) {
-	cerr << "test_transpose(T=" << type_name<T>() << ",S=" << S << ",N=" << N << ") failed\n";
-	exit(1);
-    }
-}
-
-
-template<typename T, int S, int N>
-void test_btranspose(std::mt19937 &rng)
-{
-    vector<T> src = uniform_randvec<T> (rng, S*N, 0, 1000000);
-    vector<T> dst1(S*N);
-    vector<T> dst2(S*N);
-
-    simd_ntuple<T,S,N> t;
-    t.loadu(&src[0]);
-    simd_btranspose(t);
-    t.storeu(&dst1[0]);
-
-    reference_btranspose(&dst2[0], &src[0], S, N);
-
-    if (!strictly_equal(S*N, &dst1[0], &dst2[0])) {
-	cerr << "test_btranspose(T=" << type_name<T>() << ",S=" << S << ",N=" << N << ") failed\n";
-	exit(1);
-    }
 }
 
 
@@ -975,7 +637,6 @@ inline void test_TS(std::mt19937 &rng)
 {
     test_basics<T,S>(rng);
     test_constructors<T,S>(rng);
-    test_align<T,S>(rng);
 
     test_compound_assignment_operator<T,S> ("+=", rng, 
 					    [](simd_t<T,S> &x, simd_t<T,S> y) { x += y; }, 
@@ -1109,31 +770,65 @@ inline void test_integer_TS(std::mt19937 &rng)
     test_is_all_zeros_masked<T,S> (rng);
     test_is_all_zeros_inverse_masked<T,S> (rng);
 
-
-    test_binary_operator<T,S> ("bitwise_and", rng, 
-			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_and(y); }, 
+    test_binary_operator<T,S> ("&", rng, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x & y; }, 
 			       [](T x, T y) { return x & y; },
 			       -100, 100, -100, 100, 0);
 
-    test_binary_operator<T,S> ("bitwise_or", rng, 
-			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_or(y); }, 
+    test_binary_operator<T,S> ("|", rng, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x | y; }, 
 			       [](T x, T y) { return x | y; },
 			       -100, 100, -100, 100, 0);
 
-    test_binary_operator<T,S> ("bitwise_xor", rng, 
-			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_xor(y); }, 
+    test_binary_operator<T,S> ("^", rng, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x ^ y; }, 
 			       [](T x, T y) { return x ^ y; },
 			       -100, 100, -100, 100, 0);
 
+    test_binary_operator<T,S> ("<<", rng, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x << y; }, 
+			       [](T x, T y) { return x << y; },
+			       0, 100, 0, 10, 0);
+
+    test_binary_operator<T,S> (">>", rng, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x >> y; }, 
+			       [](T x, T y) { return x >> y; },
+			       0, 10000000, 0, 10, 0);
+
     test_binary_operator<T,S> ("bitwise_andnot", rng, 
-			       [] (simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_andnot(y); }, 
+			       [](simd_t<T,S> x, simd_t<T,S> y) { return x.bitwise_andnot(y); }, 
 			       [](T x, T y) { return x & ~y; },
 			       -100, 100, -100, 100, 0);
 
-    test_unary_operation<T,S> ("bitwise_not", rng,
+    test_unary_operation<T,S> ("~", rng,
 			       [](simd_t<T,S> x) { return x.bitwise_not(); },
 			       [](T t) { return ~t; },
 			       -100, 100, 0);
+
+    test_compound_assignment_operator<T,S> ("&=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x &= y; }, 
+					    [](T &x, T y) { x &= y; },
+					    -100, 100, -100, 100, 0);
+
+    test_compound_assignment_operator<T,S> ("|=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x |= y; }, 
+					    [](T &x, T y) { x |= y; },
+					    -100, 100, -100, 100, 0);
+
+    test_compound_assignment_operator<T,S> ("^=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x ^= y; }, 
+					    [](T &x, T y) { x ^= y; },
+					    -100, 100, -100, 100, 0);
+
+    test_compound_assignment_operator<T,S> ("<<=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x <<= y; }, 
+					    [](T &x, T y) { x <<= y; },
+					    0, 100, 0, 10, 0);
+
+    test_compound_assignment_operator<T,S> (">>=", rng, 
+					    [](simd_t<T,S> &x, simd_t<T,S> y) { x >>= y; }, 
+					    [](T &x, T y) { x >>= y; },
+					    0, 10000000, 0, 10, 0);
 }
 
 
@@ -1168,28 +863,9 @@ inline void test_all(std::mt19937 &rng)
     test_floating_point_T<float> (rng);
     test_floating_point_T<double> (rng);
 
-    test_udsample<4,2> (rng);
-    test_udsample<4,4> (rng);
-
 #ifdef __AVX__
-    test_convert<float,double,4> (rng);
-    test_convert<double,float,4> (rng);
-    test_upconvert<double,float,4,2> (rng);
-    test_downconvert<float,double,4,2> (rng);
-    
-    test_udsample<8,2> (rng);
-    test_udsample<8,4> (rng);
-    test_udsample<8,8> (rng);
-
     test_linear_algebra_kernels<float,8> (rng);
     test_linear_algebra_kernels<double,4> (rng);
-#endif
-
-#ifdef __AVX2__
-    // FIXME transpose kernels currently assume AVX2
-    test_transpose<float,8,4> (rng);
-    test_transpose<float,8,8> (rng);
-    test_btranspose<float,8,2> (rng);
 #endif
 
     test_linear_algebra_kernels<float,4> (rng);

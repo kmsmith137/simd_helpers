@@ -46,6 +46,15 @@ namespace simd_helpers {
 // To get some useful debugging stuff, e.g. print routines, do #include <simd_helpers/simd_debug.hpp>
 
 
+// simd_size<T>() returns the size (in units sizeof(T)) of a SIMD register containing type T.
+
+#ifdef __AVX__
+template<typename T> constexpr int simd_size() { return 32 / sizeof(T); }
+#else
+template<typename T> constexpr int simd_size() { return 16 / sizeof(T); }
+#endif
+
+
 // This basic class is used everywhere!
 // See extended comment below for more info.
 template<typename T, int S> struct simd_t;
@@ -99,6 +108,8 @@ template<typename T, int S, int N> struct simd_trimatrix;
 // These two blocks define mask types, which are returned by comparison operators.
 //    smask_t<T> = scalar mask type (signed integer type with same size as T)
 //    smask_t<T,S> = simd mask type (same as simd_t<smask_t<T>,S>)
+//
+// FIXME deprecated, use simd_t<T,S>::iscalar_type instead.
 
 template<typename T, int S> struct _smask_t { using type = simd_t<typename _smask_t<T,1>::type,S>; };
 template<typename T, int S=1> using smask_t = typename _smask_t<T,S>::type;

@@ -1,5 +1,20 @@
 - Needs a lot more documentation!  (some example .cpp files would help a lot)
 
+- High priority: systematic unit test of every kernel and inline operator!
+
+- I haven't tested on old machines in a long time!
+
+- Phase out smask_t in favor of simd_t<T,S>::iscalar_tpe.  (Also smask_ntuple.)
+
+- Phase out blendv() in favor of simd_if().
+
+- Phase out align() in favor of simd_align().
+
+- Double <-> int64_t conversions silently fail before ~2^52 or so, but not obvious
+  how to fix this (see FIXME in convert.hpp.)
+
+- Unit test simd_t<T,S>::round().  Should also understand x86 "rounding mode".
+
 - Aligned/streaming load/store flags will be implemented soon!
   It might be useful to move my memory bandwidth profiling code to this github repo.
 
@@ -12,12 +27,18 @@
 
 - Horizontal reducing min/max.  (Needed soon for bonsai)
 
-- Random loose end: scalar-vector ops, e.g. (T * simd_t<T,S>), are not currently unit tested.
+- Is there a way to use Intel SVML?  (https://software.intel.com/en-us/node/524289)
+
+- Most exp/log type operations are still unimplemented.
+
+- Hmm, I think my two versions of operator>> are slightly inconsistent... what a pain!
 
 - I think more syntactic sugar would be nice.
-  Random example: min(x,y) can be a synonym for x.min(y)
+  Random example: simd_min(x,y) can be a synonym for x.min(y)
 
 - The _vertical_dot() type routines are confusing and could be improved.
+
+- Low-priority: define 'struct simd_ntuple_align_helper'.
 
 - Not all upsampling/downsampling kernels have been implemented.  So far we only have
      - upsampling: float32, int32
@@ -48,6 +69,3 @@
 - Lots more integer types are possible (int8, uint8, int16, uint16, uint32, uint64)
 
 - In spite of the number of lines of boilerplate here, there is a lot missing when compared to the intel manuals!
-
-- I currently assume the AVX instruction set.  This restriction could be removed, but not sure if it's worth the effort!
-

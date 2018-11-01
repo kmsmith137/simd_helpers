@@ -25,6 +25,12 @@ using smask_ntuple = simd_ntuple<smask_t<T>,S,N>;
 template<typename T, int S, int N>
 struct simd_ntuple
 {
+    using scalar_type = T;
+    using iscalar_type = typename simd_t<T,S>::iscalar_type;
+
+    static constexpr int simd_size = S;
+    static constexpr int total_size = S*N;
+
     simd_ntuple<T,S,N-1> v;
     simd_t<T,S> x;
 
@@ -139,6 +145,12 @@ struct simd_ntuple
 template<typename T, int S> 
 struct simd_ntuple<T,S,0> 
 { 
+    using scalar_type = T;
+    using iscalar_type = typename simd_t<T,S>::iscalar_type;
+
+    static constexpr int simd_size = S;
+    static constexpr int total_size = 0;
+
     inline void setzero() { }
     inline void loadu(const T *p) { }
     inline void storeu(T *p) const { }
