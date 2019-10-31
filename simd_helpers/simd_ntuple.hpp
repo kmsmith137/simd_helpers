@@ -57,6 +57,13 @@ struct simd_ntuple
 	x.storeu(p+(N-1)*S);
     }
 
+    template<int M>
+    inline void vextract(T *p) const
+    {
+        v.template vextract<M>(p);
+        p[N-1] = x.template extract<M>();
+    }
+
     template<int M, typename std::enable_if<(M == N-1),int>::type = 0>
     inline simd_t<T,S> extract() const { return x; }
 
@@ -154,6 +161,9 @@ struct simd_ntuple<T,S,0>
     inline void setzero() { }
     inline void loadu(const T *p) { }
     inline void storeu(T *p) const { }
+
+    template<int M>
+    inline void vextract(T *p) const { }
 
     inline simd_ntuple<T,S,0> &operator+=(const simd_ntuple<T,S,0> &t) { return *this; }
     inline simd_ntuple<T,S,0> &operator-=(const simd_ntuple<T,S,0> &t) { return *this; }
