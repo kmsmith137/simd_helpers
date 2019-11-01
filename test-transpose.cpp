@@ -1,3 +1,5 @@
+#include <iostream>
+#include <iomanip>
 #include "simd_helpers/simd_debug.hpp"
 
 using namespace std;
@@ -27,7 +29,7 @@ static void show_2d(const string &label, int N, int S, const T *arr)
 
     for (int i = 0; i < N; i++) {
 	for (int j = 0; j < S; j++)
-	    cout << " " << arr[i*S+j];
+	    cout << " " << std::setw(3) << arr[i*S+j];
 	cout << "\n";
     }
 }
@@ -71,7 +73,6 @@ static void test_transpose(std::mt19937 &rng)
     }
 }
 
-
 int main(int argc, char **argv)
 {
 #ifdef __AVX2__
@@ -87,9 +88,37 @@ int main(int argc, char **argv)
 	test_transpose<float,8,8,1> (rng);
     }
     cout << "test-transpose: all tests passed\n";
+
 #else
     cout << "Transpose kernels are only implemented for AVX2, nothing to do!\n";
 #endif
+
+    // test vextract_all
+    const int n=3;
+    const int s=8;
+    float arr[n*s];
+    float outarr[n*s];
+    range_2d(n, s, arr);
+    //show_2d("arr", n, s, arr);
+    simd_ntuple<float,s,n> t;
+    t.loadu(arr);
+    for (int i=0; i<n*s; i++)
+        outarr[i] = -42.0;
+    t.vextract_all(outarr);
+    //show_2d("vextract_all", s, n, outarr);
+    for (int i=0; i<n; i++)
+        for (int j=0; j<s; j++)
+            if (outarr[j*n + i] != arr[i*s + j])
+                cerr << "test_transpose<" << "," << s << "," << n << "," << "> vextract_all failed\n";
+    float vec[n];
+    const int j = 2;
+    for (int i=0; i<n; i++)
+        vec[i] = -42.0;
+    t.template vextract<j>(vec);
+    for (int i=0; i<n; i++)
+        if (vec[i] != arr[i*s + j])
+            cerr << "test_transpose<" << "," << s << "," << n << "," << "> vextract failed\n";
+    //show_2d("vec", 1, n, vec);
 
     return 0;
 }
