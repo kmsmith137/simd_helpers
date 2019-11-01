@@ -57,6 +57,32 @@ struct simd_ntuple
 	x.storeu(p+(N-1)*S);
     }
 
+    template<int M>
+    inline void vextract(T *p) const
+    {
+        v.template vextract<M>(p);
+        p[N-1] = x.template extract<M>();
+    }
+
+    // internal, used by vextract_all
+    template<int M,
+             typename std::enable_if<(M == 0),int>::type = 0>
+    inline void _vextract_n(T *p) const {
+        vextract<0>(p);
+    }
+    template<int M,
+             typename std::enable_if<(M > 0) && (M < S),int>::type = 0>
+    inline void _vextract_n(T *p) const {
+        _vextract_n<M-1>(p);
+        vextract<M>(p + N*M);
+    }
+
+    // Equivalent to a storeu followed by a transpose
+    inline void vextract_all(T *p) const
+    {
+        _vextract_n<S-1>(p);
+    }
+
     template<int M, typename std::enable_if<(M == N-1),int>::type = 0>
     inline simd_t<T,S> extract() const { return x; }
 
@@ -154,6 +180,11 @@ struct simd_ntuple<T,S,0>
     inline void setzero() { }
     inline void loadu(const T *p) { }
     inline void storeu(T *p) const { }
+
+    template<int M>
+    inline void vextract(T *p) const { }
+
+    inline void vextract_all(T *p) const { }
 
     inline simd_ntuple<T,S,0> &operator+=(const simd_ntuple<T,S,0> &t) { return *this; }
     inline simd_ntuple<T,S,0> &operator-=(const simd_ntuple<T,S,0> &t) { return *this; }
