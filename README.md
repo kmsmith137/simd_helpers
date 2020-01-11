@@ -11,29 +11,13 @@ Authors:
 
 Compilation instructions:
 ```
-# First you need to create a file Makefile.local, which defines Makefile variables
-#   INCDIR   install dir for C++ headers
-#   CPP      c++ compiler command line (should probably include flags -std=c++11 -O3 -march=native)
-#
-# You can probably just symlink Makefile.local to one of the following:
-#   site/Makefile.local.norootprivs     (specifies INCDIR=$HOME/include)
-#   site/Makefile.local.rootprivs       (specifies INCDIR=/usr/local/include)
-
-# Assuming you're not installing as root
-ln -s site/Makefile.local.norootprivs Makefile.local
+./configure --prefix=$HOME
 
 make test      # optional but recommended
-make install   # Installs .hpp files to $(INCDIR)
+make install   # installs .hpp files to $(HOME)/include
 ```
 
-**Note 1**: To use the simd_helpers library, you always need to compile with `-march=native`,
-  otherwise compilation will fail with a long list of errors.
-
-  If you're using gcc, I find that the flag `--param inline-unit-growth=10000` sometimes helps.
-  This allows more aggressive inlining.  (Example: the CHIME FRB search pipeline runs significantly
-  faster with this flag.)
-
-**Note 2**: You may find that compilation fails, with the error message below, followed by a very long
+**Note**: You may find that compilation fails, with the error message below, followed by a very long
   list of compiler errors.
   ```
   Either you're compiling on an old machine, or you forgot the -march=native compiler flag.  
