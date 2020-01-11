@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+
+hpp_files = [
+    'simd_helpers.hpp',
+    'simd_helpers/core.hpp',
+    'simd_helpers/simd_int32.hpp',
+    'simd_helpers/simd_int64.hpp',
+    'simd_helpers/simd_float16.hpp',
+    'simd_helpers/simd_float32.hpp',
+    'simd_helpers/simd_float64.hpp',
+    'simd_helpers/simd_ntuple.hpp',
+    'simd_helpers/simd_trimatrix.hpp',
+    'simd_helpers/simd_debug.hpp',
+    'simd_helpers/align.hpp',
+    'simd_helpers/cast.hpp',
+    'simd_helpers/convert.hpp',
+    'simd_helpers/downsample.hpp',
+    'simd_helpers/exp.hpp',
+    'simd_helpers/log.hpp',
+    'simd_helpers/log_add.hpp',
+    'simd_helpers/median.hpp',
+    'simd_helpers/quantize.hpp',
+    'simd_helpers/sort.hpp',
+    'simd_helpers/transpose.hpp',
+    'simd_helpers/upsample.hpp',
+    'simd_helpers/udsample.hpp',
+    'simd_helpers/downsample_max.hpp',
+    'simd_helpers/downsample_bitwise_or.hpp'
+]
+
+cpp_unit_tests = [
+    'run-tests.cpp',
+    'test-align.cpp',
+    'test-convert.cpp',
+    'test-median.cpp',
+    'test-quantize.cpp',
+    'test-sort.cpp',
+    'test-special-functions.cpp',
+    'test-transpose.cpp',
+    'test-udsample.cpp'
+]
+
+cpp_timing_programs = [
+    'time-kernels.cpp'
+]
+
+
+####################################################################################################
+
+
+import build_helpers
+
+# If called recursively in superbuild, a global persistent ConfigureScript will be returned.
+cs = build_helpers.get_global_configure_script()
+
+# Prerequisites.
+cs.configure_install_directories(bin=False, inc=True, lib=False, py=False)
+cs.configure_cpp('-std=c++11 -fPIC -Wall -Wno-strict-aliasing -O3 -march=native -ffast-math -funroll-loops --param inline-unit-growth=10000')
+
+# Install .hpp header files.
+cs.install_cpp_headers(hpp_files)
+
+# Unit tests.
+for cpp_filename in cpp_unit_tests:
+    cs.make_binary(sources=[cpp_filename], test=True, install=False)
+
+# Timing executables.
+for cpp_filename in cpp_timing_programs:
+    cs.make_binary(sources=[cpp_filename], test=False, install=False)
+
+# If called recursively in superbuild, write_output_files() will not be called here.
+if __name__ == '__main__':
+    cs.write_output_files()
