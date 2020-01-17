@@ -53,7 +53,7 @@ import build_helpers
 # If called recursively in superbuild, a global persistent ConfigureScript will be returned.
 cs = build_helpers.get_global_configure_script()
 cs.configure_install_directories(bin=False, inc=True, lib=False, py=False)
-cs.configure_cpp('-std=c++11 -fPIC -Wall -Wno-strict-aliasing -O3 -march=native -ffast-math -funroll-loops --param inline-unit-growth=10000')
+cs.configure_cpp('-fPIC -Wall -Wno-strict-aliasing -O3 -march=native -ffast-math -funroll-loops --param inline-unit-growth=10000')
 
 # Install .hpp header files.
 cs.install_cpp_headers(hpp_files)
