@@ -11,6 +11,7 @@
 
 #define SIMD_HELPERS_VERSION 5
 
+#include <cstdint>
 #include <type_traits>
 #include "immintrin.h"
 
